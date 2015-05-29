@@ -3,29 +3,11 @@
 %\usepackage{cite}
 
 % correct bad hyphenation here
-\hyphenation{op-tical net-works semi-conduc-tor}
-
+\hyphenation{}
 
 \begin{document}
 
-\title{Our SCAM paper}
-
-\author{\IEEEauthorblockN{Michael Shell}
-\IEEEauthorblockA{School of Electrical and\\Computer Engineering\\
-Georgia Institute of Technology\\
-Atlanta, Georgia 30332--0250\\
-Email: http://www.michaelshell.org/contact.html}
-\and
-\IEEEauthorblockN{Homer Simpson}
-\IEEEauthorblockA{Twentieth Century Fox\\
-Springfield, USA\\
-Email: homer@thesimpsons.com}
-\and
-\IEEEauthorblockN{James Kirk\\ and Montgomery Scott}
-\IEEEauthorblockA{Starfleet Academy\\
-San Francisco, California 96678-2391\\
-Telephone: (800) 555--1212\\
-Fax: (888) 555--1212}}
+\title{The Grammar of Spreadsheets}
 
 \maketitle
 
@@ -38,15 +20,70 @@ The abstract goes here.
 \IEEEpeerreviewmaketitle
 
 
-
 \section{Introduction}
 
-\subsection{Subsection Heading Here}
-Subsection text here.
+spreadsheets as programming:
+- cell calculation chains as lines of code - size, example
+- avg lines of code per spreadsheet in the enron dataset
 
-\subsubsection{Subsubsection Heading Here}
-Subsubsection text here.
+motivation: why we need a defined grammar
+- parsing spreadsheet formulas, analysis, extracting metrics, finding smells, exploring the structure of spreadsheets
+- refer to papers needing/referring to a simple grammar
+- benefit of a simple grammar and documentation for spreadsheet users
+- to explore/uncover smelly syntactical constructs that are within the grammar coverage
 
+challenges:
+- official grammar for Excel not defined. Only through datasets analysis can we discover all the possible ways eg to 
+express a reference, partly because excel is very forgiving
+- grammar changes with different Excel versions, eg regular expressions support, labels in formulas now expanded to cell references
+
+our approach:
+development of grammar starting from previous work (reference to simple grammar) and analyzing the two datasets, enriching the
+grammar to support everything
+
+\section{Spreadsheet Formula Grammar}
+
+\subsection{Lexical analysis}
+terminals/lexical tokens, table with 
+Token|Informal description of pattern|Regular expression(?)|Example lexemes
+
+\subsection{Syntax analysis}
+non-terminal production rules
+EBNF
+syntax/railroad diagrams
+% see \usepackage[rounded]{syntax}
+
+\section{Grammar discussion / coverage / notable cases}
+
+References
+- [1]!Hub\_Consolidation
+- Functions returning references (INDEX|OFFSET|INDIRECT|???) SUM(A1:INDEX(A:A,1,1:1))
+- External UDFs RIGHT([1]!SheetName(),(LEN([1]!SheetName())-20))
+- Prefixed right limits =SUM(Deals!F9:'Deals'!F16)
+- This thing we do not know what it is =BLP|M!'INDU Index,[PX\_close\_5d]'
+
+Array formulas
+- IF(OR(MONTH(GQ2) = {3,9}), IF(ABS(SUM(GQ223) - GQ225)>0.001,1,0), 0)
+
+Arrays used as arguments
+- LARGE((F38,C38),1)
+
+Reserved names
+- Add-in functions C9*\_xll.HEAT(B9,C9)
+- \_xlnm.* =SUMIF('150000'!A:A,\_xlnm.Print\_Titles,'150000'!C:C)
+
+Smelly grammar constructs + how often they are used
+- Implicit intersect operator =COUNT(A1:A10˽A1:A5)
+- Complex ranges =SUM(I8:namedRange:M8)
+- Combinations of the above SUM((Total\_Cost Jan):(Total\_Cost Apr.))
+
+\section{Limitations}
+Grammar for Excel version ???
+Not covering array formulas (?), pivot tables(?)
+
+\section{Comparison against the LibreOffice grammar}
+
+\section{Related work}
 
 \section{Conclusion}
 The conclusion goes here.

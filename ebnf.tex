@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage[rounded]{syntax}
+\usepackage{url}
+
+\title{EBNF Grammar and Syntax Diagram}
+\author{Shucai Yao \and Emil Sekerinski}
+\date{January 2013}
+	
+\begin{document}
+\maketitle
+
+\noindent Example from Chapter 2, EBNF, using \url{http://www.ctan.org/pkg/mdwtools}; this package typically comes with \LaTeX. It can also be used to pretty-print grammars and to combine grammars with syntax diagrams.
+
+\begin{grammar}
+<expression> ::= ['$+$' | '$-$'] <term> \{('$+$' | '$-$' ) <term>\}
+
+<term> ::= <factor> \{('$*$' | '$/$') <factor>\}
+
+<factor> ::= "number" | <identifier>  | '(' <expression> ')'
+\end{grammar}
+
+
+\begin{syntdiag}
+\begin{stack}\\'$+$'\\'$-$'\end{stack}\begin{rep} <term>\\ \begin{stack}'$+$'\\'$-$'\end{stack}\end{rep}
+\end{syntdiag}
+
+\begin{syntdiag}
+\begin{rep} <factor>\\ \begin{stack}'$*$'\\'$/$'\end{stack}\end{rep}
+\end{syntdiag} 
+
+\begin{syntdiag} 
+\begin{stack} "number"\\<identifier>\\'(' <expression>')'\end{stack} 
+\end{syntdiag} 
+
+
+\begin{grammar}
+<expression> ::= \[[
+  \begin{stack}\\'$+$'\\'$-$'\end{stack}\begin{rep} <term>\\ \begin{stack}'$+$'\\'$-$'\end{stack}\end{rep}
+\]]
+<term> ::= \[[
+  \begin{rep} <factor>\\ \begin{stack}'$*$'\\'$/$'\end{stack}\end{rep}
+\]]
+<factor> ::= \[[
+\begin{stack} "number"\\<identifier>\\'(' <expression>')'\end{stack} 
+\]]
+\end{grammar}
+
+\end{document}
