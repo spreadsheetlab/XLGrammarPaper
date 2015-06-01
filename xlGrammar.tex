@@ -35,7 +35,8 @@ motivation: why we need a defined grammar
 challenges:
 - official grammar for Excel not defined. Only through datasets analysis can we discover all the possible ways eg to 
 express a reference, partly because excel is very forgiving
-- grammar changes with different Excel versions, eg regular expressions support, labels in formulas now expanded to cell references
+- grammar changes with different Excel versions, eg regular expressions support, labels in formulas now expanded to cell
+references, updates in the built-in functions list
 
 our approach:
 development of grammar starting from previous work (reference to simple grammar) and analyzing the two datasets, enriching the
@@ -53,7 +54,12 @@ EBNF
 syntax/railroad diagrams
 % see \usepackage[rounded]{syntax}
 
-\section{Grammar discussion / coverage / notable cases}
+\subsection{Precedence and ambiguity}
+
+\section{Evaluation}
+datasets, scantool
+
+\section{Wacky Grammar}
 
 References
 - [1]!Hub\_Consolidation
@@ -77,9 +83,9 @@ Smelly grammar constructs + how often they are used
 - Complex ranges =SUM(I8:namedRange:M8)
 - Combinations of the above SUM((Total\_Cost Jan):(Total\_Cost Apr.))
 
-\section{Limitations}
+\section{Discussion and Limitations}
 Grammar for Excel version ???
-Not covering array formulas (?), pivot tables(?)
+Not covering array formulas (?)
 
 \section{Comparison against the LibreOffice grammar}
 
