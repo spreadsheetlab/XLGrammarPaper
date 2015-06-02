@@ -72,19 +72,23 @@ ERROR                  & Error literal                                          
 FILE                   & External file reference                                                                                                 & "{[}" {[}0-9{]}+ "{]}"                                                                                                                                                                            & 5        & {[}1{]}            \\
 FUNCTION               & Excel built-in function                                                                                                 & (Any entry from Appendix X) "("                                                                                                                                                                   & 5        & SUM(               \\
 HORIZONTAL\_RANGE      & Range of rows                                                                                                           & "$"? [0-9]+ ":" "$"? {[}0-9{]}+                                                                                                                                                                   & 0        & 1:4                \\
-MULTIPLE\_SHEETS       & Multiple sheet references                                                                                               &  & 1        & Sheet1:Sheet5!     \\
+MULTIPLE\_SHEETS       & Multiple sheet references                                                                                               &
+[a-zA-Z0-9]+ ":" ([0-9A-Z\_.]+ $\mid$ "'" ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ `''')+  `\ '\ ') `!'
+& 1        & Sheet1:Sheet5!     \\
 NAMED\_RANGE           & Named range                                                                                                             & {[}A-Z\_{]}{[}A-Za-z0-9\_.{]}*                                                                                                                                                                    & -2       & MYNAME             \\
 NAMED\_RANGE\_PREFIXED & \begin{tabular}[c]{l} Named range which starts \\ with a string  that could be another token \end{tabular} & \begin{tabular}[c]{@{}l@{}}("TRUE" $\mid$ "FALSE" $\mid$ {[}A-Z{]}+{[}0-9{]}+)\\   {[}A-Z\_{]}{[}A-Za-z0-9\_.{]}*\end{tabular}                                                                              & 3        & A1MYNAME           \\
 NUMBER\_LITERAL        & \begin{tabular}[c]{@{}l@{}}A integer, floating point\\     or scientific notation number literal\end{tabular}           & {[}0-9{]}+ ","? {[}0-9{]}* ("e" {[}0-9{]}+)?                                                                                                                                                      & 0        & 10.1               \\
-QUOTED\_FILE\_SHEET    & A file reference within single quotes                                                                                   &                              & 5        & '{[}1{]}My Sheet'! \\
-REFERENCE\_FUNCTION    & Excel built-in reference function                                                                                       & \begin{tabular}[c]{@{}l@{}}("INDEX" $\mid$ "OFFSET" $\mid$ "INDIRECT")\\   "("\end{tabular}                                                                                                                 & 5        & INDEX(             \\
-RESERVED\_NAME         & An Excel reserved name                                                                                                  & "\_xlnm." {[}A-Z\_{]}+                                                                                                                                                                            & -1       & \_xlnm.History     \\
+QUOTED\_FILE\_SHEET    & A file reference within single quotes                                                                                   & 
+"'[" [0-9]+ "]" ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ `''')+ "'!"
+& 5        & '{[}1{]}My Sheet'! \\
+REFERENCE\_FUNCTION    & Excel built-in reference function                                                                                       & \begin{tabular}[c]{@{}l@{}}(`INDEX' $\mid$ `OFFSET' $\mid$ `INDIRECT')    `('\end{tabular}                                                                                                                 & 5        & INDEX(             \\
+RESERVED\_NAME         & An Excel reserved name                                                                                                  & `\_xlnm.'  [A-Z\_]+                                                                                                                                                                            & -1       & \_xlnm.History     \\
 SHEET                  & The name of another worksheet                                                                                           &                      & 5        & Sheet1!            \\
-STRING                 & String literal                                                                                                          & \begin{tabular}[c]{@{}l@{}}"\"" ({[}\textasciicircum "{]} $\mid$ "\\" "\"")*\\   "\""\end{tabular}                                                                                                     & 0        & "He Said: ""Hi"""  \\
-UNOP\_PREFIX           & Unary postfix operator                                                                                                  & \%                                                                                                                                                                                                & 0        & \%                 \\
-UNOP\_POSTFIX          & Unary prefix operator                                                                                                   & "+" $\mid$ "-"                                                                                                                                                                                         & 0        & -                  \\
-UDF                    & User Defined Function                                                                                                   & "\_xll."? {[}A-Z0-9{]}+ "("                                                                                                                                                                       & 4        & MyFunction(        \\
-VERTICAL\_RANGE        & Range of columns                                                                                                        & "$"? [A-Z]+ ":" "$"? {[}A-Z{]}+                                                                                                                                                                   & 0        & A:Z                \\ \bottomrule
+STRING                 & String literal                                                                                                          & ` " ' ([\textasciicircum{} "] $\mid$ ` "" ')*   ` " '                                                                                                     & 0        & "He Said: ""Hi"""  \\
+UNOP\_PREFIX           & Unary postfix operator                                                                                                  & `\%'                                                                                                                                                                                                & 0        & \%                 \\
+UNOP\_POSTFIX          & Unary prefix operator                                                                                                   & `+' $\mid$ `-'                                                                                                                                                                                         & 0        & -                  \\
+UDF                    & User Defined Function                                                                                                   & `\_xll.'? [A-Z0-9]+  `('                                                                                                                                                                       & 4        & MyFunction(        \\
+VERTICAL\_RANGE        & Range of columns                                                                                                        & `\$'? [A-Z]+ ":" `\$'? {[}A-Z{]}+                                                                                                                                                                   & 0        & A:Z                \\ \bottomrule
 \end{tabular}
 \end{table*}
 
@@ -128,11 +132,11 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
 	\alt "ERROR" 
 
 <Reference> ::= ReferenceItem
-	\alt Reference ":" Reference
-	\alt Reference " " Reference
-	\alt "(" Reference ")"
+	\alt Reference `:' Reference
+	\alt Reference ` ' Reference
+	\alt `(' Reference `)'
 	\alt Prefix ReferenceItem
-              \alt Prefix + "UDF" + Arguments + ")"
+              \alt Prefix + "UDF" + Arguments + `)'
               
 <Formula> ::= Reference
          \alt "NUMBER"
