@@ -1,13 +1,43 @@
 
 \documentclass[conference]{IEEEtran}
+
 %\usepackage{cite}
 
 % correct bad hyphenation here
 \hyphenation{}
 
+\usepackage{eurosym}
+\usepackage{amsfonts}
+\usepackage{cite}
+
+%\usepackage{appendix}
+
+% Tables
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{booktabs}
+\usepackage{pbox}
+\renewcommand{\arraystretch}{1.2} 
+%\renewcommand*\cmidrule{} % No table middle lines
+%\renewcommand{\arraystretch}{1.5} % Additional spacing with no middle lines
+%\renewcommand*\cmidrule{\hdashline[1pt/2pt]}% Dashed middle lines
+\renewcommand*\cmidrule{\midrule[0.001em]} % Thin table middle lines
+%\renewcommand*\cmidrule{\midrule} % Thick table middle lines
+
+%Images
+\usepackage[pdftex]{graphicx}
+\graphicspath{ {}{img/} }
+\DeclareGraphicsExtensions{.pdf,.jpg,.png}
+
+% Syntax package configuration
+\usepackage[rounded]{syntax}
+\setlength{\grammarparsep}{4pt plus 1pt minus 1pt}
+
+\newcommand{\todo}[1]{\textbf{TODO: #1}}
+\newcommand{\ignore}[1]{}
+
 \begin{document}
 
-\title{The Grammar of Spreadsheets}
+\title{A LALR(1) Grammar for Excel Formulas}
 
 \maketitle
 
@@ -44,17 +74,188 @@ grammar to support everything
 
 \section{Spreadsheet Formula Grammar}
 
+\todo{Add appendix with excel function names}
+
+All strings and characters are case-insensitive, unless otherwise noted.
+
 \subsection{Lexical analysis}
-terminals/lexical tokens, table with 
-Token|Informal description of pattern|Regular expression(?)|Example lexemes
 
-\subsection{Syntax analysis}
-non-terminal production rules
-EBNF
-syntax/railroad diagrams
-% see \usepackage[rounded]{syntax}
+Table \ref{table:tokens} contains an overview of the tokens produced by the scanner in our parser. The rules are given in a very simple regular expression language, but could be easily adapted for a scanner which does not support regular expression tokens. 
 
-\subsection{Precedence and ambiguity}
+Our tokens also require the scanner to support token priorities. Removing the necessity for token priorities is possible by altering the tokens and production rules, but makes the grammar more complicated and the resulting tree harder to use. Leaving the tokens as-is but not providing priorities will still result in a usable grammar, but expect errors on edge cases.
+
+\begin{table*}
+\label{table:tokens}
+\caption{Lexical tokens used in our grammar}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+Token Name & Description & Regular Expression & Priority & Example \\
+\midrule
+BINOP & Binary Operator & + $\mid$ - $\mid$ / $\mid$ * $\mid$ \textasciicircum $\mid$ \textless $\mid$ \textgreater $\mid$ = $\mid$ \textless= $\mid$ \textgreater= $\mid$ \textless \textgreater & 0 & + \\
+BOOL & Boolean literal & TRUE $\mid$ FALSE & 0 & TRUE \\
+CELL & Cell reference & \$? [A-Z]+ \$? [0-9]+ & 2 & $A$1 \\
+ERROR & Error literal & \#NULL! $\mid$ \#DIV/0! $\mid$ \#VALUE! $\mid$   \#REF! $\mid$ \#NAME? $\mid$ \#NUM! $\mid$ \#N/A & 0 & \#REF! \\
+FILE & External file reference & \textbackslash[ [0-9]+ \textbackslash] & 5 & [1]\\
+FUNCTION & Excel built-in function & (Any entry from Appendix X) \textbackslash( & 5        & SUM( \\
+HORIZONTAL\_RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 & 1:4 \\
+MULTIPLE\_SHEETS & Multiple sheet references &
+[A-Z0-9]+ : ([A-Z0-9\_.]+ $\mid$ ' ([A-Z0-9\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+  ') !
+& 1 & Sheet1:'Escape '' 5'! \\
+NAMED\_RANGE & Named range & [A-Z\_][A-Z0-9\_.]* & -2 & MYNAME \\
+NAMED\_RANGE\_PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+[0-9]+)    {[}A-Z0-9\_.{]}+                                                                             & 3 & A1MYNAME \\
+NUMBER\_LITERAL & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & [0-9]+ ,? [0-9]* (e [0-9]+)? & 0 & 10.1e12 \\
+QUOTED\_FILE\_SHEET & A file reference within single quotes & '\textbackslash[ [0-9]+ \textbackslash] ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ '!
+& 5        & '{[}1{]}My Sheet'! \\
+REFERENCE\_FUNCTION & Excel built-in reference function & (INDEX $\mid$ OFFSET $\mid$ INDIRECT)\textbackslash( & 5 & INDEX( \\
+RESERVED\_NAME & An Excel reserved name & \_xlnm\textbackslash.  [A-Z\_]+ & -1 & \_xlnm.History \\
+SHEET & The name of a worksheet &
+	([0-9A-Z\_.]+ $\mid$ ' ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+={}$\mid$:;\textless\textgreater,./?\textbackslash\textbackslash] $\mid$ '')+ ') !
+& 5        & Sheet1!            \\
+STRING & String literal & " ([\textasciicircum{} "] $\mid$ "")* " & 0        & "He Said: ""Hi"""  \\
+UNOP\_PREFIX & Unary postfix operator & \% & 0 & \% \\
+UNOP\_POSTFIX & Unary prefix operator & + $\mid$ - & 0 & -                  \\
+UDF & User Defined Function & (\_xll\textbackslash.)? [A-Z0-9]+  ( & 4 & MyFunction( \\
+VERTICAL\_RANGE & Range of columns & \$? [A-Z]+ : \$? [A-Z]+ & 0 & A:Z \\ 
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Production rules}
+
+We define our production rules in Extended BNF syntax. The start symbol is $Start$. If one does not wish to accept array formula's and wishes to omit the `=' at the start of a formula $Formula$ can be used as a start symbol instead, or the $Start$ non-terminal can be adjusted.
+
+\begin{grammar}
+<Start> ::= '=' Formula | ArrayFormula
+
+
+%<Error> ::= "ERROR"
+%
+%<String> ::= "STRING"
+%
+%<QuotedFileSheet> ::= "QUOTED_FILESHEET"
+%
+%<Sheet> ::= "SHEET"
+%
+%<MultipleSheets> ::= "MULTIPLE_SHEETS"
+
+<Cell> ::= "CELL"
+	  \alt CellReferenceFunction
+
+%<File> ::= "FILE"
+
+<NamedRange> ::= "NAMED_RANGE"
+            \alt "NAMED_RANGE_COMBINED"
+
+<Prefix> ::= "SHEET"
+	\alt "FILE" "SHEET"
+	\alt "FILE" `!'
+	\alt "QUOTED_FILE_SHEET"
+	\alt "MULTIPLE_SHEETS"
+	\alt "FILE" "MULTIPLE_SHEETS"
+
+<ReferenceItem> ::= Cell
+	\alt "VERTICAL_RANGE"
+	\alt "HORIZONTAL_RANGE"
+	\alt NamedRange
+	\alt "ERROR" 
+
+<Reference> ::= ReferenceItem
+	\alt Reference `:' Reference
+	\alt Reference `\ ' Reference
+	\alt `(' Reference `)'
+	\alt Prefix ReferenceItem
+              \alt Prefix + "UDF" + Arguments + `)'
+              
+<Formula> ::= Reference
+         \alt "NUMBER"
+         \alt "STRING"
+         \alt FunctionCall
+         \alt "BOOL"
+         \alt "RESERVED_NAME"
+
+<Argument> ::= Formula
+\alt ArrayAsArgument
+\alt $\epsilon$
+
+<Arguments> ::= Argument
+\alt Argument `,' Arguments
+
+<ArrayAsArgument> ::= `(' Arguments `)'
+
+<Function> ::= "FUNCTION"
+	\alt "UDF"
+
+<FunctionCall> ::= Function Arguments `)'
+\alt "UNOP_PREFIX" Formula
+\alt Formula "UNOP_POSTFIX"
+\alt Formula "BINOP" Formula
+\alt `(' Formula `)'
+
+<CellReferenceFunction> ::= "REFERENCE_FUNCTION" Arguments `)'
+
+<ArrayFormula> ::= `\{=' ArrayArguments `\}' 
+
+<ArrayArguments> ::= ArrayArgument
+ \alt ArrayArgument `,' ArrayArguments
+ \alt ArrayArgument `;' ArrayArguments
+ 
+<ArrayArgument> ::= Formula
+ \alt $\epsilon$
+
+
+\end{grammar}
+
+\subsection{Precedence}
+
+All operators in Excel are left-associative, including the exponentiation operator. In order for our grammar to be unambiguous a separate operator precedence needs to be defined, which can be found in Table \ref{table:operatorprec}
+
+\begin{table}
+\label{table:operatorprec}
+\caption{Operator precedence in Excel Formulas}
+\begin{tabular}{lr}
+Operator                                                                & Precedence \\
+ & higher = greater \\
+= \textless \  \textgreater \  \textless= \  \textgreater= \  \textless\textgreater & 1          \\
+\&                                                                      & 2          \\
++ - (binary)                                                            & 3          \\
+* /                                                                     & 4          \\
+\textasciicircum                                                        & 5          \\
+\%                                                                      & 6          \\
++ - (unary)                                                             & 7          \\
+: \texttt{\char32}                                                             & 8         
+\end{tabular}
+\end{table}
+
+Putting the operator precedence directly into the grammar is relatively easy (and can be automated), but makes the grammar less clear and compact.
+
+\subsection{Ambiguity}
+
+Unfortunately our grammar is not fully unambiguous, because we made a trade-off between avoid ambiguity, simplicity of the grammar and usefulness of the resulting trees. The following ambiguities are present and must be manually resolved using the methods your parser generator provides:
+
+\synt{FunctionCall} and \synt{ArrayAsArgument} can conflict when only one argument is present. \synt{Functioncall} is the correct parse. Example ambiguous sentence: \texttt{=F((1))}.
+
+\synt{FunctionCall} and \synt{Reference} can conflict when a bracketed reference is present where any formula can be present. Either parse is correct as they are logically equivalent, but we recommend parsing this as \synt{FunctionCall}. Example ambiguous sentence: \texttt{=(A1)}.
+
+\subsection{Internationalization}
+
+\todo{Move to discussion maybe?}
+
+Excel formulas differ depending on the language of the software. For example function arguments are separated by a semicolon instead of a comma in locales that use the comma as a decimal separator.
+
+Our grammar is only for the default (English) locale. Grammars for other locales can be gotten by replacing delimiters, error values and function names by their localized versions.
+
+It is worth noting that Excel will always save formulas in either a locale-independent binary format (Excel 2003 and earlier) or in its English version (Excel 2007 and later). When interacting with Excel through its API 2 versions of the formula can be read or written: the English version and the version in the current locale.
+
+\subsection{Intersection operator}
+
+\todo{Probably not worth its own section}
+
+The intersection binary operator in Excel formulas is a single space, while the rest of the language is mostly whitespace independent.
+Care must thus be taken on this point when implementing this grammar.
+
+If your parser supports implicit operators the intersection operator can be implemented this way.
+An example of implicit operators outside of Excel formulas is in calculus where multiplication is often omitted and $5a$ is equivalent to $5 \cdot a$ thus making $\cdot$ an implied operator.
+
 
 \section{Evaluation}
 datasets, scantool
@@ -86,6 +287,7 @@ Smelly grammar constructs + how often they are used
 \section{Discussion and Limitations}
 Grammar for Excel version ???
 Not covering array formulas (?)
+QuotedContent / ContentInFile were left out, discuss
 
 \section{Comparison against the LibreOffice grammar}
 
