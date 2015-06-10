@@ -258,34 +258,68 @@ An example of implicit operators outside of Excel formulas is in calculus where 
 
 
 \section{Evaluation}
-datasets, scantool
+The grammar is implemented in the Irony parser generator framework \footnote{https://irony.codeplex.com/} and the resulting parser been made available for download \footnote{link for download}. To extract formulas and feed them to the parser we built a tool that opens spreadsheets, reads all their cells and identifies which cells have the same formula in R1C1. Groups of cells that share the same formula in the R1C1 style are commonly referred to as belonging to the same sibling class. The tool then selects the first cell from each sibling class, and uses its formula string as input to the parser. It parses only one cell from each sibling class - the only differences between the formulas in a sibling class are the values of the references, so the structure of the produced abstract syntax trees is exactly the same. The abstract syntax trees are then traversed to generate a variety of information, for example, the references of cells to other cells, the functions that are used, the operations that are performed and the fixed numbers in the formulas.
+
+To evaluate the grammar we use it to parse a total of ??? formulas. Those were found in the two major datasets available in the spreadsheet research community: The Euses dataset \cite{euses}, comprising of ?? spreadsheets and the 16.000 spreadsheets in the Enron email corpus \cite{enron}, which became available after the Enron company declared bankruptcy. In total, the spreadsheets form the two datasets include ??? formula cells. These are grouped into ??? sibling classes, and this is the number of formulas that were used as input to the parser.
+
+A total of ??? formulas were parsed successfully, and ?? generate errors. (is this discussion here??)
 
 \section{Wacky Grammar}
 
-References
+The grammar resulted from many cycles of parse errors, enrichments and refinements. There are parts of the grammar that cover a particularly complex set of structures, and these are the ones that are analyzed further in this section.
+
+\subsection{References}
+ 
+Spreadsheet formulas allow for many different types of references, including single cell references, cell ranges, horizontal or vertical ranges, named ranges and reference-returning build-in or user-defined functions. All of these references can be internal (in the same or in different sheets) or external. Syntactically, they can be expressed in a number of ways. The simplest case of a reference to a cell range can be expressed in any of the following ways:
+
+\begin{eqnarray*}
+&SUM&(A1:A2) \\
+= &SUM&(Sheet1!A1:A2) \\
+= &SUM&(Sheet1!A1:(A2)) \\
+= &SUM&('Sheet1'!A1:A2) \\
+= &SUM&(Sheet1!A1:Sheet1!A2) \\
+= &SUM&(Sheet1!A1:'Sheet1'!A2) \\
+\end{eqnarray*}
+
+The <Reference> rule covers all those types of referencing expressions. It was the rule that was the most complex to devise to cover all edge cases in the two datasets.
+
+\begin{grammar}
+	<Reference> ::= \[[
+	\begin{stack} '$($' <Reference> '$)$'\\ <Reference> \begin{stack} '$:$' \\ '$ $' \end{stack} <Reference> \\
+	\begin{stack} \\ \begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE_SHEETS" \end{stack} \\ "FILE" '$!$' \\ "QUOTED_FILE_SHEET" \end{stack}
+	\begin{stack} \begin{stack} \begin{stack} "CELL" \\ "REFERENCE-FUNCTION" <Arguments> '$)$' \end{stack} \\ "VERTICAL-RANGE" \\ "HORIZONTAL-RANGE" \\ \begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\ "ERROR" \end{stack} \\ "UDF" <Arguments> '$)$'\end{stack}
+	\end{stack}
+	\]]
+\end{grammar}
+ 
+how often each case is used:
+- SUM(Sheet2:Sheet3!A1)
 - [1]!Hub\_Consolidation
 - Functions returning references (INDEX|OFFSET|INDIRECT|???) SUM(A1:INDEX(A:A,1,1:1))
 - External UDFs RIGHT([1]!SheetName(),(LEN([1]!SheetName())-20))
 - Prefixed right limits =SUM(Deals!F9:'Deals'!F16)
 - This thing we do not know what it is =BLP|M!'INDU Index,[PX\_close\_5d]'
 
+\subsection{Arrays}
 Array formulas
 - IF(OR(MONTH(GQ2) = {3,9}), IF(ABS(SUM(GQ223) - GQ225)>0.001,1,0), 0)
-
 Arrays used as arguments
 - LARGE((F38,C38),1)
 
-Reserved names
+\subsection{Reserved names}
 - Add-in functions C9*\_xll.HEAT(B9,C9)
 - \_xlnm.* =SUMIF('150000'!A:A,\_xlnm.Print\_Titles,'150000'!C:C)
 
-Smelly grammar constructs + how often they are used
+
+\subsection{Smelly grammar constructs}
+ + how often they are used
 - Implicit intersect operator =COUNT(A1:A10˽A1:A5)
 - Complex ranges =SUM(I8:namedRange:M8)
 - Combinations of the above SUM((Total\_Cost Jan):(Total\_Cost Apr.))
 
 \section{Discussion and Limitations}
-Grammar for Excel version ???
+Grammar for Excel version ??? : old structures we do not support:
+- Regular expressions Sheet1!A2 = SUM('S*'!A1) = SUM(Sheet2:Sheet3!A1) after Excel 2010
 Not covering array formulas (?)
 QuotedContent / ContentInFile were left out, discuss
 
@@ -295,8 +329,6 @@ QuotedContent / ContentInFile were left out, discuss
 
 \section{Conclusion}
 The conclusion goes here.
-
-
 
 
 \section*{Acknowledgment}
