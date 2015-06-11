@@ -63,14 +63,20 @@ motivation: why we need a defined grammar
 - to explore/uncover smelly syntactical constructs that are within the grammar coverage
 
 challenges:
-- official grammar for Excel not defined. Only through datasets analysis can we discover all the possible ways eg to 
-express a reference, partly because excel is very forgiving
+- official grammar for Excel defined, but too complex/implementation specific for formula analysis
+- excel is very forgiving
 - grammar changes with different Excel versions, eg regular expressions support, labels in formulas now expanded to cell
 references, updates in the built-in functions list
 
 our approach:
 development of grammar starting from previous work (reference to simple grammar) and analyzing the two datasets, enriching the
 grammar to support everything
+
+\section{Spreadsheet Concepts}
+explain intersection, precedence?, ...
+
+\section{Design Decisions}
+trade off between ambiguity, simplicity of the grammar and usefulness of the parse trees
 
 \section{Spreadsheet Formula Grammar}
 
@@ -96,6 +102,7 @@ BOOL & Boolean literal & TRUE $\mid$ FALSE & 0 & TRUE \\
 CELL & Cell reference & \$? [A-Z]+ \$? [0-9]+ & 2 & $A$1 \\
 ERROR & Error literal & \#NULL! $\mid$ \#DIV/0! $\mid$ \#VALUE! $\mid$   \#REF! $\mid$ \#NAME? $\mid$ \#NUM! $\mid$ \#N/A & 0 & \#REF! \\
 FILE & External file reference & \textbackslash[ [0-9]+ \textbackslash] & 5 & [1]\\
+add normal file names \\
 FUNCTION & Excel built-in function & (Any entry from Appendix X) \textbackslash( & 5        & SUM( \\
 HORIZONTAL\_RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 & 1:4 \\
 MULTIPLE\_SHEETS & Multiple sheet references &
@@ -193,7 +200,7 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
 
 <CellReferenceFunction> ::= "REFERENCE_FUNCTION" Arguments `)'
 
-<ArrayFormula> ::= `\{=' ArrayArguments `\}' 
+<ArrayFormula> ::= `\{=' ArrayArguments `\}' - merge wih ArrayAsArgument?
 
 <ArrayArguments> ::= ArrayArgument
  \alt ArrayArgument `,' ArrayArguments
@@ -264,7 +271,10 @@ To evaluate the grammar we use it to parse a total of ??? formulas. Those were f
 
 A total of ??? formulas were parsed successfully, and ?? generate errors. (is this discussion here??)
 
+how long it takes to process the datasets
+
 \section{Wacky Grammar}
+table with how often wacky syntax occurs
 
 The grammar resulted from many cycles of parse errors, enrichments and refinements. There are parts of the grammar that cover a particularly complex set of structures, and these are the ones that are analyzed further in this section.
 
@@ -320,7 +330,7 @@ Arrays used as arguments
 \section{Discussion and Limitations}
 Grammar for Excel version ??? : old structures we do not support:
 - Regular expressions Sheet1!A2 = SUM('S*'!A1) = SUM(Sheet2:Sheet3!A1) after Excel 2010
-Not covering array formulas (?)
+Not tested on array formulas
 QuotedContent / ContentInFile were left out, discuss
 
 \section{Comparison against the LibreOffice grammar}
