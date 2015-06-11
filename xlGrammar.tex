@@ -72,8 +72,44 @@ our approach:
 development of grammar starting from previous work (reference to simple grammar) and analyzing the two datasets, enriching the
 grammar to support everything
 
-\section{Spreadsheet Concepts}
-explain intersection, precedence?, ...
+\section{Anatomy of Excel Spreadsheets}
+
+Microsoft Excel is a program which allows its users to create spreadsheets.
+Spreadsheets are cell-oriented dataflow programs and Excel spreadsheets are Turing complete \cite{ExcelTuringComplete}.
+
+A single spreadsheet \emph{file} corresponds to a single (\emph{work})\emph{book}.
+A workbook can contain any number of (\emph{work})\emph{sheets}.
+A sheet consists of a two-dimensional grid of \emph{cells}.
+The table consists or verticals \emph{rows} and horizontal \emph{columns}.
+Rows are numbered sequentially top-to-bottom starting at 1, while columns are numbered left-to-right alphabetically, i.e. base-26 using A to Z as digits, starting at `A', making column 27 `AA'.
+
+A cell can be empty or contain a constant value, \emph{formula} or \emph{array formula}.
+A formula can contain constant values, operations such as multiplication with the \texttt{*} operator and \emph{function calls} such as \texttt{SUM(\ldots)}, and most importantly \emph{references} to other cells.
+Function arguments are separated by a comma.
+
+Formulas can also work with \emph{ranges}, which are a collection of cells.
+Ranges can be constructed by the range operator \texttt{:} which produces a rectangular range with the two arguments as corners, the union operator \texttt{,} \footnote{This is not a mathematical union as duplicates are allowed. This operator must be placed between parentheses or curly brackets in function calls to avoid ambiguity with the argument separator which is also a comma} or the intersection operator \texttt{\char32} (a single whitespace).
+The range operator is by far the most common one.
+Arrays consisting of a single cell can be used where a single cell is expected.
+
+An user can also give a name to any collection of cells thus creating a \emph{named range} thus creating an array which can be referenced in formulas by name.
+
+\subsection{References}
+The references are arguably the most important part of spreadsheets.
+The value of any cell can be used in a formula by concatenating its column and row number, producing a reference like \texttt{B5}.
+If a value of a cell changes this new value will be propagated to all formulas that use it.
+
+When copying a cell to another cell by default references will be adjusted by the offset, for example copying \texttt{=A1} from cell B1 to C2 will cause the copied formula to become \texttt{=B2}.
+This can be prevented by making the reference absolute by prepending a \texttt{\$} to the column index, row index or both.
+The formula \texttt{=\$A\$1} will remain the same on copy while \texttt{=\$A1} will still have its row number adjusted.
+
+An alternate style called R1C1 as opposed to the above A1 style exists, but it is very rarely seen or used by users.
+In R1C1 references you specify either the offset to a cell between square brackets or its concrete location.
+In R1C1 style \texttt{R[4]C[-2]} means the cell two columns to the left and four rows down, \texttt{R2C2} refers to cell B2.
+The biggest advantage of R1C1 is that it causes identical formulas to be the same even when they operate on different cells or data because of their position.
+This might make R1C1 useful for your purpose, but we do not support parsing it and will not discuss it any further.
+
+\subsection{Array Formulas}
 
 \section{Design Decisions}
 trade off between ambiguity, simplicity of the grammar and usefulness of the parse trees
@@ -88,7 +124,7 @@ All strings and characters are case-insensitive, unless otherwise noted.
 
 Table \ref{table:tokens} contains an overview of the tokens produced by the scanner in our parser. The rules are given in a very simple regular expression language, but could be easily adapted for a scanner which does not support regular expression tokens. 
 
-Our tokens also require the scanner to support token priorities. Removing the necessity for token priorities is possible by altering the tokens and production rules, but makes the grammar more complicated and the resulting tree harder to use. Leaving the tokens as-is but not providing priorities will still result in a usable grammar, but expect errors on edge cases.
+Our tokens also require the scanner to support token priorities. Removing the necessity for token priorities is possible by altering the tokens and production rules, but makes the grammar more complicated and the resulting tree harder to use. Leaving the tokens as-is but not providing priorities will still result in an usable grammar, but expect errors on edge cases.
 
 \begin{table*}
 \label{table:tokens}
@@ -200,13 +236,13 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
 
 <CellReferenceFunction> ::= "REFERENCE_FUNCTION" Arguments `)'
 
-<ArrayFormula> ::= `\{=' ArrayArguments `\}' - merge wih ArrayAsArgument?
+<ArrayFormula> ::= `\{=' ArrayFormulaArguments `\}'
 
-<ArrayArguments> ::= ArrayArgument
- \alt ArrayArgument `,' ArrayArguments
- \alt ArrayArgument `;' ArrayArguments
+<ArrayFormulaArguments> ::= ArrayFormulaArgument
+ \alt ArrayFormulaArgument `,' ArrayFormulaArguments
+ \alt ArrayFormulaArgument `;' ArrayFormulaArguments
  
-<ArrayArgument> ::= Formula
+<ArrayFormulaArgument> ::= Formula
  \alt $\epsilon$
 
 
@@ -239,7 +275,7 @@ Putting the operator precedence directly into the grammar is relatively easy (an
 
 Unfortunately our grammar is not fully unambiguous, because we made a trade-off between avoid ambiguity, simplicity of the grammar and usefulness of the resulting trees. The following ambiguities are present and must be manually resolved using the methods your parser generator provides:
 
-\synt{FunctionCall} and \synt{ArrayAsArgument} can conflict when only one argument is present. \synt{Functioncall} is the correct parse. Example ambiguous sentence: \texttt{=F((1))}.
+\synt{FunctionCall} and \synt{ArrayAsArgument} can conflict when only one argument is present. \synt{Functioncall} is the correct parse. Example ambiguous sentence: \texttt{=SUM((1))}.
 
 \synt{FunctionCall} and \synt{Reference} can conflict when a bracketed reference is present where any formula can be present. Either parse is correct as they are logically equivalent, but we recommend parsing this as \synt{FunctionCall}. Example ambiguous sentence: \texttt{=(A1)}.
 
