@@ -242,11 +242,11 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
 
 <ConstantArray> ::= `\{' ArrayColumns `\}'
 
-<ArrayColumns> ::= <ArrayRow>
-	\alt <ArrayRow> `;' <ArrayRow>
+<ArrayColumns> ::= <ArrayRows>
+	\alt <ArrayRows> `;' <ArrayColumns>
 
-<ArrayRow> ::= <Constant>
-	\alt <Constant1> `,' <ArrayRow>
+<ArrayRows> ::= <Constant>
+	\alt <Constant> `,' <ArrayRows>
 
 \end{grammar}
 
