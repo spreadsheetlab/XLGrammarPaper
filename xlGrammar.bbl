@@ -21,6 +21,20 @@
 \providecommand{\BIBdecl}{\relax}
 \BIBdecl
 
+\bibitem{ExcelTuringComplete}
+\BIBentryALTinterwordspacing
+F.~Hermans, ``Excel turing machine.'' [Online]. Available:
+  \url{http://www.felienne.com/archives/2974}
+\BIBentrySTDinterwordspacing
+
+\bibitem{euses}
+\BIBentryALTinterwordspacing
+M.~Fisher and G.~Rothermel, ``The euses spreadsheet corpus: A shared resource
+  for supporting experimentation with spreadsheet dependability mechanisms,''
+  \emph{SIGSOFT Softw. Eng. Notes}, vol.~30, no.~4, pp. 1--5, May 2005.
+  [Online]. Available: \url{http://doi.acm.org/10.1145/1082983.1083242}
+\BIBentrySTDinterwordspacing
+
 \bibitem{enron}
 \BIBentryALTinterwordspacing
 B.~Klimt and Y.~Yang, ``\BIBforeignlanguage{English}{The enron corpus: A new
@@ -30,14 +44,6 @@ B.~Klimt and Y.~Yang, ``\BIBforeignlanguage{English}{The enron corpus: A new
   F.~Giannotti, and D.~Pedreschi, Eds.\hskip 1em plus 0.5em minus 0.4em\relax
   Springer Berlin Heidelberg, 2004, vol. 3201, pp. 217--226. [Online].
   Available: \url{http://dx.doi.org/10.1007/978-3-540-30115-8_22}
-\BIBentrySTDinterwordspacing
-
-\bibitem{euses}
-\BIBentryALTinterwordspacing
-M.~Fisher and G.~Rothermel, ``The euses spreadsheet corpus: A shared resource
-  for supporting experimentation with spreadsheet dependability mechanisms,''
-  \emph{SIGSOFT Softw. Eng. Notes}, vol.~30, no.~4, pp. 1--5, May 2005.
-  [Online]. Available: \url{http://doi.acm.org/10.1145/1082983.1083242}
 \BIBentrySTDinterwordspacing
 
 \end{thebibliography}
