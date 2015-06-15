@@ -168,8 +168,36 @@ VERTICAL\_RANGE & Range of columns & \$? [A-Z]+ : \$? [A-Z]+ & 0 & A:Z \\
 We define our production rules in Extended BNF syntax. The start symbol is $Start$. If one does not wish to accept array formula's and wishes to omit the `=' at the start of a formula $Formula$ can be used as a start symbol instead, or the $Start$ non-terminal can be adjusted.
 
 \begin{grammar}
-<Start> ::= '=' Formula | ArrayFormula
+<Start> ::= <Constant>
+	\alt '=' <Formula>
+	\alt <ArrayFormula>
+	
+<ArrayFormula> ::= `\{=' <Formula> `\}'
 
+<Formula> ::= Constant
+         \alt Reference
+         \alt FunctionCall
+         \alt `(' Formula `)'
+         \alt ConstantArray
+         \alt "RESERVED_NAME"
+         
+<Constant> ::= "NUMBER"
+         \alt "STRING"
+         \alt "BOOL"
+         \alt "ERROR"
+         
+<FunctionCall> ::= Function Arguments `)'
+		\alt "UNOP_PREFIX" Formula
+		\alt Formula "UNOP_POSTFIX"
+		\alt Formula "BINOP" Formula
+
+<Function> ::= "FUNCTION"
+	\alt "UDF"
+	
+<Arguments> ::= Argument
+\alt Argument `,' Arguments
+
+<Argument> ::= Formula | $\epsilon$
 
 %<Error> ::= "ERROR"
 %
@@ -181,70 +209,44 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
 %
 %<MultipleSheets> ::= "MULTIPLE_SHEETS"
 
-<Cell> ::= "CELL"
-	  \alt CellReferenceFunction
 
 %<File> ::= "FILE"
 
-<NamedRange> ::= "NAMED_RANGE"
-            \alt "NAMED_RANGE_COMBINED"
 
+<Reference> ::= <ReferenceItem>
+	\alt <Reference> `:' <Reference>
+	\alt <Reference> `\ ' <Reference>
+	\alt `(' <References> `)'
+	\alt <Prefix> <ReferenceItem>
+    \alt <Prefix> "UDF" <Arguments> `)'
+    
+<ReferenceItem> ::= "CELL"
+	\alt <NamedRange>
+	\alt "REFERENCE_FUNCTION" Arguments `)'
+	\alt "VERTICAL_RANGE"
+	\alt "HORIZONTAL_RANGE"
+	\alt "ERROR"
+	
 <Prefix> ::= "SHEET"
 	\alt "FILE" "SHEET"
 	\alt "FILE" `!'
 	\alt "QUOTED_FILE_SHEET"
 	\alt "MULTIPLE_SHEETS"
 	\alt "FILE" "MULTIPLE_SHEETS"
+	
+<NamedRange> ::= "NAMED_RANGE"
+            \alt "NAMED_RANGE_PREFIXED"
 
-<ReferenceItem> ::= Cell
-	\alt "VERTICAL_RANGE"
-	\alt "HORIZONTAL_RANGE"
-	\alt NamedRange
-	\alt "ERROR" 
+<References> ::= Reference
+	\alt Reference `,' References
 
-<Reference> ::= ReferenceItem
-	\alt Reference `:' Reference
-	\alt Reference `\ ' Reference
-	\alt `(' Reference `)'
-	\alt Prefix ReferenceItem
-              \alt Prefix + "UDF" + Arguments + `)'
-              
-<Formula> ::= Reference
-         \alt "NUMBER"
-         \alt "STRING"
-         \alt FunctionCall
-         \alt "BOOL"
-         \alt "RESERVED_NAME"
+<ConstantArray> ::= `\{' ArrayColumns `\}'
 
-<Argument> ::= Formula
-\alt ArrayAsArgument
-\alt $\epsilon$
+<ArrayColumns> ::= <ArrayRow>
+	\alt <ArrayRow> `;' <ArrayRow>
 
-<Arguments> ::= Argument
-\alt Argument `,' Arguments
-
-<ArrayAsArgument> ::= `(' Arguments `)'
-
-<Function> ::= "FUNCTION"
-	\alt "UDF"
-
-<FunctionCall> ::= Function Arguments `)'
-\alt "UNOP_PREFIX" Formula
-\alt Formula "UNOP_POSTFIX"
-\alt Formula "BINOP" Formula
-\alt `(' Formula `)'
-
-<CellReferenceFunction> ::= "REFERENCE_FUNCTION" Arguments `)'
-
-<ArrayFormula> ::= `\{=' ArrayFormulaArguments `\}'
-
-<ArrayFormulaArguments> ::= ArrayFormulaArgument
- \alt ArrayFormulaArgument `,' ArrayFormulaArguments
- \alt ArrayFormulaArgument `;' ArrayFormulaArguments
- 
-<ArrayFormulaArgument> ::= Formula
- \alt $\epsilon$
-
+<ArrayRow> ::= <Constant>
+	\alt <Constant1> `,' <ArrayRow>
 
 \end{grammar}
 
@@ -309,6 +311,18 @@ A total of ??? formulas were parsed successfully, and ?? generate errors. (is th
 
 how long it takes to process the datasets
 
+\begin{figure*}
+\centering
+\begin{grammar}
+	<Reference> ::= \[[
+	\begin{stack} '$($' <Reference> '$)$'\\ <Reference> \begin{stack} '$:$' \\ '$ $' \end{stack} <Reference> \\
+	\begin{stack} \\ \begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE_SHEETS" \end{stack} \\ "FILE" '$!$' \\ "QUOTED_FILE_SHEET" \end{stack}
+	\begin{stack} \begin{stack} \begin{stack} "CELL" \\ "REFERENCE-FUNCTION" <Arguments> '$)$' \end{stack} \\ "VERTICAL-RANGE" \\ "HORIZONTAL-RANGE" \\ \begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\ "ERROR" \end{stack} \\ "UDF" <Arguments> '$)$'\end{stack}
+	\end{stack}
+	\]]
+\end{grammar}
+\end{figure*}
+
 \section{Wacky Grammar}
 table with how often wacky syntax occurs
 
@@ -328,15 +342,6 @@ Spreadsheet formulas allow for many different types of references, including sin
 \end{eqnarray*}
 
 The <Reference> rule covers all those types of referencing expressions. It was the rule that was the most complex to devise to cover all edge cases in the two datasets.
-
-\begin{grammar}
-	<Reference> ::= \[[
-	\begin{stack} '$($' <Reference> '$)$'\\ <Reference> \begin{stack} '$:$' \\ '$ $' \end{stack} <Reference> \\
-	\begin{stack} \\ \begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE_SHEETS" \end{stack} \\ "FILE" '$!$' \\ "QUOTED_FILE_SHEET" \end{stack}
-	\begin{stack} \begin{stack} \begin{stack} "CELL" \\ "REFERENCE-FUNCTION" <Arguments> '$)$' \end{stack} \\ "VERTICAL-RANGE" \\ "HORIZONTAL-RANGE" \\ \begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\ "ERROR" \end{stack} \\ "UDF" <Arguments> '$)$'\end{stack}
-	\end{stack}
-	\]]
-\end{grammar}
  
 how often each case is used:
 - SUM(Sheet2:Sheet3!A1)
