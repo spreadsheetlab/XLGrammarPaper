@@ -419,15 +419,25 @@ Arrays used as arguments
 Out of the 1,061,360 formulas from the two datasets that were used as input to the parser, 1,058,050 (99.69\%) were parsed successfully. The formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
 
 \begin{itemize}
-	\item 3,276 cases of external file references without cell targets, e.g. \texttt{=[1]!'SGJ200,LA'}. The grammar will provide support for those cases once we understand what those formulas mean and how they are evaluated from Excel.
+	\item 3,276 cases of external file references without cell targets, e.g. \texttt{=[1]!'SGJ200,LA'}. The grammar does not provide support for those cases because we do not yet understand what those formulas mean and how they are evaluated from Excel.
 	\item formulas \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi} in two different sheets in the Enron dataset. None of those formulas is evaluated from Excel, which returns a \texttt{\#NAME?} error.
 	\item formula \texttt{=+Ë‰} was included in an Enron file that we assume to be corrupt, as it only included similarly formatted characters.
 	\item 31 cases of formulas that are not returned correctly from the Gembox third party library that we use for opening spreadsheets -e.g., our tool reads and attempts to parse formula \texttt{IF(=7,AVERAGE(C4:C11),0)} and fails, but in reality the formula is \texttt{IF(B8=7,AVERAGE(C4:C11),0)} which does parse. All these 31 cases are parsed successfully when we manually provide them as input to the parser.
 \end{itemize}
-Grammar for Excel version ??? : old structures we do not support:
-- Regular expressions Sheet1!A2 = SUM('S*'!A1) = SUM(Sheet2:Sheet3!A1) after Excel 2010
-Not tested on array formulas
-QuotedContent / ContentInFile were left out, discuss
+
+The formulas of the first case are therefore the only legitimate ones -in terms of Excel coverage and evaluation- that were found in the two datasets and that the proposed grammar does not support. (discuss! exists in other systems?)
+
+\subsection{Limitations}
+todo: check if the features below are supported in other spreadsheet systems
+
+The evaluation of the grammar does not include array formulas. Those are specified as formulas surrounded by brackets, for example \texttt{\{= SUM( A1:E1*\{1,2,3,4,5\})\}}, that perform multiple calculations on array items. The grammar is designed to recognize array formulas as regular formulas surrounded by brackets (<ArrayFormula> rule). However, due to limitations of the third party library that our tool uses for reading the formulas from the spreadsheets, array formulas are read and fed to the parser as regular formulas, without the surrounding brackets. For this reason, we can neither evaluate this case in terms of grammar support, nor can we extract information on their frequency in the two datasets.
+
+Other limitations of the proposed grammar concern syntactical features that have been discontinued, like regular expressions in formulas. Excel allows defining formulas that include regular expressions, for example \texttt{=SUM('S*'!A1)} or \texttt{=SUM('Sheet?'!A1)}. However, in Excel 2010 and up (are we sure???), regular expressions are instantly resolved -in the example, to \texttt{=SUM(Sheet2:Sheet3!A1)}, where the sheets are all matching sheets, except the one that this formula is on. This way, in latest versions of Excel, saved spreadsheets never contain regular expressions. Also in the two datasets there was no such case, even though ??\% of the spreadsheets are in prior to Excel 2007 format (.xls files). 
+
+The use of labels in formulas (a.k.a. natural language formulas) is another feature that was discontinued in Excel 2007. Labels were the headings that were typed above rows and columns, and they could be used in formulas instead of defined names or cell ranges. For example, formula \texttt{=Product A First Quarter} would return the intersection between the cell range with heading \texttt{Product A} and the one with heading \texttt{=First Quarter}. This feature is replaced in newer versions of Excel with the less error-prone named ranges feature. The proposed grammar does not support it, and it would mistakenly parse the labels as named ranges.
+
+\subsection{Exploitation}
+The abstract syntax trees that the parser produces are traversed to generate information like the references of cells to other cells -in the form of internal or external ranges of any kind, the types of functions used, the operations and the fixed numbers in formulas. This information is used to perform more complex calculations on the cell dependencies, the calculation chains and possible smells on those. The parser has already been used in reference \cite{EnronVSEuses} to extract information like the intra-worksheet connections, the external links, the transitive precedents and the preceding cells of formulas. Also, in ???? (other published work?)
 
 \section{Comparison against the LibreOffice grammar}
 
