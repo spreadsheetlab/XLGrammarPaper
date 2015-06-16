@@ -184,6 +184,7 @@ For this reason this grammar supports only numeric external references.
 Adding support for full filenames can be achieved by introducing an iditional token or altering the \texttt{FILE} token, but be aware that external filenames can be presented to and entered by the user in a myriad of different formats, depending on conditions such as if the file is opened in Excel.
 
 \section{Spreadsheet Formula Grammar}
+\label{section:grammar}
 
 \todo{Add appendix with excel function names}
 
@@ -371,13 +372,13 @@ An example of implicit operators outside of Excel formulas is in calculus where 
 
 
 \section{Evaluation}
-The grammar is implemented in the Irony parser generator framework \footnote{https://irony.codeplex.com/} and the resulting parser been made available for download \footnote{link for download}. To extract formulas and feed them to the parser we built a tool that opens spreadsheets, reads all their cells and identifies which cells have the same formula in R1C1. Groups of cells that share the same formula in the R1C1 style are commonly referred to as belonging to the same sibling class. The tool then selects the first cell from each sibling class, and uses its formula string as input to the parser. It parses only one cell from each sibling class - the only differences between the formulas in a sibling class are the values of the references, so the structure of the produced abstract syntax trees is exactly the same. The abstract syntax trees are then traversed to generate a variety of information, for example, the references of cells to other cells, the functions that are used, the operations that are performed and the fixed numbers in the formulas.
+The grammar is implemented in the Irony parser generator framework \footnote{https://irony.codeplex.com/} and the resulting parser is available for download \footnote{link for download}.
 
-To evaluate the grammar we use it to parse a total of ??? formulas. Those were found in the two major datasets available in the spreadsheet research community: The Euses dataset \cite{euses}, comprising of ?? spreadsheets and the 16.000 spreadsheets in the Enron email corpus \cite{enron}, which became available after the Enron company declared bankruptcy. In total, the spreadsheets form the two datasets include ??? formula cells. These are grouped into ??? sibling classes, and this is the number of formulas that were used as input to the parser.
+To evaluate the grammar we use it to parse a total of 1,061,360 formulas. Those were found in the two major datasets available in the spreadsheet research community: The Euses dataset \cite{euses}, comprising of 4,498 spreadsheets and the Enron email corpus \cite{enron}, which became available after the Enron company declared bankruptcy, comprising of 16,190 spreadsheets. We were not able to process 1087 (5.25\%) of these spreadsheets, either because they are password protected or because of failures due to the Gembox third party library that we use for opening them. In total, the 19,601 spreadsheets that were processed from the two datasets include 23,559,993 formula cells. These are grouped into 1,061,360 sibling classes (i.e., groups of cells that share the same formula in the R1C1 style), and this is the number of formulas that were used as input to the parser.
 
-A total of ??? formulas were parsed successfully, and ?? generate errors. (is this discussion here??)
+To extract formulas and feed them to the parser we built a tool that opens spreadsheets, reads all their cells and identifies which cells have the same formula in R1C1. The tool selects the first cell from each sibling class and uses its formula string as input to the parser. It parses only one cell from each sibling class - the only differences between the formulas in a sibling class are the values of the references, so the structure of the produced abstract syntax trees is exactly the same. The abstract syntax trees are then traversed to generate a variety of information, for example, the references of cells to other cells, the functions that are used, the operations that are performed and the fixed numbers in the formulas.
 
-how long it takes to process the datasets
+Processing the two datasets and extracting those results in a standard machine with Intel Core i7 processor and 16GBs of memory takes about 4 hours.
 
 \begin{figure*}
 \centering
@@ -392,9 +393,54 @@ how long it takes to process the datasets
 \end{figure*}
 
 \section{Wacky Grammar}
-table with how often wacky syntax occurs
-
 The grammar resulted from many cycles of parse errors, enrichments and refinements. There are parts of the grammar that cover a particularly complex set of structures, and these are the ones that are analyzed further in this section.
+
+\begin{table*}
+	\label{table:occurences}
+	\caption{Frequency of spreadsheet formulas with specific grammatical structures in the Euses and Enron datasets}
+	\begin{tabular}{llrrrrrrr}
+		Non-terminal & Example & euses &  &  & enron &  & \\
+		&  & 1st siblings& formula cells &  & 1st siblings& formula cells & \\
+		\hline
+		Formula & \texttt{=1+2} & 95,693 & 1,459,263 & 0.00\% & 965,622 & 22,098,761 & 0.00\%\\
+		Reference & \texttt{=E9/E10} & 86,291 & 1,443,464 & 98.92\% & 901,596 & 21,938,254 & 99.27\%\\
+		Cell & \texttt{=A5} & 84,929 & 1,440,266 & 98.70\% & 892,390 & 21,827,669 & 98.77\%\\
+		CellReferenceFunction & \texttt{=SUM(J9:INDEX(J9:J41,B43))} & 846 & 67,072 & 4.60\% & 10,586 & 723,460 & 3.27\%\\
+		NamedRange & \texttt{=SUM(freq)} & 1,598 & 22,846 & 1.57\% & 21,112 & 1,704,791 & 7.71\%\\
+		Prefix & \texttt{=Sheet1!B1} & 29,257 & 439,725 & 30.13\% & 313,889 & 5,458,890 & 24.70\%\\
+		Sheet & \texttt{=Sheet1!B1} & 28,308 & 437,110 & 29.95\% & 281,186 & 5,144,043 & 23.28\%\\
+		File & \texttt{=[11]Sheet1!C5} & 1,391 & 8,472 & 0.58\% & 102,449 & 1,126,446 & 5.10\%\\
+		FileOnlyPrexix & \texttt{=[1]!today} & 264 & 655 & 0.04\% & 1,777 & 27,794 & 0.13\%\\
+		QuotedFileSheet & \texttt{=('[2]Detail I\&E'!D62)/1000} & 680 & 1,746 & 0.12\% & 33,006 & 324,588 & 1.47\%\\
+		MultipleSheets & \texttt{=SUM(Sheet1:Sheet20!I29)} & 9 & 234 & 0.02\% & 164 & 1,752 & 0.01\%\\
+		Bool & \texttt{=IF(AND(R11=1,R14=TRUE),G19,0)} & 672 & 32,802 & 2.25\% & 6,925 & 1,249,218 & 5.65\%\\
+		ErrorReference & \texttt{=AVERAGE(\#REF!)} & 683 & 20,774 & 1.42\% & 3,547 & 133,377 & 0.60\%\\
+		Text & \texttt{=COUNTIF(B$4:B$46,>=90)} & 9,402 & 156,907 & 10.75\% & 50,490 & 2,685,412 & 12.15\%\\
+		Number & \texttt{=(B8/48)*15} & 24,989 & 341,531 & 23.40\% & 231,594 & 7,954,999 & 36.00\%\\
+		VRange & \texttt{=COUNT(K!A:A)} & 322 & 1,805 & 0.12\% & 547 & 55,177 & 0.25\%\\
+		Hrange & \texttt{=MATCH(F3,Prices!2:2,0)} &  &  & 0.00\% & 14 & 839 & 0.00\%\\
+		UDFReference & \texttt{=[1]!wbname()} & 251 & 608 & 0.04\% & 81 & 247 & 0.00\%\\
+		Function & \texttt{=SUM(A5:A22)} & 40,908 & 770,280 & 52.79\% & 264,245 & 10,329,456 & 46.74\%\\
+		ExcelFunction & \texttt{=SUM(A5:A22)} & 40,501 & 759,317 & 52.03\% & 258,494 & 10,199,344 & 46.15\%\\
+		UDF & \texttt{=SQRT(_eoq2(C5,C4,C6,C7))} & 742 & 12,811 & 0.88\% & 24,635 & 345,405 & 1.56\%\\
+		ArrayFormula & \texttt{=FVSCHEDULE(1,{0.09;0.11;0.1})} & 15 & 19 & 0.00\% &  &  & 0.00\%\\
+		ReservedName & \texttt{=C23/_xlnm.Print_Area} & 7 & 8 & 0.00\% & 51 & 302 & 0.00\%\\
+		EmptyArgument & \texttt{=DCOUNT(Lettergrades,,I80:I81)} & 128 & 3,614 & 0.25\% & 1,225 & 7,138 & 0.03\%\\
+		ArrayAsArgument & \texttt{=LARGE((F38,C38),1)} & 1 & 34 & 0.00\% & 9 & 351 & 0.00\%\\
+		PrefixOp & \texttt{=+B11+1} & 7,821 & 61,903 & 4.24\% & 214,182 & 3,308,311 & 14.97\%\\
+		PostfixOp & \texttt{=IF(E5>I8,3\%,0\%)} & 215 & 1,091 & 0.07\% & 666 & 15,560 & 0.07\%\\
+		InfixOp & \texttt{=H10-H8} & 39,325 & 567,228 & 38.87\% & 368,020 & 13,466,887 & 60.94\%\\
+		\hline
+		Prefixed right limits & \texttt{=SUM('Total-1'!\$B8:'Total-1'!B8)} & 108 & 941 & 0.06\% & 39 & 560 & 0.00\%\\
+		_xll. & \texttt{=_xll.RiskTriang(F9,F7,F8)} & 16 & 89 & 0.01\% & 12,998 & 170,661 & 0.77\%\\
+		_xlnm. & \texttt{=C23/_xlnm.Print_Area} & 7 & 8 & 0.00\% & 65 & 316 & 0.00\%\\
+		ranges with more than two limits & \texttt{=SUM(I8:K8:M8)} &  &  & 0.00\% & 357 & 8,566 & 0.04\%\\
+		ParenthesizedReference & \texttt{=(2*(B29))/(1+B29)} & 810 & 5,834 & 0.40\% & 4,676 & 89,886 & 0.41\%\\
+		SimpleRangeReference & \texttt{=SUM(A5:A22)} & 26,194 & 473,491 & 32.45\% & 164,322 & 3,584,966 & 16.22\%\\
+		intersect & \texttt{=Ending_Inventory Jan} & 207 & 2,098 & 0.14\% & 197 & 348 & 0.00\%\\
+		ContentInFile & \texttt{=[1]!'SGJ200,LA'} & 121 & 254 & 0.02\% & 3,155 & 3,432 & 0.02\%\\
+	\end{tabular}
+\end{table*}
 
 \subsection{References}
  
@@ -439,10 +485,29 @@ Arrays used as arguments
 \todo{Add section about the things we parse with "Contentinfile"} (we left this rule out). Couldn't figure out what the formula's meant, even with the official grammar by my side (David).
 
 \section{Discussion and Limitations}
-Grammar for Excel version ??? : old structures we do not support:
-- Regular expressions Sheet1!A2 = SUM('S*'!A1) = SUM(Sheet2:Sheet3!A1) after Excel 2010
-Not tested on array formulas
-QuotedContent / ContentInFile were left out, discuss
+
+Out of the 1,061,360 formulas from the two datasets that were used as input to the parser, 1,058,050 (99.69\%) were parsed successfully. The formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
+
+\begin{itemize}
+	\item 3,276 cases of external file references without cell targets, e.g. \texttt{=[1]!'SGJ200,LA'}. The grammar does not provide support for those cases because we do not yet understand what those formulas mean and how they are evaluated from Excel.
+	\item formulas \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi} in two different sheets in the Enron dataset. None of those formulas is evaluated from Excel, which returns a \texttt{\#NAME?} error.
+	\item formula \texttt{=+Ë‰} was included in an Enron file that we assume to be corrupt, as it only included similarly formatted characters.
+	\item 31 cases of formulas that are not returned correctly from the Gembox third party library that we use for opening spreadsheets -e.g., our tool reads and attempts to parse formula \texttt{IF(=7,AVERAGE(C4:C11),0)} and fails, but in reality the formula is \texttt{IF(B8=7,AVERAGE(C4:C11),0)} which does parse. All these 31 cases are parsed successfully when we manually provide them as input to the parser.
+\end{itemize}
+
+The formulas of the first case are therefore the only legitimate ones -in terms of Excel coverage and evaluation- that were found in the two datasets and that the proposed grammar does not support. (discuss! exists in other systems?)
+
+\subsection{Limitations}
+todo: check if the features below are supported in other spreadsheet systems
+
+The evaluation of the grammar does not include array formulas. Those are specified as formulas surrounded by brackets, for example \texttt{\{= SUM( A1:E1*\{1,2,3,4,5\})\}}, that perform multiple calculations on array items. The grammar is designed to recognize array formulas as regular formulas surrounded by brackets (<ArrayFormula> rule). However, due to limitations of the third party library that our tool uses for reading the formulas from the spreadsheets, array formulas are read and fed to the parser as regular formulas, without the surrounding brackets. For this reason, we can neither evaluate this case in terms of grammar support, nor can we extract information on their frequency in the two datasets.
+
+Other limitations of the proposed grammar concern syntactical features that have been discontinued, like regular expressions in formulas. Excel allows defining formulas that include regular expressions, for example \texttt{=SUM('S*'!A1)} or \texttt{=SUM('Sheet?'!A1)}. However, in Excel 2010 and up (are we sure???), regular expressions are instantly resolved -in the example, to \texttt{=SUM(Sheet2:Sheet3!A1)}, where the sheets are all matching sheets, except the one that this formula is on. This way, in latest versions of Excel, saved spreadsheets never contain regular expressions. Also in the two datasets there was no such case, even though ??\% of the spreadsheets are in prior to Excel 2007 format (.xls files). 
+
+The use of labels in formulas (a.k.a. natural language formulas) is another feature that was discontinued in Excel 2007. Labels were the headings that were typed above rows and columns, and they could be used in formulas instead of defined names or cell ranges. For example, formula \texttt{=Product A First Quarter} would return the intersection between the cell range with heading \texttt{Product A} and the one with heading \texttt{=First Quarter}. This feature is replaced in newer versions of Excel with the less error-prone named ranges feature. The proposed grammar does not support it, and it would mistakenly parse the labels as named ranges.
+
+\subsection{Exploitation}
+The abstract syntax trees that the parser produces are traversed to generate information like the references of cells to other cells -in the form of internal or external ranges of any kind, the types of functions used, the operations and the fixed numbers in formulas. This information is used to perform more complex calculations on the cell dependencies, the calculation chains and possible smells on those. The parser has already been used in reference \cite{EnronVSEuses} to extract information like the intra-worksheet connections, the external links, the transitive precedents and the preceding cells of formulas. Also, in ???? (other published work?)
 
 \section{Comparison against the LibreOffice grammar}
 
