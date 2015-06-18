@@ -517,17 +517,11 @@ Finally, dynamic data exchange links are a special case of references. They are 
 todo: add DDE to grammar!
  
 \subsubsection{Smelly grammar constructs}
-Having analyzed extensively the grammar of spreadsheets, there are two constructs that we consider to be smelly, i.e. counterintuitive, inconsistent and error-prone: Complex ranges and the implicit intersect operator.
+Having analyzed extensively the grammar of spreadsheets, there are two constructs that we consider to be smelly, i.e. counterintuitive, inconsistent to the rest of the grammar and error-prone: Complex ranges and the implicit intersect operator.
 
-By complex ranges we mean <Reference>s that include more than two or different types of $':'$ separated <ReferenceItem>s. These are rare cases: 8,566 formula cells	(0.04\%) include them in the Enron dataset. Their smelly aspect is their evaluation. While 
+By complex ranges we mean <Reference>s that include more than two or different types of $':'$ separated <ReferenceItem>s. For example, range \texttt{B2:D4:C1}. Their smelly aspect is their evaluation. Normal cell ranges are in the form \texttt{startingLimit:endingLimit}, including all cells in between the two limits. However, the limits in complex ranges are not the ones specified in the formula: they are calculated as the upper leftmost and lower rightmost cell in the square that includes all defined cells. In the \texttt{B2:D4:C1} example, cell \texttt{B1} is also included in the range. Understanding the limits of the range becomes even less intuitive when named ranges and vertical or horizontal ranges are added. Moreover, this syntax does not add to expressiveness of the grammar: each range is still calculated as the cells within a single square, but without clearly user-defined limits. The analysis showed that complex ranges are rare: 8,566 formula cells	(0.04\%) include complex ranges in the Enron dataset, and they are all defined using three cell locations. 
 
-- Complex ranges =SUM(I8:namedRange:M8)
-
-- Implicit intersect operator =COUNT(A1:A10˽A1:A5) =SUM((Total_Cost Jan):(Total_Cost Apr.))
-+ Intersect operator INTERSECT  the intersection operator \texttt{\char32} (a single whitespace).
-
-- Combinations of the above SUM((Total\_Cost Jan):(Total\_Cost Apr.))
-
+The intersect operator is included in this discussion because it is not declared as an operator. Intersection between two ranges in the grammar is represented in the most implicit way possible: by \texttt{\char32}, a single whitespace. For example, \texttt{A1:A10\char32A1:A5} is equivalent to \texttt{A1:A5}. Using this syntax, intersection is an implicit range formation operation, belonging to the <Reference> rule, rather than a normal operation declared as a the <Function>. An advantage of this approach is that it enables more natural language definition of intersections, e.g.  \texttt{=SUM((Total_Cost Jan):(Total_Cost Apr.))}. An alternative, in our opinion less error-prone definition of intersection, would be a dedicated build-in function used explicitly as \texttt{INTERSECT(A1:A10,A1:A5)}. In the two datasets, intersection operations are not common, as they are found in only 2,446 cases of formula cells.
 
 \subsection{Limitations}
 todo: check if the features below are supported in other spreadsheet systems
