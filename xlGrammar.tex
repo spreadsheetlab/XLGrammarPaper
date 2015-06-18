@@ -165,7 +165,7 @@ VERTICAL\_RANGE & Range of columns & \$? [A-Z]+ : \$? [A-Z]+ & 0 & A:Z \\
 \end{table*}
 
 \subsection{Production rules}
-
+\label{section:productionRules}
 We define our production rules in Extended BNF syntax. The start symbol is $Start$. If one does not wish to accept array formula's and wishes to omit the `=' at the start of a formula $Formula$ can be used as a start symbol instead, or the $Start$ non-terminal can be adjusted.
 
 \begin{grammar}
@@ -312,18 +312,6 @@ To extract formulas and feed them to the parser we built a tool that opens sprea
 
 Processing the two datasets and extracting those results in a standard machine with Intel Core i7 processor and 16GBs of memory takes about 4 hours.
 
-\begin{figure*}
-\centering
-\begin{grammar}
-	<Reference> ::= \[[
-	\begin{stack} '$($' <Reference> '$)$'\\ <Reference> \begin{stack} '$:$' \\ '$ $' \end{stack} <Reference> \\
-	\begin{stack} \\ \begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE_SHEETS" \end{stack} \\ "FILE" '$!$' \\ "QUOTED_FILE_SHEET" \end{stack}
-	\begin{stack} \begin{stack} \begin{stack} "CELL" \\ "REFERENCE-FUNCTION" <Arguments> '$)$' \end{stack} \\ "VERTICAL-RANGE" \\ "HORIZONTAL-RANGE" \\ \begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\ "ERROR" \end{stack} \\ "UDF" <Arguments> '$)$'\end{stack}
-	\end{stack}
-	\]]
-\end{grammar}
-\end{figure*}
-
 \section{Wacky Grammar}
 The grammar resulted from many cycles of parse errors, enrichments and refinements. There are parts of the grammar that cover a particularly complex set of structures, and these are the ones that are analyzed further in this section.
 
@@ -374,6 +362,30 @@ The grammar resulted from many cycles of parse errors, enrichments and refinemen
 	\end{tabular}
 \end{table*}
 
+\subsection{Constants and Functions}
+
+Spreadsheet formulas can be constants (\texttt{=5}), references (\texttt{=A3}), function calls (\texttt{=SUM(A1:A3)}), constant arrays???, or reserved names (\texttt{=_xlnm.Print_Area}). Function calls invoke actual named (system or user defined) functions or operators applied to one or more formulas. The syntax diagram of the <Formula> rule, expanded to include terminal tokens, is shown below.
+
+	\begin{grammar}
+		<Formula> ::= \[[
+		\begin{stack} 
+				\begin{stack}
+				\begin{stack} "FUNCTION" \\ "UDF" \end{stack} \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$' \\
+				"UNOP-PREFIX" Formula\\
+				Formula "UNOP-POSTFIX"\\
+				Formula "BINOP" Formula
+				\end{stack} \\
+		\begin{stack} "NUMBER" \\ "STRING" \\ "BOOL" \\ "ERROR"  \end{stack} \\ "RESERVED-NAME" \\ <Reference> \\ '$($' <Formula> '$)$' \\  <ConstantArray???>
+		\end{stack}
+		\]]
+	\end{grammar}
+	
+Table \ref{table:occurences} shows how frequently each of the production rules in Section \ref{section:productionRules} occurs in the formulas of the two datasets. Jointly, 85\% of the formulas include a function call. Actual named functions are invoked by 47\% of the formulas. The vast majority are system defined functions, but there is a significant amount of formula cells (358,216 - 1.5\%) invoking user-defined functions -e.g., \texttt{=[1]!erUserEmail(User_Id)}. A special case of user defined functions are the ones created using the Excel xll add-in library. Those are found in the dataset invoked as \texttt{_xll.functionName}, by 0.73\% of the formula cells.
+
+Operators are used in 66.3\% of the formula cells, with binary (???) operators being the most common ones, appearing in 60\% of the formulas. Analyzing the utilization of constants, we find that more than one third (35.2\%) of the formula cells contain a number and 12\% are formulas that contain text. The reserved names are an edge case in the grammar, with 307 occurrences on the \texttt{_xlnm.Print_Area} and 3 occurrences of  \texttt{_xlnm.Database}.
+
+Regarding function arguments, spreadsheet systems allow empty ones but this is rarely done -in only 0.05\% of the formula cells. Array arguments are also an edge case. Only 385 formula cells contain an array used as argument, e.g. \texttt{=LARGE((F38,C38),1)}. All occurrences were arguments of the \texttt{LARGE} and \texttt{SMALL} functions. In the Euses dataset we also found 19 cases of array formulas used as arguments, e.g. \texttt{=FVSCHEDULE(1,{0.09;0.11;0.1})}. ???
+
 \subsection{References}
  
 Spreadsheet formulas allow for different types of references, including single cell references, cell ranges, horizontal or vertical ranges, named ranges and reference-returning build-in or user-defined functions. All of these references can be internal (in the same or in different sheets) or external. Syntactically, they can be expressed in a number of ways. The simplest case of a reference to a cell range can be expressed in any of the following ways:
@@ -387,9 +399,21 @@ Spreadsheet formulas allow for different types of references, including single c
 \texttt{= SUM(Sheet1!A1:'Sheet1'!A2)} \\
 \end{eqnarray*}
 
-The <Reference> rule covers all types of referencing expressions. It was the rule that was the most complex to devise to cover all edge cases in the two datasets. Its syntax diagram, expanded to include terminal tokes, is shown above(???).
+The <Reference> rule covers all types of referencing expressions. It was the rule that was the most complex to devise to cover all edge cases in the two datasets. Its syntax diagram, expanded to include terminal tokens, is shown above(???).
 
-Table \ref{table:occurences} shows how frequently each of the production rules in Section \ref{section:productionRules} occurs in the formulas of the two datasets. Jointly, 99.3\% of the formulas contain at least one <Reference>, and 25\% of the formulas contain a reference that is not local, since it includes a <Prefix>. External file references exist in almost 5\% of the formulas. 17\% of the formulas include a reference with a simple (\texttt{':'} separated) cell range. Named ranges exist in 7.33\% of formulas and, interestingly, horizontal and vertical ranges are rarely used (jointly, in 0.25\% of the formulas). References to errors are relatively common, with 0.65\% of formulas including errors like \texttt{=\#REF!E3}.
+\begin{figure*}
+	\centering
+	\begin{grammar}
+		<Reference> ::= \[[
+		\begin{stack} '$($' <Reference> '$)$'\\ <Reference> \begin{stack} '$:$' \\ '$ $' \end{stack} <Reference> \\
+		\begin{stack} \\ \begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE_SHEETS" \end{stack} \\ "FILE" '$!$' \\ "QUOTED_FILE_SHEET" \end{stack}
+		\begin{stack} \begin{stack} \begin{stack} "CELL" \\ "REFERENCE-FUNCTION" <Arguments> '$)$' \end{stack} \\ "VERTICAL-RANGE" \\ "HORIZONTAL-RANGE" \\ \begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\ "ERROR" \end{stack} \\ "UDF" <Arguments> '$)$'\end{stack}
+		\end{stack}
+		\]]
+	\end{grammar}
+\end{figure*}
+
+As shown in Table \ref{table:occurences}, 99.3\% of the formulas in the two datasets contain at least one <Reference>, and 25\% of the formulas contain a reference that is not local, since it includes a <Prefix>. External file references exist in almost 5\% of the formulas. 17\% of the formulas include a reference with a simple (\texttt{':'} separated) cell range. Named ranges exist in 7.33\% of formulas and, interestingly, horizontal and vertical ranges are rarely used (jointly, in 0.25\% of the formulas). References to errors are relatively common, with 0.65\% of formulas including errors like \texttt{=\#REF!E3}.
 
 Moving to the edge cases of the grammar, the structures that were less common in the datasets include:
 
@@ -405,17 +429,7 @@ Moving to the edge cases of the grammar, the structures that were less common in
 \end{description}
 
 A special edge case in the grammar are the functions that return references, namely the \texttt{INDEX}, the \texttt{OFFSET} and the \texttt{INDIRECT} functions -this is to the best of out knowledge, since the Excel functions reference guide does not enable filtering functions based on their output type and these three were the only functions that were found in the two datasets to be returning references. The \texttt{OFFSET} funtion, for example, returns a reference to a range that is a specified number of rows and columns from a cell or range of cells. An example formula utilizing it is \texttt{=STDEV(F399:OFFSET(F399,-(B17-1),0,1,1))}. Those functions are relatively common: they are found in 3.36\% of the formula cells, with the most common one being the \texttt{INDEX} (in 2.38\% of formula cells) and the least common one being the \texttt{INDIRECT} (in 0.21\%).
-
-Array formulas
-- IF(OR(MONTH(GQ2) = {3,9}), IF(ABS(SUM(GQ223) - GQ225)>0.001,1,0), 0)
-Arrays used as arguments
-- LARGE((F38,C38),1)
-
-\subsection{Reserved names}
-- Add-in functions C9*\_xll.HEAT(B9,C9)
-- \_xlnm.* =SUMIF('150000'!A:A,\_xlnm.Print\_Titles,'150000'!C:C)
-
-
+ 
 \subsection{Smelly grammar constructs}
  + how often they are used
 - Implicit intersect operator =COUNT(A1:A10˽A1:A5)
@@ -424,16 +438,15 @@ Arrays used as arguments
 
 \section{Discussion and Limitations}
 
-Out of the 1,061,360 formulas from the two datasets that were used as input to the parser, 1,058,050 (99.69\%) were parsed successfully. The formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
+Out of the 1,061,360 formulas from the two datasets that were used as input to the parser, 1,061,326 (99.99\%) were parsed successfully. The formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
 
 \begin{itemize}
-	\item 3,276 cases of external file references without cell targets, e.g. \texttt{=[1]!'SGJ200,LA'}. The grammar does not provide support for those cases because we do not yet understand what those formulas mean and how they are evaluated from Excel.
 	\item formulas \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi} in two different sheets in the Enron dataset. None of those formulas is evaluated from Excel, which returns a \texttt{\#NAME?} error.
 	\item formula \texttt{=+Ë‰} was included in an Enron file that we assume to be corrupt, as it only included similarly formatted characters.
 	\item 31 cases of formulas that are not returned correctly from the Gembox third party library that we use for opening spreadsheets -e.g., our tool reads and attempts to parse formula \texttt{IF(=7,AVERAGE(C4:C11),0)} and fails, but in reality the formula is \texttt{IF(B8=7,AVERAGE(C4:C11),0)} which does parse. All these 31 cases are parsed successfully when we manually provide them as input to the parser.
 \end{itemize}
 
-The formulas of the first case are therefore the only legitimate ones -in terms of Excel coverage and evaluation- that were found in the two datasets and that the proposed grammar does not support. (discuss! exists in other systems?)
+We have therefore found no cases of legitimate formulas (in terms of Excel coverage and evaluation) in the two datasets that the proposed grammar does not support.
 
 \subsection{Limitations}
 todo: check if the features below are supported in other spreadsheet systems
