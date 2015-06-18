@@ -386,12 +386,10 @@ Processing the two datasets and extracting those results in a standard machine w
 Out of the 1,061,360 formulas from the two datasets that were used as input to the parser, 1,061,326 (99.99\%) were parsed successfully. The formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
 
 \begin{itemize}
-	\item formulas \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi} in two different sheets in the Enron dataset. None of those formulas is evaluated from Excel, which returns a \texttt{\#NAME?} error.
+	\item formulas \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi} in two different sheets in the Enron dataset. These are cases of Union operations that the grammar does not parse as explained in Section \ref{subsec:desing:unions}.
 	\item formula \texttt{=+Ë‰} was included in an Enron file that we assume to be corrupt, as it only included similarly formatted characters.
 	\item 31 cases of formulas that are not returned correctly from the Gembox third party library that we use for opening spreadsheets -e.g., our tool reads and attempts to parse formula \texttt{IF(=7,AVERAGE(C4:C11),0)} and fails, but in reality the formula is \texttt{IF(B8=7,AVERAGE(C4:C11),0)} which does parse. All these 31 cases are parsed successfully when we manually provide them as input to the parser.
 \end{itemize}
-
-We have therefore found no cases of legitimate formulas (in terms of Excel coverage and evaluation) in the two datasets that the proposed grammar does not support.
 
 \subsection{Wacky Grammar}
 The grammar resulted from many cycles of parse errors, enrichments and refinements. There are parts of the grammar that cover a particularly complex set of structures, and these are the ones that are analyzed further in this section.
