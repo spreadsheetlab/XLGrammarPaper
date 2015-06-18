@@ -72,7 +72,7 @@ our approach:
 development of grammar starting from previous work (reference to simple grammar) and analyzing the two datasets, enriching the
 grammar to support everything
 
-\section{Anatomy of Excel Spreadsheets}
+\section{Anatomy of Excel Spreadsheets and Formulas}
 
 Microsoft Excel is a program which allows its users to create spreadsheets.
 Spreadsheets are cell-oriented dataflow programs and Excel spreadsheets are Turing complete \cite{ExcelTuringComplete}.
@@ -83,16 +83,13 @@ A sheet consists of a two-dimensional grid of \emph{cells}.
 The table consists or verticals \emph{rows} and horizontal \emph{columns}.
 Rows are numbered sequentially top-to-bottom starting at 1, while columns are numbered left-to-right alphabetically, i.e. base-26 using A to Z as digits, starting at `A', making column 27 `AA'.
 
-A cell can be empty or contain a constant value, \emph{formula} or \emph{array formula}.
+A cell can be empty or contain a \emph{constant value}, \emph{formula} or \emph{array formula}.
 A formula can contain constant values, operations such as multiplication with the \texttt{*} operator and \emph{function calls} such as \texttt{SUM(\ldots)}, and most importantly \emph{references} to other cells.
 Function arguments are separated by a comma.
 
-Formulas can also work with \emph{ranges}, which are a collection of cells.
-Ranges can be constructed by the range operator \texttt{:} which produces a rectangular range with the two arguments as corners, the union operator \texttt{,} \footnote{This is not a mathematical union as duplicates are allowed. This operator must be placed between parentheses or curly brackets in function calls to avoid ambiguity with the argument separator which is also a comma} or the intersection operator \texttt{\char32} (a single whitespace).
-The range operator is by far the most common one.
-Arrays consisting of a single cell can be used where a single cell is expected.
-
-An user can also give a name to any collection of cells thus creating a \emph{named range} thus creating an array which can be referenced in formulas by name.
+Formulas can also work with \emph{ranges}, which are a two-dimensional matrices of cells.
+Ranges can be constructed by the range operator \texttt{:} which produces a rectangular range with the two arguments as topmost left an bottommost right corners, the union operator \texttt{,} (a comma) \footnote{This is not a mathematical union as duplicates are allowed.} or the intersection operator \texttt{\char32} (a single whitespace). 
+An user can also give a name to any range of cells thus creating a \emph{named range} which can be referenced in formulas by name.
 
 \subsection{References}
 The references are arguably the most important part of spreadsheets.
@@ -107,12 +104,84 @@ An alternate style called R1C1 as opposed to the above A1 style exists, but it i
 In R1C1 references you specify either the offset to a cell between square brackets or its concrete location.
 In R1C1 style \texttt{R[4]C[-2]} means the cell two columns to the left and four rows down, \texttt{R2C2} refers to cell B2.
 The biggest advantage of R1C1 is that it causes identical formulas to be the same even when they operate on different cells or data because of their position.
-This might make R1C1 useful for your purpose, but we do not support parsing it and will not discuss it any further.
+These properties might make R1C1 useful as an internal representation for your intended purpose, but this grammar does not support parsing it.
 
-\subsection{Array Formulas}
+\subsection{Array Formulas and Arrays}
+
+Excel provides some limited functionality to work with one- or two-dimensional matrices. The most common ones are the perviously mentioned ranges, which directly correspond to portions of the spreadsheet.
+
+It is also possible to construct matrices from constant values, which excel calls \emph{Array constants}. Columns are separated by commas, and rows by semicolons. As an example \texttt{\{1,2,3;4,5,6\}} constructs an array of 2 rows high and 3 columns wide.
+
+\emph{Array Formulas} use the same syntax as normal formulas, except the use must enter \emph{Ctrl} + \emph{Shift} + \emph{Enter} to signal to Excel that it is an Array formula. Excel surround the formula with curly braces. Array Formulas allow the user to work less restrained with arrays in a formula and allow the user to return multiple results, which will be presented in multiple cells.
+
+\subsection{External References and DDE}
+
+Excel supports references to external spreadsheet files, which is done by prepending the file name in between square brackets like \texttt{=[Filename]Sheetname!A1}.
+
+Formulas can also call external programs through the Windows-specific Dynamic Data Exchange (DDE).
+These formula's take the form of \texttt{=Program|Topic!Arguments}.
+
+\subsection{Internationalization}
+
+Excel formulas differ depending on the language of the software. For example function arguments are separated by a semicolon instead of a comma in locales that use the comma as a decimal separator.
+
+Our grammar is only for the default (English) locale. Grammars for other locales can be gotten by replacing delimiters, error values and function names by their localized versions.
+
+It is worth noting that Excel will always save formulas in either a locale-independent binary format (Excel 2003 and earlier format) or in its English version (Excel 2007 and later format). When interacting with Excel through its API two versions of the formula can be read or written: the English version and the version in the current locale.
+This makes a grammar for the English version quite useful.
 
 \section{Design Decisions}
-trade off between ambiguity, simplicity of the grammar and usefulness of the parse trees
+For previous and ongoing research the authors needed a grammar for Microsoft Excel formulas with the following requirements:
+
+\begin{enumerate}
+\item Be as compatible as possible
+\item Produce a parse tree suited for further manipulation and analysis with minimal post-processing required
+\item Be compact enough to feasibly implement with a parser generator
+\end{enumerate}
+
+Microsoft has published an official grammar for Excel formulas \todo{cite}.
+However, this grammar is over 30 pages long and thus fails requirement 3.
+Furthermore because of the detail of the grammar and the large number of production rules the resulting parse tree fails requirement 2.
+
+For this reason the authors decided to construct their own grammar based with the above requirements as design goals.
+
+\todo{In evaluation note that we have achieved the above design goals}
+
+\subsection{Grammar class}
+
+The class of this grammar is LALR(1), which was motivated by the available tool support and relative few restrictions as opposed to LL(1) or recursive-dependent parsers, which supports design goals 2 and 3.
+Generalized LR grammar parser generators provide more freedom, but were not chosen because of lack of suitable tools for our target environment.
+
+\subsection{Unions}
+\label{subsec:desing:unions}
+
+As previously noted the comma serves as both a union operator and a function argument separator.
+This proved challenging to correctly straightforwardly implement in a LALR(1) grammar.
+
+A straightforward implementation would use productions similar to this:
+
+\begin{grammar}
+<Union> := Reference `,' Reference
+
+<Arguments> := <Argument> | <Argument> `,' <Arguments>
+\end{grammar}
+
+This however will cause a reduce reduce conflict, because in a formula like \texttt{=SUM(A1,1)} the parser does not have enough information to decide to reduce to a \synt{Union} or \synt{Argument} at the \texttt{,} token.
+
+The presented grammar only parsers unions in between brackets, e.g. \texttt{=SMALL((A1,A2),1)}.
+This is a trade-off between our compatibility (lower) and the compactness of the grammar (better).
+We deem this decreased compatibility to be acceptable since unions are very rare and every single one we encountered was between brackets, see section \ref{sec:evaluation}.
+Furthermore formulas that we now cannot parse often result in errors after evaluation anyway, for example \texttt{=A1,A1} does parse in Excel, but produces the error \texttt{\#VALUE!}.
+
+If your implementation can support the more straightforward definition we recommend altering the grammar on this point.
+
+\subsection{External References}
+
+External references in formulas, both to external files and DDE, are not stored as part of the formula in the Excel storage format, but instead are replaced by a numeric index.
+A formula that is presented to the user as \texttt{=[C:\textbackslash Path\textbackslash Filename.xlxs]Sheetname!A1} is internally stored as \texttt{[1]Sheetname!A1}.
+
+For this reason this grammar supports only numeric external references.
+Adding support for full filenames can be achieved by introducing an iditional token or altering the \texttt{FILE} token, but be aware that external filenames can be presented to and entered by the user in a myriad of different formats, depending on conditions such as if the file is opened in Excel.
 
 \section{Spreadsheet Formula Grammar}
 \label{section:grammar}
@@ -137,9 +206,9 @@ Token Name & Description & Regular Expression & Priority & Example \\
 BINOP & Binary Operator & + $\mid$ - $\mid$ / $\mid$ * $\mid$ \textasciicircum $\mid$ \textless $\mid$ \textgreater $\mid$ = $\mid$ \textless= $\mid$ \textgreater= $\mid$ \textless \textgreater & 0 & + \\
 BOOL & Boolean literal & TRUE $\mid$ FALSE & 0 & TRUE \\
 CELL & Cell reference & \$? [A-Z]+ \$? [0-9]+ & 2 & $A$1 \\
+DDECALL & Dynamic Data Exchange & ' ([A-Z0-9\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ ' & 0 & \texttt{`NGK1,PRIM ACT 1'}\\
 ERROR & Error literal & \#NULL! $\mid$ \#DIV/0! $\mid$ \#VALUE! $\mid$   \#REF! $\mid$ \#NAME? $\mid$ \#NUM! $\mid$ \#N/A & 0 & \#REF! \\
 FILE & External file reference & \textbackslash[ [0-9]+ \textbackslash] & 5 & [1]\\
-add normal file names \\
 FUNCTION & Excel built-in function & (Any entry from Appendix X) \textbackslash( & 5        & SUM( \\
 HORIZONTAL\_RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 & 1:4 \\
 MULTIPLE\_SHEETS & Multiple sheet references &
@@ -156,16 +225,17 @@ SHEET & The name of a worksheet &
 	([0-9A-Z\_.]+ $\mid$ ' ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+={}$\mid$:;\textless\textgreater,./?\textbackslash\textbackslash] $\mid$ '')+ ') !
 & 5        & Sheet1!            \\
 STRING & String literal & " ([\textasciicircum{} "] $\mid$ "")* " & 0        & "He Said: ""Hi"""  \\
-UNOP\_PREFIX & Unary postfix operator & \% & 0 & \% \\
-UNOP\_POSTFIX & Unary prefix operator & + $\mid$ - & 0 & -                  \\
+UNOP\_POSTFIX & Unary postfix operator & \% & 0 & \% \\
+UNOP\_PREFIX & Unary prefix operator & + $\mid$ - & 0 & -                  \\
 UDF & User Defined Function & (\_xll\textbackslash.)? [A-Z0-9]+  ( & 4 & MyFunction( \\
 VERTICAL\_RANGE & Range of columns & \$? [A-Z]+ : \$? [A-Z]+ & 0 & A:Z \\ 
 \bottomrule
 \end{tabular}
 \end{table*}
 
-\subsection{Production rules}
+\subsection{Syntactic analysis}
 \label{section:productionRules}
+
 We define our production rules in Extended BNF syntax. The start symbol is $Start$. If one does not wish to accept array formula's and wishes to omit the `=' at the start of a formula $Formula$ can be used as a start symbol instead, or the $Start$ non-terminal can be adjusted.
 
 \begin{grammar}
@@ -175,11 +245,11 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
 	
 <ArrayFormula> ::= `\{=' <Formula> `\}'
 
-<Formula> ::= Constant
-         \alt Reference
-         \alt FunctionCall
-         \alt `(' Formula `)'
-         \alt ConstantArray
+<Formula> ::= <Constant>
+         \alt <Reference>
+         \alt <FunctionCall>
+         \alt `(' <Formula> `)'
+         \alt <ConstantArray>
          \alt "RESERVED_NAME"
          
 <Constant> ::= "NUMBER"
@@ -187,16 +257,15 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
          \alt "BOOL"
          \alt "ERROR"
          
-<FunctionCall> ::= Function Arguments `)'
-		\alt "UNOP_PREFIX" Formula
-		\alt Formula "UNOP_POSTFIX"
-		\alt Formula "BINOP" Formula
+<FunctionCall> ::= <Function> <Arguments> `)'
+		\alt "UNOP_PREFIX" <Formula>
+		\alt <Formula> "UNOP_POSTFIX"
+		\alt <Formula> "BINOP" <Formula>
 
 <Function> ::= "FUNCTION"
 	\alt "UDF"
 	
-<Arguments> ::= Argument
-\alt Argument `,' Arguments
+<Arguments> ::= <Argument> | <Argument> `,' <Arguments>
 
 <Argument> ::= Formula | $\epsilon$
 
@@ -217,9 +286,11 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
 <Reference> ::= <ReferenceItem>
 	\alt <Reference> `:' <Reference>
 	\alt <Reference> `\ ' <Reference>
-	\alt `(' <References> `)'
+	\alt `(' <Union> `)'
+	\alt `(' <Reference> `)' 
 	\alt <Prefix> <ReferenceItem>
     \alt <Prefix> "UDF" <Arguments> `)'
+    \alt <DynamicDataExchange>
     
 <ReferenceItem> ::= "CELL"
 	\alt <NamedRange>
@@ -238,10 +309,10 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
 <NamedRange> ::= "NAMED_RANGE"
             \alt "NAMED_RANGE_PREFIXED"
 
-<References> ::= Reference
-	\alt Reference `,' References
+<Union> ::= <Reference>,
+	\alt <Reference> `,' <Union>
 
-<ConstantArray> ::= `\{' ArrayColumns `\}'
+<ConstantArray> ::= `\{' <ArrayColumns> `\}'
 
 <ArrayColumns> ::= <ArrayRows>
 	\alt <ArrayRows> `;' <ArrayColumns>
@@ -251,9 +322,11 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
 
 \end{grammar}
 
-\subsection{Precedence}
+\subsection{Operator Precedence}
 
-All operators in Excel are left-associative, including the exponentiation operator. In order for our grammar to be unambiguous a separate operator precedence needs to be defined, which can be found in Table \ref{table:operatorprec}
+All operators in Excel are left-associative, including the exponentiation operator. In order to resolve ambiguities in our grammar a LALR parser generator needs the operator precedence to be defined, which can be found in Table \ref{table:operatorprec}.
+
+Nearly all LALR parser generators support this feature, but if you parser generator does not support operator precedence it will need to be manually encoded into the grammar.
 
 \begin{table}
 \label{table:operatorprec}
@@ -272,34 +345,30 @@ Operator                                                                & Preced
 \end{tabular}
 \end{table}
 
-Putting the operator precedence directly into the grammar is relatively easy (and can be automated), but makes the grammar less clear and compact.
-
 \subsection{Ambiguity}
 
-Unfortunately our grammar is not fully unambiguous, because we made a trade-off between avoid ambiguity, simplicity of the grammar and usefulness of the resulting trees. The following ambiguities are present and must be manually resolved using the methods your parser generator provides:
+%Unfortunately our grammar is not fully unambiguous, the root cause being the design decision in \ref{subsec:unionoperator}. In an LALR(1) parser generator \synt{Formula} and \synt{Union} cause a reduce-reduce conflict because a formula like \texttt{=(A1)} can be interpreted as both an union of one reference and a bracketed reference.
+%Instruct your parser generator to choose the \synt{Formula} production to resolve this conflict.
 
-\synt{FunctionCall} and \synt{ArrayAsArgument} can conflict when only one argument is present. \synt{Functioncall} is the correct parse. Example ambiguous sentence: \texttt{=SUM((1))}.
+Unfortunately our grammar is not fully unambiguous, the root cause being the design decision in section \ref{subsec:desing:unions}.
+In an LALR(1) parser generator \synt{Reference} and \synt{Union} cause a shift-reduce conflict because a formula like \texttt{=(A1)} can be interpreted as both an union of one reference and a bracketed reference.
+Instruct your parser generator to shift in this case, as the bracketed reference is the more common and mundane interpretation.
+Both are logically equivalent.
 
-\synt{FunctionCall} and \synt{Reference} can conflict when a bracketed reference is present where any formula can be present. Either parse is correct as they are logically equivalent, but we recommend parsing this as \synt{FunctionCall}. Example ambiguous sentence: \texttt{=(A1)}.
+%Unfortunately our grammar is not fully unambiguous, because we made a trade-off between avoid ambiguity, simplicity of the grammar and usefulness of the resulting trees. The following ambiguities are present and must be manually resolved using the methods your parser generator provides:
 
-\subsection{Internationalization}
+%\synt{FunctionCall} and \synt{Reference} can conflict when a bracketed reference is present where any formula can be present. Either parse is correct as they are logically equivalent, but we recommend parsing this as \synt{FunctionCall}. Example ambiguous sentence: \texttt{=(A1)}.
 
-\todo{Move to discussion maybe?}
+%\todo{Remark that there does not seem a way to properly resolve. We accept this because union is very rare.}
 
-Excel formulas differ depending on the language of the software. For example function arguments are separated by a semicolon instead of a comma in locales that use the comma as a decimal separator.
-
-Our grammar is only for the default (English) locale. Grammars for other locales can be gotten by replacing delimiters, error values and function names by their localized versions.
-
-It is worth noting that Excel will always save formulas in either a locale-independent binary format (Excel 2003 and earlier) or in its English version (Excel 2007 and later). When interacting with Excel through its API 2 versions of the formula can be read or written: the English version and the version in the current locale.
+%\todo{Formula brackets and union}
 
 \subsection{Intersection operator}
-
-\todo{Probably not worth its own section}
 
 The intersection binary operator in Excel formulas is a single space, while the rest of the language is mostly whitespace independent.
 Care must thus be taken on this point when implementing this grammar.
 
-If your parser supports implicit operators the intersection operator can be implemented this way.
+If your parser supports implicit tokens or operators the intersection operator can be implemented this way.
 An example of implicit operators outside of Excel formulas is in calculus where multiplication is often omitted and $5a$ is equivalent to $5 \cdot a$ thus making $\cdot$ an implied operator.
 
 
