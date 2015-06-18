@@ -312,7 +312,19 @@ To extract formulas and feed them to the parser we built a tool that opens sprea
 
 Processing the two datasets and extracting those results in a standard machine with Intel Core i7 processor and 16GBs of memory takes about 4 hours.
 
-\section{Wacky Grammar}
+\section{Discussion}
+
+Out of the 1,061,360 formulas from the two datasets that were used as input to the parser, 1,061,326 (99.99\%) were parsed successfully. The formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
+
+\begin{itemize}
+	\item formulas \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi} in two different sheets in the Enron dataset. None of those formulas is evaluated from Excel, which returns a \texttt{\#NAME?} error.
+	\item formula \texttt{=+Ë‰} was included in an Enron file that we assume to be corrupt, as it only included similarly formatted characters.
+	\item 31 cases of formulas that are not returned correctly from the Gembox third party library that we use for opening spreadsheets -e.g., our tool reads and attempts to parse formula \texttt{IF(=7,AVERAGE(C4:C11),0)} and fails, but in reality the formula is \texttt{IF(B8=7,AVERAGE(C4:C11),0)} which does parse. All these 31 cases are parsed successfully when we manually provide them as input to the parser.
+\end{itemize}
+
+We have therefore found no cases of legitimate formulas (in terms of Excel coverage and evaluation) in the two datasets that the proposed grammar does not support.
+
+\subsection{Wacky Grammar}
 The grammar resulted from many cycles of parse errors, enrichments and refinements. There are parts of the grammar that cover a particularly complex set of structures, and these are the ones that are analyzed further in this section.
 
 \begin{table*}
@@ -365,7 +377,7 @@ The grammar resulted from many cycles of parse errors, enrichments and refinemen
 	\end{tabular}
 \end{table*}
 
-\subsection{Constants and Functions}
+\subsubsection{Constants and Functions}
 
 Spreadsheet formulas can be constants (\texttt{=5}), references (\texttt{=A3}), function calls (\texttt{=SUM(A1:A3)}), constant arrays???, or reserved names (\texttt{=_xlnm.Print_Area}). Function calls invoke actual named (system or user defined) functions or operators applied to one or more formulas. The syntax diagram of the <Formula> rule, expanded to include terminal tokens, is shown below.
 
@@ -389,7 +401,7 @@ Operators are used in 66.3\% of the formula cells, with binary (???) operators b
 
 Regarding function arguments, spreadsheet systems allow empty ones but this is rarely done -in only 0.05\% of the formula cells. Array arguments are also an edge case. Only 385 formula cells contain an array used as argument, e.g. \texttt{=LARGE((F38,C38),1)}. All occurrences were arguments of the \texttt{LARGE} and \texttt{SMALL} functions. In the Euses dataset we also found 19 cases of array formulas used as arguments, e.g. \texttt{=FVSCHEDULE(1,{0.09;0.11;0.1})}. ???
 
-\subsection{References}
+\subsubsection{References}
  
 Spreadsheet formulas allow for different types of references, including single cell references, cell ranges, horizontal or vertical ranges, named ranges and reference-returning build-in or user-defined functions. All of these references can be internal (in the same or in different sheets) or external. Syntactically, they can be expressed in a number of ways. The simplest case of a reference to a cell range can be expressed in any of the following ways:
 
@@ -437,7 +449,7 @@ Finally, dynamic data exchange links are a special case of references. They are 
 
 todo: add DDE to grammar!
  
-\subsection{Smelly grammar constructs}
+\subsubsection{Smelly grammar constructs}
 Having analyzed extensively the grammar of spreadsheets, there are two constructs that we consider to be smelly, i.e. counterintuitive, inconsistent and error-prone: Complex ranges and the implicit intersect operator.
 
 By complex ranges we mean <Reference>s that include more than two or different types of $':'$ separated <ReferenceItem>s. These are rare cases: 8,566 formula cells	(0.04\%) include them in the Enron dataset. Their smelly aspect is their evaluation. While 
@@ -449,18 +461,6 @@ By complex ranges we mean <Reference>s that include more than two or different t
 
 - Combinations of the above SUM((Total\_Cost Jan):(Total\_Cost Apr.))
 
-
-\section{Discussion and Limitations}
-
-Out of the 1,061,360 formulas from the two datasets that were used as input to the parser, 1,061,326 (99.99\%) were parsed successfully. The formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
-
-\begin{itemize}
-	\item formulas \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi} in two different sheets in the Enron dataset. None of those formulas is evaluated from Excel, which returns a \texttt{\#NAME?} error.
-	\item formula \texttt{=+Ë‰} was included in an Enron file that we assume to be corrupt, as it only included similarly formatted characters.
-	\item 31 cases of formulas that are not returned correctly from the Gembox third party library that we use for opening spreadsheets -e.g., our tool reads and attempts to parse formula \texttt{IF(=7,AVERAGE(C4:C11),0)} and fails, but in reality the formula is \texttt{IF(B8=7,AVERAGE(C4:C11),0)} which does parse. All these 31 cases are parsed successfully when we manually provide them as input to the parser.
-\end{itemize}
-
-We have therefore found no cases of legitimate formulas (in terms of Excel coverage and evaluation) in the two datasets that the proposed grammar does not support.
 
 \subsection{Limitations}
 todo: check if the features below are supported in other spreadsheet systems
