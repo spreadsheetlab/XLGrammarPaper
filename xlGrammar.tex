@@ -376,28 +376,36 @@ The grammar resulted from many cycles of parse errors, enrichments and refinemen
 
 \subsection{References}
  
-Spreadsheet formulas allow for many different types of references, including single cell references, cell ranges, horizontal or vertical ranges, named ranges and reference-returning build-in or user-defined functions. All of these references can be internal (in the same or in different sheets) or external. Syntactically, they can be expressed in a number of ways. The simplest case of a reference to a cell range can be expressed in any of the following ways:
+Spreadsheet formulas allow for different types of references, including single cell references, cell ranges, horizontal or vertical ranges, named ranges and reference-returning build-in or user-defined functions. All of these references can be internal (in the same or in different sheets) or external. Syntactically, they can be expressed in a number of ways. The simplest case of a reference to a cell range can be expressed in any of the following ways:
 
 \begin{eqnarray*}
-&SUM&(A1:A2) \\
-= &SUM&(Sheet1!A1:A2) \\
-= &SUM&(Sheet1!A1:(A2)) \\
-= &SUM&('Sheet1'!A1:A2) \\
-= &SUM&(Sheet1!A1:Sheet1!A2) \\
-= &SUM&(Sheet1!A1:'Sheet1'!A2) \\
+\texttt{SUM(A1:A2)} \\ 
+\texttt{= SUM(Sheet1!A1:A2)} \\
+\texttt{= SUM(Sheet1!A1:(A2))} \\
+\texttt{= SUM('Sheet1'!A1:A2)} \\
+\texttt{= SUM(Sheet1!A1:Sheet1!A2)} \\
+\texttt{= SUM(Sheet1!A1:'Sheet1'!A2)} \\
 \end{eqnarray*}
 
-The <Reference> rule covers all those types of referencing expressions. It was the rule that was the most complex to devise to cover all edge cases in the two datasets.
- 
-how often each case is used:
-- SUM(Sheet2:Sheet3!A1)
-- [1]!Hub\_Consolidation
-- Functions returning references (INDEX|OFFSET|INDIRECT|???) SUM(A1:INDEX(A:A,1,1:1))
-- External UDFs RIGHT([1]!SheetName(),(LEN([1]!SheetName())-20))
-- Prefixed right limits =SUM(Deals!F9:'Deals'!F16)
-- This thing we do not know what it is =BLP|M!'INDU Index,[PX\_close\_5d]'
+The <Reference> rule covers all types of referencing expressions. It was the rule that was the most complex to devise to cover all edge cases in the two datasets. Its syntax diagram, expanded to include terminal tokes, is shown above(???).
 
-\subsection{Arrays}
+Table \ref{table:occurences} shows how frequently each of the production rules in Section \ref{section:productionRules} occurs in the formulas of the two datasets. Jointly, 99.3\% of the formulas contain at least one <Reference>, and 25\% of the formulas contain a reference that is not local, since it includes a <Prefix>. External file references exist in almost 5\% of the formulas. 17\% of the formulas include a reference with a simple (\texttt{':'} separated) cell range. Named ranges exist in 7.33\% of formulas and, interestingly, horizontal and vertical ranges are rarely used (jointly, in 0.25\% of the formulas). References to errors are relatively common, with 0.65\% of formulas including errors like \texttt{=\#REF!E3}.
+
+Moving to the edge cases of the grammar, the structures that were less common in the datasets include:
+
+\begin{description}
+	\item[File-only external references] \hfill \\
+		External references are normally in the form \texttt{[File]Sheet!Cell}. In almost 30,000 formula cells (0.12\%), however, the sheet is not specified, e.g. \texttt{=[2]!LastTrade}. These are either cases of references to external named ranges or to external UDFs.
+	\item[Multiple sheet references] \hfill \\
+	 Almost 2,000 cells (0.01\%) contain this complex case of reference, which spans across multiple sheets. An example formula is \texttt{=SUM(Sheet1:Sheet10!A5)}, evaluated by summing all cells in position \texttt{A5} from \texttt{Sheet1} to \texttt{Sheet10}.
+	\item[References to external UDFs] \hfill \\
+	855 cells contain references to external user-defined functions, for example \texttt{=[1]!SheetName()}.
+	\item[Prefixed right limits] \hfill \\
+	1,501 cells include a reference with a prefix in the right limit, e.g. \texttt{=SUM(Deals!F9:'Deals'!F16)}. In all cases this prefix is identical to the first one, as continuous ranges spanning across multiple sheets are not supported by Excel. Still, this syntax is supported.
+\end{description}
+
+A special edge case in the grammar are the functions that return references, namely the \texttt{INDEX}, the \texttt{OFFSET} and the \texttt{INDIRECT} functions -this is to the best of out knowledge, since the Excel functions reference guide does not enable filtering functions based on their output type and these three were the only functions that were found in the two datasets to be returning references. The \texttt{OFFSET} funtion, for example, returns a reference to a range that is a specified number of rows and columns from a cell or range of cells. An example formula utilizing it is \texttt{=STDEV(F399:OFFSET(F399,-(B17-1),0,1,1))}. Those functions are relatively common: they are found in 3.36\% of the formula cells, with the most common one being the \texttt{INDEX} (in 2.38\% of formula cells) and the least common one being the \texttt{INDIRECT} (in 0.21\%).
+
 Array formulas
 - IF(OR(MONTH(GQ2) = {3,9}), IF(ABS(SUM(GQ223) - GQ225)>0.001,1,0), 0)
 Arrays used as arguments
