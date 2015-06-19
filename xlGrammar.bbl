@@ -46,4 +46,11 @@ B.~Klimt and Y.~Yang, ``\BIBforeignlanguage{English}{The enron corpus: A new
   Available: \url{http://dx.doi.org/10.1007/978-3-540-30115-8_22}
 \BIBentrySTDinterwordspacing
 
+\bibitem{EnronVSEuses}
+\BIBentryALTinterwordspacing
+B.~Jansen, ``Enron versus {EUSES:} {A} comparison of two spreadsheet corpora,''
+  \emph{CoRR}, vol. abs/1503.04055, 2015. [Online]. Available:
+  \url{http://arxiv.org/abs/1503.04055}
+\BIBentrySTDinterwordspacing
+
 \end{thebibliography}
