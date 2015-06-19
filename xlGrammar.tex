@@ -106,20 +106,26 @@ In R1C1 style \texttt{R[4]C[-2]} means the cell two columns to the left and four
 The biggest advantage of R1C1 is that it causes identical formulas to be the same even when they operate on different cells or data because of their position.
 These properties might make R1C1 useful as an internal representation for your intended purpose, but this grammar does not support parsing it.
 
+
+
+\subsection{Sheet and external references and DDE}
+
+By default references are to cells or ranges in the same sheet as the formula, but this can be modified with a prefix. A prefix consists of some identifier, followed by an exclamation mark followed by the actual reference.
+
+The most common use case is to reference another sheet in the same workbook, where the prefix is simply the sheetname: \texttt{=Sheetname!A1}. References to external spreadsheet files are also possible, which is done by prepending the file name in between square brackets like \texttt{=[Filename]Sheetname!A1} or \texttt{=[Filename]!NamedRange}. A peculiar type of prefix are those that indicate multiple sheets
+
+Formulas can also call external programs through the Windows-specific Dynamic Data Exchange (DDE).
+These formula's take the form of \texttt{=Program|Topic!Arguments}.
+
 \subsection{Array Formulas and Arrays}
 
 Excel provides some limited functionality to work with one- or two-dimensional matrices. The most common ones are the perviously mentioned ranges, which directly correspond to portions of the spreadsheet.
 
-It is also possible to construct matrices from constant values, which excel calls \emph{Array constants}. Columns are separated by commas, and rows by semicolons. As an example \texttt{\{1,2,3;4,5,6\}} constructs an array of 2 rows high and 3 columns wide.
+It is also possible to construct matrices from constant values, which excel calls \emph{Array constants}.
+Arrays are surrounded by curly brackets, columns are separated by commas, and rows by semicolons.
+As an example \texttt{\{1,2,3;4,5,6\}} constructs an array of 2 rows high and 3 columns wide.
 
 \emph{Array Formulas} use the same syntax as normal formulas, except the use must enter \emph{Ctrl} + \emph{Shift} + \emph{Enter} to signal to Excel that it is an Array formula. Excel surround the formula with curly braces. Array Formulas allow the user to work less restrained with arrays in a formula and allow the user to return multiple results, which will be presented in multiple cells.
-
-\subsection{External References and DDE}
-
-Excel supports references to external spreadsheet files, which is done by prepending the file name in between square brackets like \texttt{=[Filename]Sheetname!A1}.
-
-Formulas can also call external programs through the Windows-specific Dynamic Data Exchange (DDE).
-These formula's take the form of \texttt{=Program|Topic!Arguments}.
 
 \subsection{Internationalization}
 
@@ -152,6 +158,18 @@ For this reason the authors decided to construct their own grammar based with th
 The class of this grammar is LALR(1), which was motivated by the available tool support and relative few restrictions as opposed to LL(1) or recursive-dependent parsers, which supports design goals 2 and 3.
 Generalized LR grammar parser generators provide more freedom, but were not chosen because of lack of suitable tools for our target environment.
 
+\subsection{References}
+\label{subsec:design:references}
+
+\todo{Can you check if this is clear enough and not damaging the paper?}
+
+References are of great importance in spreadsheet formulas, and thus of interest for analysis.
+To support design goal 2 references have different nonterminals than other expressions.
+This is possible because operators working with references have the highest precedence of all, but is not perfect due to User Defined Functions of which the type is unknown.
+However, User Defined Functions are very rare as can be seen in section \ref{sec:evaluation}.
+
+Another approach would be to parse all formulas similarly and implement a type system, however this would be very detrimental to both design goal 2 an 3.
+
 \subsection{Unions}
 \label{subsec:desing:unions}
 
@@ -170,8 +188,8 @@ This however will cause a reduce reduce conflict, because in a formula like \tex
 
 The presented grammar only parsers unions in between brackets, e.g. \texttt{=SMALL((A1,A2),1)}.
 This is a trade-off between our compatibility (lower) and the compactness of the grammar (better).
-We deem this decreased compatibility to be acceptable since unions are very rare and every single one we encountered was between brackets, see section \ref{sec:evaluation}.
-Furthermore formulas that we now cannot parse often result in errors after evaluation anyway, for example \texttt{=A1,A1} does parse in Excel, but produces the error \texttt{\#VALUE!}.
+We deem this decreased compatibility to be acceptable since unions are very rare and all but two were within brackets, see section \ref{sec:discussion}.
+Furthermore formulas that this grammar now cannot parse often result in runtime errors after evaluation anyway, for example \texttt{=A1,A1} does parse in Excel, but produces the error \texttt{\#VALUE!}.
 
 If your implementation can support the more straightforward definition we recommend altering the grammar on this point.
 
@@ -216,7 +234,7 @@ MULTIPLE\_SHEETS & Multiple sheet references &
 & 1 & Sheet1:'Escape '' 5'! \\
 NAMED\_RANGE & Named range & [A-Z\_][A-Z0-9\_.]* & -2 & MYNAME \\
 NAMED\_RANGE\_PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+[0-9]+)    {[}A-Z0-9\_.{]}+                                                                             & 3 & A1MYNAME \\
-NUMBER\_LITERAL & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & [0-9]+ ,? [0-9]* (e [0-9]+)? & 0 & 10.1e12 \\
+NUMBER\_LITERAL & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & (+ $\mid$ -)? [0-9]+ ,? [0-9]* (e [0-9]+)? & 0 & 10.1e12 \\
 QUOTED\_FILE\_SHEET & A file reference within single quotes & '\textbackslash[ [0-9]+ \textbackslash] ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ '!
 & 5        & '{[}1{]}My Sheet'! \\
 REFERENCE\_FUNCTION & Excel built-in reference function & (INDEX $\mid$ OFFSET $\mid$ INDIRECT)\textbackslash( & 5 & INDEX( \\
@@ -265,7 +283,8 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
 <Function> ::= "FUNCTION"
 	\alt "UDF"
 	
-<Arguments> ::= <Argument> | <Argument> `,' <Arguments>
+<Arguments> ::= <Argument>
+	\alt <Argument> `,' <Arguments>
 
 <Argument> ::= Formula | $\epsilon$
 
@@ -311,6 +330,8 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
 
 <Union> ::= <Reference>,
 	\alt <Reference> `,' <Union>
+	
+<DynamicDataExchange> ::= "FILE" `!' "DDECALL"
 
 <ConstantArray> ::= `\{' <ArrayColumns> `\}'
 
@@ -324,9 +345,10 @@ We define our production rules in Extended BNF syntax. The start symbol is $Star
 
 \subsection{Operator Precedence}
 
-All operators in Excel are left-associative, including the exponentiation operator. In order to resolve ambiguities in our grammar a LALR parser generator needs the operator precedence to be defined, which can be found in Table \ref{table:operatorprec}.
+All operators in Excel are left-associative, including the exponentiation operator which in most other languages is right-associative.
+In order to resolve ambiguities in our grammar a LALR parser generator needs the operator precedence to be defined, which can be found in Table \ref{table:operatorprec}.
 
-Nearly all LALR parser generators support this feature, but if you parser generator does not support operator precedence it will need to be manually encoded into the grammar.
+Often LALR parser generators support this feature, but if you parser generator does not support operator precedence it will need to be manually encoded into the grammar.
 
 \begin{table}
 \label{table:operatorprec}
@@ -350,10 +372,18 @@ Operator                                                                & Preced
 %Unfortunately our grammar is not fully unambiguous, the root cause being the design decision in \ref{subsec:unionoperator}. In an LALR(1) parser generator \synt{Formula} and \synt{Union} cause a reduce-reduce conflict because a formula like \texttt{=(A1)} can be interpreted as both an union of one reference and a bracketed reference.
 %Instruct your parser generator to choose the \synt{Formula} production to resolve this conflict.
 
-Unfortunately our grammar is not fully unambiguous, the root cause being the design decision in section \ref{subsec:desing:unions}.
-In an LALR(1) parser generator \synt{Reference} and \synt{Union} cause a shift-reduce conflict because a formula like \texttt{=(A1)} can be interpreted as both an union of one reference and a bracketed reference.
-Instruct your parser generator to shift in this case, as the bracketed reference is the more common and mundane interpretation.
-Both are logically equivalent.
+Unfortunately our grammar is not fully unambiguous, the root causes being the design decisions on parsing references in section \ref{subsec:design:references} and on parsing unions in section \ref{subsec:desing:unions}.
+This is because in an LALR(1) parser generator the following rules conflict:
+\begin{enumerate}
+\item \begin{grammar}<Reference> ::= `(' <Reference> `)'\end{grammar}
+\item \begin{grammar}<Reference> ::= `(' <Union> `)'\end{grammar}
+\item \begin{grammar}<Formula> ::= `(' <Formula> `)'\end{grammar}
+\end{enumerate}
+
+This ambiguity is because a formula like \texttt{=(A1)} can be interpreted as either a bracketed reference, an union of one reference, or a reference within a bracketed formula.
+
+In this case the problem manifests as a shift-reduce conflict between shifting on rule 1, or reducing on either rule 2 or 3.
+Instruct your parser generator to shift on rule 1 because this is always a correct interpretation.
 
 %Unfortunately our grammar is not fully unambiguous, because we made a trade-off between avoid ambiguity, simplicity of the grammar and usefulness of the resulting trees. The following ambiguities are present and must be manually resolved using the methods your parser generator provides:
 
@@ -382,6 +412,7 @@ To extract formulas and feed them to the parser we built a tool that opens sprea
 Processing the two datasets and extracting those results in a standard machine with Intel Core i7 processor and 16GBs of memory takes about 4 hours.
 
 \section{Discussion}
+\label{sec:discussion}
 
 Out of the 1,061,360 formulas from the two datasets that were used as input to the parser, 1,061,326 (99.99\%) were parsed successfully. The formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
 
