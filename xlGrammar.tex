@@ -36,15 +36,18 @@
 \newcommand{\ignore}[1]{}
 
 \begin{document}
+\title{A LALR(1) Grammar for Spreadsheet Formulas Evaluated in Two Large Datasets}
 
-\title{A LALR(1) Grammar for Excel Formulas}
-
+\author{\IEEEauthorblockN{Efthimia Aivaloglou, David Hoepelman, Felienne Hermans}
+	\IEEEauthorblockA{Software Engineering Research Group\\
+		Delft University of Technology\\
+		Mekelweg 4, 2628 CD Delft, the Netherlands\\
+		e.aivaloglou@tudelft.nl, dhoepelman@gmail.com, f.f.j.hermans@tudelft.nl}
+}
 \maketitle
 
-
 \begin{abstract}
-
-The abstract goes here.
+The spreadsheet formula language is one of the most commonly used programming languages. Arguably, it is the most common one in organizational domains other than computer science. Yet, there exists no defined grammar that is concise enough to facilitate research on the spreadsheet formulas code base. In this paper we define a grammar for spreadsheet formulas and we evaluate it against over one million unique formulas extracted from the Euses and the Enron spreadsheets datasets, successfully parsing 99.99\% of them. We then utilize it to analyze the datasets and to measure the frequency of the characteristics and grammatical structures occurring in their formulas. Finally, we identify potentially smelly grammatical constructs and edge cases in the syntax of formulas.
 \end{abstract}
 
 \IEEEpeerreviewmaketitle
