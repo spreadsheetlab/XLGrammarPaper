@@ -44,7 +44,7 @@
 	\IEEEauthorblockA{Software Engineering Research Group\\
 		Delft University of Technology\\
 		Mekelweg 4, 2628 CD Delft, the Netherlands\\
-		e.aivaloglou@tudelft.nl, dhoepelman@gmail.com, f.f.j.hermans@tudelft.nl}
+		e.aivaloglou@tudelft.nl, d.j.hoepelman@student.tudelft.nl, f.f.j.hermans@tudelft.nl}
 }
 \maketitle
 
@@ -374,17 +374,17 @@ A straightforward implementation would use productions similar to this:
 <Arguments> := <Argument> | <Argument> `,' <Arguments>
 \end{grammar}
 
-However, this will cause a reduce reduce conflict because the parser will have a state wherein it can reduce to both a \synt{Union} or \synt{Argument} on a \texttt{,} token.
-Unfortunately there is not correct choice, In a formula like \texttt{=SUM(A1,1)} the parser must reduce on the \synt{Argument} nonterminal, while in a formula like \texttt{=A1,A1} the parser must reduce to the \synt{Union} nonterminal.
+However, this will cause a reduce-reduce conflict because the parser will have a state wherein it can reduce to both a \synt{Union} or \synt{Argument} on a \texttt{,}.
+Unfortunately there is no correct choice, In a formula like \texttt{=SUM(A1,1)} the parser must reduce on the \synt{Argument} nonterminal, while in a formula like \texttt{=A1,A1} the parser must reduce to the \synt{Union} nonterminal.
 With above production rules a LALR(1) parser could not correctly parse the language.
 
 The presented grammar only parsers unions in between brackets, e.g. \texttt{=SMALL((A1,A2),1)}.
-This is a trade-off between our a lower compatibility (design goal 1) and an easier implementation (design goal 3).
+This is a trade-off between a lower compatibility (design goal 1) and an easier implementation (design goal 3).
 We deem this decreased compatibility to be acceptable since unions are very rare (see section \ref{sec:evaluation}) and all but two were within brackets (see section \ref{sec:discussion}).
 
 Additionally formulas that this grammar now cannot parse often result in runtime errors after evaluation, for example \texttt{=A1,A1} does parse in a spreadsheet program, but produces the error \texttt{\#VALUE!} on evaluation.
 
-If your implementation or parser can support the more straightforward definition we recommend altering the grammar on this point.
+If your implementation or parser generator can support the more straightforward definition we recommend altering the grammar on this point.
 
 
 \section{Evaluation}
