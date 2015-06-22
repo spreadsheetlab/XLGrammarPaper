@@ -83,7 +83,7 @@ contributions:
 - evaluation of the grammar on the datasets
 - datasets analysis: formula characteristics
 
-\section{Anatomy of Spreadsheets and Formulas}
+\section{Background}
 
 Spreadsheets are cell-oriented dataflow programs which are Turing complete \cite{ExcelTuringComplete}.
 
@@ -120,10 +120,12 @@ An user can also give a name to any range of cells thus creating a \emph{named r
 
 By default references are to cells or ranges in the same sheet as the formula, but this can be modified with a prefix. A prefix consists of some identifier, followed by an exclamation mark followed by the actual reference.
 
-The most common use case is to reference another sheet in the same workbook, where the prefix is simply the sheetname: \texttt{=Sheetname!A1}. References to external spreadsheet files are also possible, which is done by prepending the file name in between square brackets like \texttt{=[Filename]Sheetname!A1} or \texttt{=[Filename]!NamedRange}. A peculiar type of prefix are those that indicate multiple sheets
+The most common use case is to reference another sheet in the same workbook, where the prefix is simply the sheetname: \texttt{=Sheetname!A1}. References to external spreadsheet files are also possible, which is done by prepending the file name in between square brackets: \texttt{=[Filename]Sheetname!A1} or \texttt{=[Filename]!NamedRange}.
+A peculiar type of prefix are those that indicate multiple sheets: \texttt{=Sheet1:Sheet10!A1} means A1 in Sheet1 through Sheet10.
+Sheet names can also be between single quotes: \texttt{='Sheetname with space'!A1}. 
 
 In Microsoft Excel formulas can also call external programs through the Windows-specific Dynamic Data Exchange (DDE).
-These formula's take the form of \texttt{=Program|Topic!Arguments}.
+These formulas take the form of \texttt{=Program|Topic!Arguments}.
 
 \subsection{Array Formulas and Arrays}
 
@@ -152,7 +154,7 @@ For previous and ongoing research the authors needed a grammar for Microsoft Exc
 \item Be compact enough to feasibly implement with a parser generator
 \end{enumerate}
 
-Microsoft has published an official grammar for Excel formulas \todo{cite}.
+Microsoft has published an official grammar for Excel formulas \cite{ExcelOfficialGrammar}.
 However, this grammar is over 30 pages long and thus fails requirement 3.
 Furthermore because of the detail of the grammar and the large number of production rules the resulting parse trees fail requirement 2.
 
@@ -176,7 +178,7 @@ CELL & Cell reference & \$? [A-Z]+ \$? [0-9]+ & 2 & $A$1 \\
 DDECALL & Dynamic Data Exchange & ' ([A-Z0-9\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ ' & 0 & \texttt{`NGK1,PRIM ACT 1'}\\
 ERROR & Error literal & \#NULL! $\mid$ \#DIV/0! $\mid$ \#VALUE! $\mid$   \#REF! $\mid$ \#NAME? $\mid$ \#NUM! $\mid$ \#N/A & 0 & \#REF! \\
 FILE & External file reference & \textbackslash[ [0-9]+ \textbackslash] & 5 & [1]\\
-FUNCTION & Excel built-in function & (Any entry from Appendix X) \textbackslash( & 5        & SUM( \\
+FUNCTION & Excel built-in function & (Any entry from the function list\footnote{A function list is available as part of the reference implementation. Lists provide by Microsoft are also available \cite{ExcelFunctionReference} and \cite{ExcelOfficialGrammar}.}) \textbackslash( & 5        & SUM( \\
 HORIZONTAL\_RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 & 1:4 \\
 MULTIPLE\_SHEETS & Multiple sheet references &
 [A-Z0-9]+ : ([A-Z0-9\_.]+ $\mid$ ' ([A-Z0-9\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+  ') !
@@ -369,9 +371,9 @@ This proves challenging to correctly straightforwardly implement in a LALR(1) gr
 A straightforward implementation would use productions similar to this:
 
 \begin{grammar}
-<Union> := Reference `,' Reference
+<Union> ::= Reference `,' Reference
 
-<Arguments> := <Argument> | <Argument> `,' <Arguments>
+<Arguments> ::= <Argument> | <Argument> `,' <Arguments>
 \end{grammar}
 
 However, this will cause a reduce-reduce conflict because the parser will have a state wherein it can reduce to both a \synt{Union} or \synt{Argument} on a \texttt{,}.
