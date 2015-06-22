@@ -27,6 +27,17 @@ F.~Hermans, ``Excel turing machine.'' [Online]. Available:
   \url{http://www.felienne.com/archives/2974}
 \BIBentrySTDinterwordspacing
 
+\bibitem{ExcelOfficialGrammar}
+Microsoft, ``Todo: Cite the official excel grammar here.''
+
+\bibitem{ExcelFunctionReference}
+\BIBentryALTinterwordspacing
+------, ``Excel functions (alphabetical,''
+  \url{https://support.office.com/en-in/article/Excel-functions-alphabetical-b3944572-255d-4efb-bb96-c6d90033e188}.
+  [Online]. Available:
+  \url{https://support.office.com/en-in/article/Excel-functions-alphabetical-b3944572-255d-4efb-bb96-c6d90033e188}
+\BIBentrySTDinterwordspacing
+
 \bibitem{euses}
 \BIBentryALTinterwordspacing
 M.~Fisher and G.~Rothermel, ``The euses spreadsheet corpus: A shared resource
