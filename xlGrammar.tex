@@ -608,6 +608,14 @@ The abstract syntax trees that the parser produces are traversed to generate inf
 
 \section{Related work}
 \label{section:relatedWork}
+
+\subsection{Analyzing spreadsheets and spreadsheet formulas}
+
+As part of proposed spreadsheet smells and refactorings, Badame and Dig \cite{badame2012refactoring} present a grammar for spreadsheet formulas.
+However, no evaluation of correctness takes place and on informal tests several omissions were found by the authors of this paper, e.g. external references, intersections and unions and named ranges are not included in that grammar.
+An extension of the same grammar was used to refactor formulas by Hermans and Dig \cite{hermans2014bumblebee}.
+These papers do provide example use cases for the grammar presented in this paper.
+
 - on inferring and testing undefined grammars
 - on analyzing spreadsheets using some sort of grammar
 - our work
@@ -616,6 +624,13 @@ The abstract syntax trees that the parser produces are traversed to generate inf
 \label{section:conclusion}
 future work:
 comparison with the official grammar using grammar comparison techniques
+
+\section{Future Work}
+
+A weak point of the presented grammar is that the full extend of compatibility with the official Microsoft Excel Grammar is unknown.
+An improvement could be made to this grammar by comparing it to the official specification, either by improving compatibility or by improving known limitations,.
+In general the problem of determining whether two Context-free grammars are equivalent is undecidable, but in practice several techniques have been successfully used for this purpose.
+
 
 \bibliographystyle{IEEEtran}
 \bibliography{XLGrammarRefs}
