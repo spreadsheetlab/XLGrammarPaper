@@ -49,7 +49,12 @@
 \maketitle
 
 \begin{abstract}
-The spreadsheet formula language is one of the most commonly used programming languages. Arguably, it is the most common one in organizational domains other than computer science. Yet, there exists no defined grammar that is concise enough to facilitate research on the spreadsheet formulas code base. In this paper we define a grammar for spreadsheet formulas and we evaluate it against over one million unique formulas extracted from the Euses and the Enron spreadsheets datasets, successfully parsing 99.99\% of them. We then utilize it to analyze the datasets and to measure the frequency of the characteristics and grammatical structures occurring in their formulas. Finally, we identify potentially smelly grammatical constructs and edge cases in the syntax of formulas.
+Spreadsheets are ubiquitous in the industrial world and often perform a role similar to other computer programs in many different domains.
+However, there exists no reliable grammar that is concise enough to facilitate research on spreadsheet formula code bases.
+This paper presents a grammar for spreadsheet formulas that is compatible, is compact enough to feasibly implement with a parser generator, and produces parse trees suited for further manipulation and analysis. 
+This grammar is then evaluated against more than one million unique formulas extracted from the EUSES and Enron spreadsheet datasets, successfully parsing 99.99\%.
+Additionally, we utilize the grammar to analyze the the formulas in these datasets and measure the frequency of utilization of language features in spreadsheet formulas.
+Finally, we identify smelly constructs and edge cases in the syntax of formulas.
 \end{abstract}
 
 \IEEEpeerreviewmaketitle
@@ -556,7 +561,7 @@ todo: add that the datasets are both Excel spreadsheets only
 
 todo: note that we verified that it covers all cased of formulas that excel covers, but we cannot verify that its coverage is not greater than Excel: it might be more forgiving.
 
-The evaluation of the grammar does not include array formulas. Those are specified as formulas surrounded by brackets, for example \texttt{\{= SUM( A1:E1*\{1,2,3,4,5\})\}}, that perform multiple calculations on array items. The grammar is designed to recognize array formulas as regular formulas surrounded by brackets (\synt{ArrayFormula} rule). However, due to limitations of the third party library that our tool uses for reading the formulas from the spreadsheets, array formulas are read and fed to the parser as regular formulas, without the surrounding brackets. For this reason, we can neither evaluate this case in terms of grammar support, nor can we extract information on their frequency in the two datasets.
+The evaluation of the grammar does not include array formulas. Those are specified as formulas surrounded by brackets, for example \texttt{\{= SUM( A1:E1*\{1,2,3,4,5\})\}}, that perform multiple calculations on array items. The grammar is designed to recognize array formulas as regular formulas surrounded by brackets (\synt{ArrayFormula} rule). However, due to limitations of the Gembox library that our tool uses for reading the formulas from the spreadsheets, array formulas are read and fed to the parser as regular formulas, without the surrounding brackets. For this reason, we can neither evaluate this case in terms of grammar support, nor can we extract information on their frequency in the two datasets.
 
 Other limitations of the proposed grammar concern syntactical features that have been discontinued, like regular expressions in formulas. Excel allows defining formulas that include regular expressions, for example \texttt{=SUM('S*'!A1)} or \texttt{=SUM('Sheet?'!A1)}. However, in Excel 2010 and up (are we sure???), regular expressions are instantly resolved -in the example, to the multiple sheet reference \texttt{=SUM(Sheet2:Sheet3!A1)}, summing up all \texttt{A1} cells between \texttt{Sheet2} and \texttt{Sheet3}, where the sheets are all matching sheets, except the one that this formula is on. This way, in latest versions of Excel, saved spreadsheets never contain regular expressions. Also in the two datasets there was no such case, even though ??\% of the spreadsheets are in prior to Excel 2007 format (.xls files). 
 
