@@ -10,9 +10,15 @@
 \usepackage{amsfonts}
 \usepackage{cite}
 
+% Modern encoding and fonts
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
 %\usepackage{appendix}
 
 % Tables
+\usepackage{tablefootnote}
 \usepackage[table,xcdraw]{xcolor}
 \usepackage{booktabs}
 \usepackage{pbox}
@@ -36,6 +42,7 @@
 
 \newcommand{\todo}[1]{\textbf{TODO: #1}}
 \newcommand{\ignore}[1]{}
+
 
 \begin{document}
 \title{A LALR(1) Grammar for Spreadsheet Formulas Evaluated in Two Large Datasets}
@@ -138,6 +145,7 @@ Furthermore an array formula allows the user to return multiple results, which w
 
 For previous and ongoing research the authors needed a grammar for Microsoft Excel spreadsheet formulas with the following requirements:
 
+\label{sec:designgoals}
 \begin{enumerate}
 \item Be compatible with the official language
 \item Produce a parse tree suited for further manipulation and analysis with minimal post-processing required
@@ -166,16 +174,17 @@ BINOP & Binary Operator & + $\mid$ - $\mid$ / $\mid$ * $\mid$ \textasciicircum $
 BOOL & Boolean literal & TRUE $\mid$ FALSE & 0 & TRUE \\
 CELL & Cell reference & \$? [A-Z]+ \$? [0-9]+ & 2 & $A$1 \\
 DDECALL & Dynamic Data Exchange & ' ([A-Z0-9\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ ' & 0 & \texttt{`NGK1,PRIM ACT 1'}\\
-ERROR & Error literal & \#NULL! $\mid$ \#DIV/0! $\mid$ \#VALUE! $\mid$   \#REF! $\mid$ \#NAME? $\mid$ \#NUM! $\mid$ \#N/A & 0 & \#REF! \\
+ERROR & Error literal & \#NULL! $\mid$ \#DIV/0! $\mid$ \#VALUE! $\mid$ \#NAME? $\mid$ \#NUM! $\mid$ \#N/A & 0 & \#N/A \\
+ERROR_REF & Reference error literal & \#REF! & \#REF! \\
 FILE & External file reference & \textbackslash[ [0-9]+ \textbackslash] & 5 & [1]\\
-FUNCTION & Excel built-in function & (Any entry from the function list\footnote{A function list is available as part of the reference implementation. Lists provide by Microsoft are also available \cite{ExcelFunctionReference} and \cite{ExcelOfficialGrammar}.}) \textbackslash( & 5        & SUM( \\
+FUNCTION & Excel built-in function & (Any entry from the function list\tablefootnote{A function list is available as part of the reference implementation. Lists provide by Microsoft are also available in \cite{ExcelFunctionReference} and \cite{ExcelOfficialGrammar}.}) \textbackslash( & 5        & SUM( \\
 HORIZONTAL\_RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 & 1:4 \\
 MULTIPLE\_SHEETS & Multiple sheet references &
 [A-Z0-9]+ : ([A-Z0-9\_.]+ $\mid$ ' ([A-Z0-9\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+  ') !
 & 1 & Sheet1:'Escape '' 5'! \\
 NAMED\_RANGE & Named range & [A-Z\_][A-Z0-9\_.]* & -2 & MYNAME \\
 NAMED\_RANGE\_PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+[0-9]+)    {[}A-Z0-9\_.{]}+                                                                             & 3 & A1MYNAME \\
-NUMBER\_LITERAL & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & (+ $\mid$ -)? [0-9]+ ,? [0-9]* (e [0-9]+)? & 0 & 10.1e12 \\
+NUMBER\_LITERAL & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & [0-9]+ ,? [0-9]* (e [0-9]+)? & 0 & 10.1e12 \\
 QUOTED\_FILE\_SHEET & A file reference within single quotes & '\textbackslash[ [0-9]+ \textbackslash] ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ '!
 & 5        & '{[}1{]}My Sheet'! \\
 REFERENCE\_FUNCTION & Excel built-in reference function & (INDEX $\mid$ OFFSET $\mid$ INDIRECT)\textbackslash( & 5 & INDEX( \\
@@ -249,7 +258,7 @@ Leaving the tokens as-is but not providing priorities will still result in an us
 	\alt "REFERENCE_FUNCTION" Arguments `)'
 	\alt "VERTICAL_RANGE"
 	\alt "HORIZONTAL_RANGE"
-	\alt "ERROR"
+	\alt "ERROR_REF"
 	
 <Prefix> ::= "SHEET"
 	\alt "FILE" "SHEET"
@@ -275,7 +284,8 @@ Leaving the tokens as-is but not providing priorities will still result in an us
 	\alt <ArrayConstant> `,' <ArrayRows>
 	
 <ArrayConstant> ::= <Constant>
-	\alt UNOP_PREFIX <Constant>
+	\alt UNOP_PREFIX NUMBER
+	\alt ERROR_REF
 
 \end{grammar}
 \end{figure}
@@ -334,10 +344,10 @@ Instruct your parser generator to shift on rule 1 because this is always a corre
 
 \subsection{Trade-offs}
 
-\subsubsection{References}
-\label{tradeoff:references}
+\todo{Can you check if references section is clear enough?}
 
-\todo{Can you check if this is clear enough?}
+\subsubsection{\textbf{References}}
+\label{tradeoff:references}
 
 References are of great importance in spreadsheet formulas, and thus of interest for analysis.
 To support analysis (design goal 2) references have different production rules than other expressions.
@@ -346,7 +356,7 @@ However, User Defined Functions are very rare as can be seen in section \ref{sec
 
 Another approach would be to parse all formulas similarly and implement a type system, however this would be very detrimental to both ease of analysis (design goal 2) and feasibility to implement (design goal 3).
 
-\subsubsection{External References}
+\subsubsection{\textbf{External References}}
 
 External references in formulas, both to external files and DDE, are not stored as part of the formula in the Microsoft Excel storage format, but instead are replaced by a numeric index.
 This index is then stored in a file level dictionary of external references.
@@ -355,7 +365,15 @@ A formula that is presented to the user as \texttt{=[C:\textbackslash Path\textb
 For this reason the presented grammar supports only numeric external references.
 Adding support for full filenames can be achieved by introducing an additional token or altering the \texttt{FILE} token, but be aware that external filenames can be presented to and entered by the user in a myriad of different formats, depending on conditions such as if the file is opened in the spreadsheet program.
 
-\subsubsection{Unions}
+\subsubsection{\textbf{Dates}}
+
+In Microsoft Excel the user can enter date and time values in a cell.
+These are internally stored as positive floating point numbers with the integer portion representing the number of days since a Jan 0 1900 epoch and the fractional portion representing the portion of the day passed.
+Users see either the number or the date depending on presentation settings of the cell.
+
+This grammar only parses numeric dates and times and these are not distinguishable from other numbers.
+
+\subsubsection{\textbf{Unions}}
 \label{subsec:desing:unions}
 
 As previously noted the comma serves as both a union operator and a function argument separator.
@@ -369,8 +387,8 @@ A straightforward implementation would use productions similar to this:
 <Arguments> ::= <Argument> | <Argument> `,' <Arguments>
 \end{grammar}
 
-However, this will cause a reduce-reduce conflict because the parser will have a state wherein it can reduce to both a \synt{Union} or \synt{Argument} on a \texttt{,}.
-Unfortunately there is no correct choice, In a formula like \texttt{=SUM(A1,1)} the parser must reduce on the \synt{Argument} nonterminal, while in a formula like \texttt{=A1,A1} the parser must reduce to the \synt{Union} nonterminal.
+However, this will cause a reduce-reduce conflict because the parser will have a state wherein it can reduce to both a \synt{Union} or \synt{Argument} on a \texttt{,} token.
+Unfortunately there is no correct choice: in a formula like \texttt{=SUM(A1,1)} the parser must reduce on the \synt{Argument} nonterminal, while in a formula like \texttt{=A1,A1} the parser must reduce to the \synt{Union} nonterminal.
 With above production rules a LALR(1) parser could not correctly parse the language.
 
 The presented grammar only parsers unions in between brackets, e.g. \texttt{=SMALL((A1,A2),1)}.
@@ -398,12 +416,32 @@ To give a rough indication, processing these two datasets and extracting those r
 \section{Discussion}
 \label{sec:discussion}
 
-Out of the 1,061,360 formulas from the two datasets that were used as input to the parser, 1,061,326 (99.99\%) were parsed successfully. The formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
+\subsection{Unparsable valid formulas}
+
+Out of the 1,061,360 formulas from the two datasets that were used as input to the parser, 1,061,295 (99.99\%) were parsed successfully.
+The formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
 
 \begin{itemize}
-	\item formulas \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi} in two different sheets in the Enron dataset. These are cases of Union operations that the grammar does not parse as explained in Section \ref{subsec:desing:unions}.
-	\item formula \texttt{=+Ë‰} was included in an Enron file that we assume to be corrupt, as it only included similarly formatted characters. todo: fix formula appearance
-	\item 31 cases of formulas that are not returned correctly from the Gembox third party library that we use for opening spreadsheets -e.g., our tool reads and attempts to parse formula \texttt{IF(=7,AVERAGE(C4:C11),0)} and fails, but in reality the formula is \texttt{IF(B8=7,AVERAGE(C4:C11),0)} which does parse. All these 31 cases are parsed successfully when we manually provide them as input to the parser.
+	\item \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi} in two different sheets in the Enron dataset. These are cases of an union operations not within brackets that the grammar does not parse as explained in Section \ref{subsec:desing:unions}.
+	\item \texttt{=+Ë\textperthousand} was included in an Enron file that we assume to be either corrupt or another type of binary file, as the file is indecipherable.
+	\item 62 formulas that are not returned correctly from the Gembox third party library that we use for opening spreadsheets. For example our tool reads and attempts to parse formula \texttt{IF(=7,AVERAGE(C4:C11),0)} and fails, but in reality the formula is \texttt{IF(B8=7,AVERAGE(C4:C11),0)} which does parse. All these 62 cases are parsed successfully when we manually provide them as input to the parser.
+\end{itemize}
+
+\subsection{Parsable invalid formulas}
+
+As stated in the design goals in section \ref{sec:designgoals} the goal of this grammar is to facilitate analysis of formulas, which means correctly parsing valid Excel formulas.
+Rejecting invalid formulas is not among the primary goals of this grammar, as one will normally not encounter invalid formulas in Excel files.
+Furthermore while the authors have two extensive datasets of valid formulas available, no such datasets of invalid formulas are known to the authors.
+As such the authors expect that the presented grammar is too broad and will parse a large number of formulas which are not valid.
+Using this grammar to parse possibly-invalid formulas like user-input might thus require additional safeguards.
+
+The following is a non-exhaustive list of restrictions on the validity of formulas not encoded into the presented grammar\footnote{These restrictions are in place in the Excel 2007 and later format. The Excel 2003 and earlier format often has lower limits.}:
+
+\begin{itemize}
+	\item Functions cannot have more than 255 arguments.
+	\item Function calls cannot be nested more than 64 levels deep.
+	\item The row number cannot exceed 1,048,576 ($2^{20}$) and the column number cannot exceed XFD ($2^{14}$).
+	\item A formula cannot be longer than 8,192 ($2^{13}$) characters.
 \end{itemize}
 
 \subsection{Grammar Analysis}
@@ -532,8 +570,6 @@ Moving to the edge cases of the grammar, the structures that were less common in
 A special edge case in the grammar are the functions that return references, namely the \texttt{INDEX}, the \texttt{OFFSET} and the \texttt{INDIRECT} functions -this is to the best of out knowledge, since the Excel functions reference guide does not enable filtering functions based on their output type and these three were the only functions that were found in the two datasets to be returning references. The \texttt{OFFSET} funtion, for example, returns a reference to a range that is a specified number of rows and columns from a cell or range of cells. An example formula utilizing it is \texttt{=STDEV(F399:OFFSET(F399,-(B17-1),0,1,1))}. Those functions are relatively common: they are found in 3.36\% of the formula cells, with the most common one being the \texttt{INDEX} (in 2.38\% of formula cells) and the least common one being the \texttt{INDIRECT} (in 0.21\%).
 
 Finally, dynamic data exchange links are a special case of references. They are used for receiving data from other applications, and they are defined as \texttt{ProgramName|Topic!Field}, e.g. \texttt{=TWINDDE|RSFRecord!'NGH2 NET.CHNG'} or \texttt{=GLDDEML|Action!'SGIMP,LA'/100}. 3,686 formula cells are found in the datasets to include this type of reference.
-
-todo: add DDE to grammar!
  
 \subsubsection{Smelly grammar constructs}
 Having analyzed extensively the grammar of spreadsheets, there are two constructs that we consider to be smelly, i.e. counterintuitive, inconsistent to the rest of the grammar and error-prone: Complex ranges and the implicit intersect operator.
