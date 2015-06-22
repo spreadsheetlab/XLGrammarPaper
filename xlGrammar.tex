@@ -68,32 +68,17 @@ Finally, we identify smelly constructs and edge cases in the syntax of formulas.
 
 
 \section{Introduction}
+todo: why spreadsheets are important
 
-spreadsheets as programming:
-- cell calculation chains as lines of code - size, example
-- avg lines of code per spreadsheet in the enron dataset
+Spreadsheets are cell-oriented dataflow programs. The values in spreadsheets cells are either constants or they are calculated using formulas. Formulas can contain references to other cells, thus creating calculation trees. Calculation trees can be viewed as lines of code written in the spreadsheet formula language, containing variables (cell names), operations, function invocations, decision statements, and even loops. Spreadsheet calculation trees can be complex: An analysis of the Enron dataset \cite{EnronVSEuses} has found cells with calculation trees composed of more than 20 thousand cells and more than one thousand cells deep. In the same dataset the average number of formulas per spreadsheet is over two thousand, while there are spreadsheets with more than 150 thousand formulas.
 
-motivation: why we need a defined grammar
-- parsing spreadsheet formulas, analysis, extracting metrics, finding smells, exploring the structure of spreadsheets
-- refer to papers needing/referring to a simple grammar
-- benefit of a simple grammar and documentation for spreadsheet users
-- to explore/uncover smelly syntactical constructs that are within the grammar coverage
+The analysis of those formulas and calculation trees is our main motivation towards a defined grammar. It will enable parsing spreadsheet formulas into processable parse trees which can in turn be used to analyze cell references, extract metrics, find code smells and explore the structure of spreadsheets. Essentially, a reliable grammar can facilitate research on the spreadsheet formula code bases. This is currently done either by using simple grammars which have not been evaluated (e.g. in the works in ???), or through some implied, undefined grammars (in ???). Furthermore, research towards defining and verifying a formula grammar can facilitate exploring and possibly uncovering smelly syntactical constructs that are within the grammar coverage.
 
-challenges:
-- official grammar for Excel defined, but too complex/implementation specific for formula analysis
-- excel is very forgiving
-- grammar changes with different Excel versions, eg regular expressions support, labels in formulas now expanded to cell
-references, updates in the built-in functions list
+To make the grammar suitable for those goals, the requirements that we set for it are (1) to be as compatible as possible with the syntax of spreadsheet formulas, (2) to produce parse trees suited for further manipulation and analysis, and (3) to be compact enough to feasibly implement with a parser generator. The approach that we took towards developing the grammar was gradual enrichment through trial-and-error: we started from a simple grammar containing only the well known formula structures, implemented its parser, and provided as input to it formulas extracted from spreadsheet datasets. We used the two major datasets that are available in the spreadsheet research community: The Euses dataset \cite{euses} and the Enron corpus \cite{enron}, jointly containing over 20,000 spreadsheets. The final grammar resulted from many cycles of parse errors, enrichments and refinements, until all common and edge cases found in the datasets were supported.
 
-our approach:
-development of grammar starting from previous work (reference to simple grammar) and analyzing the two datasets, enriching the
-grammar to support everything
-(The grammar resulted from many cycles of parse errors, enrichments and refinements. There are parts of the grammar that cover a particularly complex set of structures)
+The contributions of this paper are (1) a concise grammar for spreadsheet formulas, (2) the evaluation of the compatibility of the grammar using two major datasets, and (3) an analysis of the common formula characteristics and of the edge grammatical cases of the datasets.
 
-contributions:
-- grammar
-- evaluation of the grammar on the datasets
-- datasets analysis: formula characteristics
+The remainder of the paper is organized as follows: In the following section we summarize the basic concepts of spreadsheets and of the formula language. Then in Section \ref{section:grammar} we present the spreadsheet formula grammar, its lexical and syntactical analysis rules, and details on precedence and ambiguity. Section \ref{sec:evaluation} explains how we implemented and evaluated the grammar. Section \ref{sec:discussion} includes the analysis of the grammar and of the datasets' formula characteristics, along with a discussion of limitations and of application for other analyses. Section \ref{section:relatedWork} presents related work and Section \ref{section:conclusion} concludes the paper.
 
 \section{Background}
 
@@ -600,6 +585,9 @@ todo: add that the datasets are both Excel spreadsheets only
 
 todo: note that we verified that it covers all cased of formulas that excel covers, but we cannot verify that its coverage is not greater than Excel: it might be more forgiving.
 
+todo: - grammar changes with different Excel versions, eg regular expressions support, labels in formulas now expanded to cell
+references, updates in the built-in functions list
+
 The evaluation of the grammar does not include array formulas. Those are specified as formulas surrounded by brackets, for example \texttt{\{= SUM( A1:E1*\{1,2,3,4,5\})\}}, that perform multiple calculations on array items. The grammar is designed to recognize array formulas as regular formulas surrounded by brackets (\synt{ArrayFormula} rule). However, due to limitations of the Gembox library that our tool uses for reading the formulas from the spreadsheets, array formulas are read and fed to the parser as regular formulas, without the surrounding brackets. For this reason, we can neither evaluate this case in terms of grammar support, nor can we extract information on their frequency in the two datasets.
 
 Other limitations of the proposed grammar concern syntactical features that have been discontinued, like regular expressions in formulas. Excel allows defining formulas that include regular expressions, for example \texttt{=SUM('S*'!A1)} or \texttt{=SUM('Sheet?'!A1)}. However, in Excel 2010 and up (are we sure???), regular expressions are instantly resolved -in the example, to the multiple sheet reference \texttt{=SUM(Sheet2:Sheet3!A1)}, summing up all \texttt{A1} cells between \texttt{Sheet2} and \texttt{Sheet3}, where the sheets are all matching sheets, except the one that this formula is on. This way, in latest versions of Excel, saved spreadsheets never contain regular expressions. Also in the two datasets there was no such case, even though ??\% of the spreadsheets are in prior to Excel 2007 format (.xls files). 
@@ -619,23 +607,18 @@ This makes a grammar for the English version quite useful.
 The abstract syntax trees that the parser produces are traversed to generate information like the references of cells to other cells -in the form of internal or external ranges of any kind, the types of functions used, the operations and the fixed numbers in formulas. This information is used to perform more complex calculations on the cell dependencies, the calculation chains and possible smells on those. The parser has already been used in reference \cite{EnronVSEuses} to extract information like the intra-worksheet connections, the external links, the transitive precedents and the preceding cells of formulas. Also, in ???? (other published work?) - refer to papers Enron, smells, bumblebee
 
 \section{Related work}
+\label{section:relatedWork}
 - on inferring and testing undefined grammars
 - on analyzing spreadsheets using some sort of grammar
 - our work
 
 \section{Conclusion}
+\label{section:conclusion}
 future work:
 comparison with the official grammar using grammar comparison techniques
 
-
-\section*{Acknowledgment}
-The authors would like to thank...
-
-
 \bibliographystyle{IEEEtran}
 \bibliography{XLGrammarRefs}
-
-
 
 \end{document}
 
