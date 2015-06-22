@@ -229,23 +229,27 @@ In addition to the tokens defined in Table \ref{table:tokens}, some string token
          \alt <ConstantArray>
          \alt "RESERVED_NAME"
          
-<Constant> ::= "NUMBER"
-         \alt "STRING"
-         \alt "BOOL"
-         \alt "ERROR"
+<Constant> ::= "NUMBER" | "STRING" | "BOOL" | "ERROR"
+%         \alt "STRING"
+%         \alt "BOOL"
+%         \alt "ERROR"
          
 <FunctionCall> ::= <Function> <Arguments> `)'
-		\alt "UNOP_PREFIX" <Formula>
-		\alt <Formula> "UNOP_POSTFIX"
-		\alt <Formula> "BINOP" <Formula>
+		\alt <UnOpPrefix> <Formula>
+		\alt <Formula> `\%'
+		\alt <Formula> <BinOp> <Formula>
+		
+<UnOpPrefix> = `+' | `-'
 
-<Function> ::= "FUNCTION"
-	\alt "UDF"
+<BinOp> = `+' | `-' | `*' | `\textasciicircum'
+	\alt `<' | `>' | `=' | `<=' | `>=' | `<>'
+
+<Function> ::= "FUNCTION" | "UDF"
 	
 <Arguments> ::= <Argument>
 	\alt <Argument> `,' <Arguments>
 
-<Argument> ::= Formula | $\epsilon$
+<Argument> ::= <Formula> | $\epsilon$
 
 <Reference> ::= <ReferenceItem>
 	\alt <Reference> `:' <Reference>
@@ -273,8 +277,7 @@ In addition to the tokens defined in Table \ref{table:tokens}, some string token
 <NamedRange> ::= "NAMED_RANGE"
             \alt "NAMED_RANGE_PREFIXED"
 
-<Union> ::= <Reference>,
-	\alt <Reference> `,' <Union>
+<Union> ::= <Reference> | <Reference> `,' <Union>
 	
 <DynamicDataExchange> ::= "FILE" `!' "DDECALL"
 
@@ -287,7 +290,7 @@ In addition to the tokens defined in Table \ref{table:tokens}, some string token
 	\alt <ArrayConstant> `,' <ArrayRows>
 	
 <ArrayConstant> ::= <Constant>
-	\alt UNOP_PREFIX NUMBER
+	\alt <UnOpPrefix> NUMBER
 	\alt ERROR_REF
 
 \end{grammar}
