@@ -286,8 +286,11 @@ Leaving the tokens as-is but not providing priorities will still result in an us
 <ArrayColumns> ::= <ArrayRows>
 	\alt <ArrayRows> `;' <ArrayColumns>
 
-<ArrayRows> ::= <Constant>
-	\alt <Constant> `,' <ArrayRows>
+<ArrayRows> ::= <ArrayConstant>
+	\alt <ArrayConstant> `,' <ArrayRows>
+	
+<ArrayConstant> ::= <Constant>
+	\alt UNOP_PREFIX <Constant>
 
 \end{grammar}
 \end{figure}
