@@ -57,7 +57,7 @@
 
 \begin{abstract}
 Spreadsheets are ubiquitous in the industrial world and often perform a role similar to other computer programs in many different domains.
-However, there exists no reliable grammar that is concise enough to facilitate research on spreadsheet formula code bases.
+However, there does not exist a reliable grammar that is concise enough to facilitate research on spreadsheet formula code bases.
 This paper presents a grammar for spreadsheet formulas that is compatible, is compact enough to feasibly implement with a parser generator, and produces parse trees suited for further manipulation and analysis. 
 This grammar is evaluated against more than one million unique formulas extracted from the well known EUSES and Enron spreadsheet datasets, successfully parsing 99.99\%.
 Additionally, we utilize the grammar to analyze the the formulas in these datasets and measure the frequency of utilization of language features in spreadsheet formulas.
@@ -544,6 +544,8 @@ Operators are used in 66.8\% of the formula cells, with binary operators being t
 
 Regarding function arguments, spreadsheet systems allow empty ones (e.g. \texttt{=SUM(,E35,E37)}) but this is rarely done -in only 0.03\% of the formula cells. Unions are also an edge case. Only 385 formula cells contain a union used as argument, e.g. \texttt{=LARGE((F38,C38),1)}. All occurrences were arguments of the \texttt{LARGE} and \texttt{SMALL} functions. In the Euses dataset we also found 19 cases of constant arrays used as arguments, e.g. \texttt{=FVSCHEDULE(1,{0.09;0.11;0.1})}.
 
+The \synt{ArrayFormula} rule, covering formulas surrounded by brackets, is the only part of the grammar that is not evaluated. The reason is that the Gembox library that we use for reading spreadsheets does not support array formulas -it reads them as regular formulas, without the surrounding brackets. For this reason, we cannot we extract information on their frequency in the two datasets.
+
 \subsubsection{References}
 
 Spreadsheet formulas allow for different types of references, including single cell references, cell ranges, horizontal or vertical ranges, named ranges and reference-returning build-in or user-defined functions. All of these references can be internal (in the same or in different sheets) or external. Syntactically, they can be expressed in a number of ways. The simplest case of a reference to a cell range can be expressed in any of the following ways:
@@ -585,36 +587,30 @@ By \textit{complex ranges} we mean \synt{Reference}s that include more than two 
 
 The \textit{intersect operator} is included in this discussion because it is not declared as an operator. Intersection between two ranges in the grammar is represented in the most implicit way possible: by \texttt{\char32}, a single whitespace. For example, \texttt{A1:A10\char32A1:A5} is equivalent to \texttt{A1:A5}. Using this syntax, intersection is an implicit range formation operation, belonging to the \synt{Reference} rule, rather than a normal operation declared as a the \synt{Function}. An advantage of this approach is that it enables more natural language definition of intersections, e.g.  \texttt{=SUM((Total_Cost Jan):(Total_Cost Apr.))}. An alternative, in our opinion less error-prone definition of intersection, would be a dedicated build-in function used explicitly as \texttt{INTERSECT(A1:A10,A1:A5)}. In the two datasets, intersection operations are not common, as they are found in only 2,829 cases of formula cells.
 
-\section{Discussion}
-The currently defined Excel grammar is able to parse 99\% of all formulas from two large and well-known spreadsheet datasets. In this section, we discuss a variety of issues that affect the applicability and suitability of our approach.
-
+\section{Discussion and Limitations}
 \label{sec:discussion}
+The currently defined Excel grammar is able to parse 99,99\% of all formulas from two large and well-known spreadsheet datasets. In this section, we discuss a variety of issues that affect the applicability and suitability of our approach.
 
-\subsection{Limitations on evaluation}
+\subsection{Version-dependent grammar features}
+The grammar had been designed as a generic spreadsheet formula grammar, enriched to include all syntactical features found in the two datasets. Both datasets, however, contain spreadsheets created by -or converted to- Excel format. This limits the grammar support for features that are spreadsheet system-dependent or even version-dependent. The built-in functions list, for example, might change across versions, which would make the parser mistakenly recognize build-in as user-defined functions.
 
-\todo{Say something here about how array formulas are parsed as regular formulas so we don't have statistics on array formula usage}
-
-The evaluation of the grammar does not include array formulas.
-Those are specified as formulas surrounded by brackets, for example \texttt{\{= SUM( A1:E1*\{1,2,3,4,5\})\}}, that perform multiple calculations on array items. The grammar is designed to recognize array formulas as regular formulas surrounded by brackets (\synt{ArrayFormula} rule). The Gembox library that we use for reading spreadsheets does not support array formulas -it reads them as regular formulas, without the surrounding brackets. For this reason, we can neither evaluate this case in terms of grammar support, nor can we extract information on their frequency in the two datasets.
-
-\todo{Add that the datasets are both Excel spreadsheets only}
-
-\subsection{Deprecated features}
-todo: check if the features below are supported in other spreadsheet systems
-
-todo: - grammar changes with different Excel versions, eg regular expressions support, labels in formulas now expanded to cell
-references, updates in the built-in functions list
-
-Other limitations of the proposed grammar concern syntactical features that have been discontinued, like regular expressions in formulas. Excel allows defining formulas that include regular expressions, for example \texttt{=SUM('S*'!A1)} or \texttt{=SUM('Sheet?'!A1)}. However, in Excel 2010 and up (are we sure???), regular expressions are instantly resolved -in the example, to the multiple sheet reference \texttt{=SUM(Sheet2:Sheet3!A1)}, summing up all \texttt{A1} cells between \texttt{Sheet2} and \texttt{Sheet3}, where the sheets are all matching sheets, except the one that this formula is on. This way, in latest versions of Excel, saved spreadsheets never contain regular expressions. Also in the two datasets there was no such case, even though all spreadsheets in both sets were created prior to 2007, so they were made in the Excel 2003 and lower format. 
+Syntactical features can also be deprecated. An example is regular expressions in formulas. Excel allows defining formulas that include regular expressions, for example \texttt{=SUM('S*'!A1)} or \texttt{=SUM('Sheet?'!A1)}. However, in Excel 2010 and up, regular expressions are instantly resolved -in the example, to the multiple sheet reference \texttt{=SUM(Sheet2:Sheet3!A1)}, summing up all \texttt{A1} cells between \texttt{Sheet2} and \texttt{Sheet3}, where the sheets are all matching sheets, except the one that this formula is on. This way, in latest versions of Excel, saved spreadsheets never contain regular expressions. Also in the two datasets there was no such case, even though all spreadsheets in both sets were created prior to 2007, so they were made in the Excel 2003 and lower format. 
 
 The use of labels in formulas (a.k.a. natural language formulas) is another feature that was discontinued in Excel 2007. Labels were the headings that were typed above rows and columns, and they could be used in formulas instead of defined names or cell ranges. For example, formula \texttt{=Product A First Quarter} would return the intersection between the cell range with heading \texttt{Product A} and the one with heading \texttt{=First Quarter}. This feature is replaced in newer versions of Excel with the less error-prone named ranges feature. The proposed grammar does not support it, and it would mistakenly parse the labels as named ranges.
 
-\subsection{Parsable invalid formulas}
+\subsection{Internationalization}
 
-As stated in the design goals in Section \ref{sec:designgoals} the goal of this grammar is to facilitate analysis of formulas, which means correctly parsing valid Excel formulas.
+Excel formulas differ depending on the language of the software. For example function arguments are separated by a semicolon instead of a comma in locales that use the comma as a decimal separator. Our grammar is only for the default (English) locale. Grammars for other locales can be gotten by replacing delimiters, error values and function names by their localized versions.
+
+It is worth noting that Excel will always save formulas in either a locale-independent binary format (Excel 2003 and earlier format) or in its English version (Excel 2007 and later format). When interacting with Excel through its API two versions of the formula can be read or written: the English version and the version in the current locale.
+This makes a grammar for the English version quite useful, since the parser can eventually process all spreadsheets as long as their formulas are read using the English locale.
+
+\subsection{Grammar coverage}
+
+As stated in the design goals in Section \ref{sec:designgoals} the goal of this grammar is to facilitate analysis of formulas, which means correctly parsing valid spreadsheet formulas.
 Rejecting invalid formulas is not among the primary goals of this grammar, as one will normally not encounter invalid formulas in Excel files.
-Furthermore while the authors have two extensive datasets of valid formulas available, no such datasets of invalid formulas are known to the authors.
-As such the authors expect that the presented grammar is too broad and will parse a large number of formulas which are not valid.
+Furthermore, while there exist two extensive datasets of valid formulas, to the best of our knowledge there are no such datasets of invalid formulas.
+As such we expect that the presented grammar is too broad and will parse a large number of formulas which are not valid.
 Using this grammar to parse possibly-invalid formulas like user-input might thus require additional safeguards.
 
 The following is a non-exhaustive list of restrictions on the validity of formulas not encoded into the presented grammar\footnote{These restrictions are in place in the Excel 2007 and later format. The Excel 2003 and earlier format often has lower limits.}:
@@ -625,15 +621,6 @@ The following is a non-exhaustive list of restrictions on the validity of formul
 	\item The row number cannot exceed 1,048,576 ($2^{20}$) and the column number cannot exceed XFD ($2^{14}$).
 	\item A formula cannot be longer than 8,192 ($2^{13}$) characters.
 \end{itemize}
-
-\subsection{Internationalization}
-
-Excel formulas differ depending on the language of the software. For example function arguments are separated by a semicolon instead of a comma in locales that use the comma as a decimal separator.
-
-Our grammar is only for the default (English) locale. Grammars for other locales can be gotten by replacing delimiters, error values and function names by their localized versions.
-
-It is worth noting that Excel will always save formulas in either a locale-independent binary format (Excel 2003 and earlier format) or in its English version (Excel 2007 and later format). When interacting with Excel through its API two versions of the formula can be read or written: the English version and the version in the current locale.
-This makes a grammar for the English version quite useful.
 
 \section{Related work}
 \label{section:relatedWork}
