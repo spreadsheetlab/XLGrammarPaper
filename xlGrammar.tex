@@ -241,7 +241,7 @@ In addition to the tokens defined in Table \ref{table:tokens}, some string token
 		
 <UnOpPrefix> = `+' | `-'
 
-<BinOp> = `+' | `-' | `*' | `\textasciicircum'
+<BinOp> = `+' | `-' | `*' | `/' | `\textasciicircum'
 	\alt `<' | `>' | `=' | `<=' | `>=' | `<>'
 
 <Function> ::= "FUNCTION" | "UDF"
@@ -290,8 +290,8 @@ In addition to the tokens defined in Table \ref{table:tokens}, some string token
 	\alt <ArrayConstant> `,' <ArrayRows>
 	
 <ArrayConstant> ::= <Constant>
-	\alt <UnOpPrefix> NUMBER
-	\alt ERROR_REF
+	\alt <UnOpPrefix> "NUMBER"
+	\alt "ERROR_REF"
 
 \end{grammar}
 \end{figure}
@@ -468,7 +468,7 @@ todo: add percentages for unique formulas, sort by frequency, change headers to 
 		CELL & \texttt{=A5} & 78,605 & 88.01\% & 1,259,366 & 98.52\% & 876,913 & 92.27\% & 21,083,225 & 98.74\%\\
 		\synt{FunctionCall} & \texttt{=SUM(A5:A22)} & 65,646 & 73.50\% & 979,204 & 76.60\% & 642,137 & 67.57\% & 18,328,999 & 85.84\%\\
 		
-		BINOP & \texttt{=H10-H8} & 38,774 & 43.41\% & 562,972 & 44.04\% & 360,272 & 37.91\% & 12,999,880 & 60.88\%\\
+		\synt{BinOp} & \texttt{=H10-H8} & 38,774 & 43.41\% & 562,972 & 44.04\% & 360,272 & 37.91\% & 12,999,880 & 60.88\%\\
 		\synt{Function} & \texttt{=SUM(A5:A22)} & 37,554 & 42.05\% & 678,001 & 53.04\% & 255,629 & 26.90\% & 9,891,247 & 46.33\%\\
 		FUNCTION & \texttt{=SUM(A5:A22)} & 37,147 & 41.59\% & 667,038 & 52.18\% & 251,782 & 26.49\% & 9,791,967 & 45.86\%\\
 		\synt{Constant} & \texttt{=SUM(A5:A22)} & 30,197 & 33.81\% & 406,423 & 31.79\% & 243,113 & 25.58\% & 8,505,598 & 39.84\%\\
@@ -476,32 +476,29 @@ todo: add percentages for unique formulas, sort by frequency, change headers to 
 		\synt{Prefix} & \texttt{=Sheet1!B1} & 26,793 & 30.00\% & 351,813 & 27.52\% & 311,124 & 32.74\% & 5,299,822 & 24.82\%\\
 		SHEET & \texttt{=Sheet1!B1} & 25,739 & 28.82\% & 349,090 & 27.31\% & 278,431 & 29.30\% & 4,985,919 & 23.35\%\\
 		\synt{Reference} ':' \synt{Reference} & \texttt{=SUM(A5:A22)} & 22,839 & 25.57\% & 381,189 & 29.82\% & 162,038 & 17.05\% & 3,471,278 & 16.26\%\\
-		UNOP-PREFIX & \texttt{=+B11+1} & 7,299 & 8.17\% & 61,381 & 4.80\% & 211,228 & 22.23\% & 3,222,554 & 15.09\%\\
+		\synt{UnOpPrefix} & \texttt{=+B11+1} & 7,299 & 8.17\% & 61,381 & 4.80\% & 211,228 & 22.23\% & 3,222,554 & 15.09\%\\
 		STRING & \texttt{=COUNTIF(B\$4:B\$46,">=90")} & 9,402 & 10.53\% & 156,927 & 12.28\% & 47,915 & 5.04\% & 2,551,112 & 11.95\%\\
 		\synt{NamedRange} & \texttt{=SUM(freq)} & 1,605 & 1.80\% & 22,854 & 1.79\% & 19,635 & 2.07\% & 1,607,409 & 7.53\%\\
 		BOOL & \texttt{=IF(AND(R11=1,R14=TRUE),G19,0)} & 672 & 0.75\% & 32,802 & 2.57\% & 6,850 & 0.72\% & 1,231,949 & 5.77\%\\
 		FILE & \texttt{=[11]Sheet1!C5} & 1,400 & 1.57\% & 8,074 & 0.63\% & 103,541 & 10.89\% & 1,127,160 & 5.28\%\\
-		
-		REFERENCE-FUNCTION & \texttt{=SUM(J9:INDEX(J9:J41,B43))} & 846 & 0.95\% & 67,072 & 5.25\% & 9,669 & 1.02\% & 712,978 & 3.34\%\\
-		
+		REFERENCE-FUNCTION & \texttt{=SUM(J9:INDEX(J9:J41,B43))} & 846 & 0.95\% & 67,072 & 5.25\% & 9,669 & 1.02\% & 712,978 & 3.34\%\\	
 		QUOTED-FILE-SHEET & \texttt{=('[2]Detail I\&E'!D62)/1000} & 785 & 0.88\% & 1,854 & 0.15\% & 32,997 & 3.47\% & 323,645 & 1.52\%\\
 		UDF & \texttt{=SQRT(_eoq2(C5,C4,C6,C7))} & 742 & 0.83\% & 12,811 & 1.00\% & 22,460 & 2.36\% & 290,978 & 1.36\%\\
-		
-		_xll. & \texttt{=_xll.RiskTriang(F9,F7,F8)} & 16 & 0.02\% & 89 & 0.01\% & 12,410 & 1.31\% & 137,797 & 0.65\%\\
-		ERROR_REF & \texttt{=AVERAGE(\#REF!)} & 211 & 0.24\% & 1,010 & 0.08\% & 3,271 & 0.34\% & 122,466 & 0.57\%\\
+		'_xll.' & \texttt{=_xll.RiskTriang(F9,F7,F8)} & 16 & 0.02\% & 89 & 0.01\% & 12,410 & 1.31\% & 137,797 & 0.65\%\\
+		ERROR-REF & \texttt{=AVERAGE(\#REF!)} & 211 & 0.24\% & 1,010 & 0.08\% & 3,271 & 0.34\% & 122,466 & 0.57\%\\
 		(' \synt{Reference} ')' & \texttt{=(2*(B29))/(1+B29)} & 810 & 0.91\% & 5,834 & 0.46\% & 4,449 & 0.47\% & 79,890 & 0.37\%\\
 		VERTICAL-RANGE & \texttt{=COUNT(A:A)} & 322 & 0.36\% & 1,805 & 0.14\% & 538 & 0.06\% & 54,313 & 0.25\%\\
 		
 		FILE '!' & \texttt{=[1]!today} & 264 & 0.30\% & 655 & 0.05\% & 1,776 & 0.19\% & 27,793 & 0.13\%\\
 		ERROR & \texttt{=IF(AND(R11=1,R14=TRUE),G19,0)} & 362 & 0.41\% & 19,630 & 1.54\% & 18 & 0.00\% & 7,615 & 0.04\%\\
-		UNOP-POSTFIX & \texttt{=IF(E5>I8,3\%,0\%)} & 215 & 0.24\% & 1,091 & 0.09\% & 643 & 0.07\% & 15,515 & 0.07\%\\
+		'\%' & \texttt{=IF(E5>I8,3\%,0\%)} & 215 & 0.24\% & 1,091 & 0.09\% & 643 & 0.07\% & 15,515 & 0.07\%\\
 			Empty argument & \texttt{=DCOUNT(Lettergrades,,I80:I81)} & 128 & 0.14\% & 3,614 & 0.28\% & 1,215 & 0.13\% & 6,898 & 0.03\%\\
-			Complex ranges & \texttt{=SUM(I8:K8:M8)} & 0 & 0.00\% & 0 & 0.00\% & 359 & 0.04\% & 8,568 & 0.04\%\\
+			Complex range & \texttt{=SUM(I8:K8:M8)} & 0 & 0.00\% & 0 & 0.00\% & 359 & 0.04\% & 8,568 & 0.04\%\\
 			\synt{DynamicDataExchange} & \texttt{=TWINDDE|RSFRec!'NGH2 NET.CHNG''} & 121 & 0.14\% & 254 & 0.02\% & 3,155 & 0.33\% & 3,432 & 0.02\%\\
 			Intersection & \texttt{=Ending_Inventory Jan} & 98 & 0.11\% & 1,966 & 0.15\% & 200 & 0.02\% & 863 & 0.00\%\\
 			MULTIPLE-SHEETS & \texttt{=SUM(Sheet1:Sheet20!I29)} & 9 & 0.01\% & 234 & 0.02\% & 164 & 0.02\% & 1,752 & 0.01\%\\
 			Prefixed right ref. limit & \texttt{=SUM('Tot-1'!\$B8:'Tot-1'!B8)} & 108 & 0.12\% & 941 & 0.07\% & 39 & 0.00\% & 560 & 0.00\%\\
-			RESERVED_NAME & \texttt{=C23/_xlnm.Print_Area} & 7 & 0.01\% & 8 & 0.00\% & 69 & 0.01\% & 1,278 & 0.01\%\\
+			RESERVED-NAME & \texttt{=C23/_xlnm.Print_Area} & 7 & 0.01\% & 8 & 0.00\% & 69 & 0.01\% & 1,278 & 0.01\%\\
 			UDF reference & \texttt{=[1]!wbname()} & 251 & 0.28\% & 608 & 0.05\% & 81 & 0.01\% & 247 & 0.00\%\\
 			HORIZONTAL-RANGE & \texttt{=MATCH(F3,Prices!2:2,0)} & 0 & 0.00\% & 0 & 0.00\% & 11 & 0.00\% & 836 & 0.00\%\\
 			\synt{Union} & \texttt{=LARGE((F38,C38),1)} & 1 & 0.00\% & 34 & 0.00\% & 9 & 0.00\% & 351 & 0.00\%\\
@@ -520,11 +517,10 @@ The \synt{Formula} rule covers all types of spreadsheet formula expressions. Its
 	\begin{stack} 
 	\begin{stack}
 	\begin{stack} "FUNCTION" \\ "UDF" \end{stack} \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$' \\
-	"UNOP-PREFIX" Formula\\
-	Formula "UNOP-POSTFIX"\\
-	Formula "BINOP" Formula
+   \begin{stack} \\ '$+$' \\ '$-$' \end{stack} <Formula> \begin{stack} \\ '$\%$' \end{stack}\\ 
+	<Formula>  \begin{stack} '$+$' \\ '$-$' \\ '$*$' \\ '$/$' \\ '\textasciicircum'  \\ '\textless' \\ '\textgreater' \\ '$=$' \\ '$\textless=$' \\ '$\textgreater=$' \\ '$\textless\textgreater$'   \end{stack} <Formula>
 	\end{stack} \\
-	\begin{stack} "NUMBER" \\ "STRING" \\ "BOOL" \\ "ERROR"  \end{stack} \\ "RESERVED-NAME" \\ <Reference> \\ '$($' <Formula> '$)$' \\  <ConstantArray???>
+	\begin{stack} "NUMBER" \\ "STRING" \\ "BOOL" \\ "ERROR"  \end{stack} \\ "RESERVED-NAME" \\ <Reference> \\ '$($' <Formula> '$)$' \\  '$\{$' \begin{rep} \begin{rep}	\begin{stack} \begin{stack} \begin{stack} \\ '$+$' \\ '$-$' \end{stack} "NUMBER" \\ "STRING" \\ "BOOL" \\ "ERROR"  \end{stack} \\ "ERROR-REF" \end{stack} \\  '$,$' \end{rep} \\ '$;$' \end{rep} '$\}$'
 	\end{stack}
 	\]]
 \end{grammar}
@@ -556,9 +552,10 @@ The \synt{Reference} rule covers all types of referencing expressions. It was th
 	\centering
 	\begin{grammar}
 		<Reference> ::= \[[
-		\begin{stack} '$($' <Reference> '$)$'\\ <Reference> \begin{stack} '$:$' \\ '$ $' \end{stack} <Reference> \\
+		\begin{stack} '$($' \begin{rep} <Reference> \\  '$,$' \end{rep} '$)$'\\ <Reference> \begin{stack} '$:$' \\ '$ $' \end{stack} <Reference> \\
 		\begin{stack} \\ \begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE_SHEETS" \end{stack} \\ "FILE" '$!$' \\ "QUOTED_FILE_SHEET" \end{stack}
-		\begin{stack} \begin{stack} \begin{stack} "CELL" \\ "REFERENCE-FUNCTION" <Arguments> '$)$' \end{stack} \\ "VERTICAL-RANGE" \\ "HORIZONTAL-RANGE" \\ \begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\ "ERROR" \end{stack} \\ "UDF" <Arguments> '$)$'\end{stack}
+		\begin{stack} \begin{stack} "CELL" \\ "VERTICAL-RANGE" \\ "HORIZONTAL-RANGE" \\ \begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\ "ERROR-REF" \end{stack} \\  \begin{stack} "REFERENCE-FUNCTION" \\ "UDF" \end{stack} \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$'\end{stack}
+		\\"FILE" '$!$' "DDECALL"
 		\end{stack}
 		\]]
 	\end{grammar}
