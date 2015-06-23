@@ -115,9 +115,14 @@ In R1C1 style \texttt{R[4]C[-2]} means the cell two columns to the left and four
 The biggest advantage of R1C1 is that it causes identical formulas to be the same even when they operate on different cells or data because of their position.
 These properties might make R1C1 useful as an internal representation for your intended purpose, but the grammar presented in this paper does not support parsing this reference style.
 
-References can also be \emph{ranges}, which are a two-dimensional matrices of cells.
-Ranges can be constructed by the range operator \texttt{:} which produces a rectangular range with the two arguments as topmost left an bottommost right corners, the union operator \texttt{,} (a comma) \footnote{This is not a mathematical union as duplicates are allowed.} or the intersection operator \texttt{\char32} (a single whitespace). 
-An user can also give a name to any range of cells thus creating a \emph{named range} which can be referenced in formulas by name.
+References can also be \emph{ranges}, which are collections of cells.
+Ranges can be constructed by three operators: the range operator \texttt{:}, the union operator \texttt{,} (a comma) and the intersection operator \texttt{\char32} (a single whitespace).
+The range operator creates a rectangular range with the two cells as top-left and bottom-right corners, \texttt{=SUM(A1:B10)} will sum all cells in columns A and B with row number 1 through 10.
+The range operator is also used to construct ranges of whole rows or columns, \texttt{3:5} is the range of the complete rows three through five, \texttt{A:D} is the range of columns A through D.
+The union operator, which is different from a mathematical union as duplicates are allowed, combines two references, \texttt{A1,C5} will be a range of two cells \texttt{A1} and \texttt{C5}.
+Lastly the intersection operator takes only the cells which are in both arguments, \texttt{=A:A 5:5)} will thus be equivalent to \texttt{=A5}.
+
+An user can also give a name to any collection of cells thus creating a \emph{named range} which can be referenced in formulas by name.
 
 \subsection{Sheet and external references and DDE}
 
@@ -127,24 +132,26 @@ The most common use case is to reference another sheet in the same workbook, whe
 A peculiar type of prefix are those that indicate multiple sheets: \texttt{=Sheet1:Sheet10!A1} means A1 in Sheet1 through Sheet10.
 Sheet names can also be between single quotes: \texttt{='Sheetname with space'!A1}. 
 
-In Microsoft Excel formulas can also call external programs through the Windows-specific Dynamic Data Exchange (DDE).
+In Windows versions of Microsoft Excel formulas can also call external programs through Dynamic Data Exchange (DDE).
 These formulas take the form of \texttt{=Program|Topic!Arguments}.
 
 \subsection{Array Formulas and Arrays}
 \label{sec:arrayformulas}
-Most spreadsheet programs provide a ways to work with one- or two-dimensional matrices.
-The most common way is the previously mentioned ranges, which directly correspond to portions of the spreadsheet.
-However, there are two alternate ways.
+In spreadsheet programs it is possible to work with one- or two-dimensional matrices.
 
-Firstly it is possible to construct matrices from constant values, called \emph{Array constants}.
+It is possible to construct these matrices from constant values, called \emph{Array constants}.
 Arrays are surrounded by curly brackets, columns are separated by commas, and rows by semicolons.
-As an example \texttt{\{1,2,3;4,5,6\}} constructs an array with a height of 2 rows and a width of 3 columns.
+Several matrix operations are available, for example \texttt{=SUM(\{1,2,3\}*10)} will evaluate to 60.
 
 \emph{Array Formulas} use the same syntax as normal formulas, except the use must enter \emph{Ctrl} + \emph{Shift} + \emph{Enter} to signal that it is an Array formula.
 Excel and LibreOffice surround the formula with curly braces.
 Google docs works differently and requires the user to surround an array formula with \texttt{ARRAYFORMULA($\ldots$)}.
-Marking a formula as an array formula alters the behavior of some operations and enables an extra set of functions which allows the user to work with matrices.
+
+Marking a formula as an array formula will enable one- or two-dimensional ranges to be treated as array.
+For example if \texttt{A1},\texttt{A3},\texttt{A3} contain the values \texttt{1},\texttt{2},\texttt{3} the array formula \texttt{\{=SUM(A1:A3*10)\}} will evaluate to \texttt{60}.
+
 Furthermore an array formula allows the user to return multiple results, which will be presented in multiple cells.
+The array formula \texttt{\{=\{1,2,3\}*\{4,5,6\}\}} will show \texttt{4}, \texttt{10} and \texttt{18} in three different cells.
 
 \section{Spreadsheet Formula Grammar}
 \label{section:grammar}
@@ -305,7 +312,7 @@ In addition to the tokens defined in Table \ref{table:tokens}, some string token
 \subsection{Syntactic analysis}
 \label{subsection:productionRules}
 
-The complete production rules of our grammar can be found in Figure \ref{figure:productions} in Extended BNF syntax. The start symbol is $Start$. If one does not wish to accept array formula's and wishes to omit the `=' at the start of a formula $Formula$ can be used as a start symbol instead, or the $Start$ non-terminal can be adjusted.
+The complete production rules of our grammar can be found in Figure \ref{figure:productions} in Extended BNF syntax. The start symbol is $Start$.
 
 \begin{table}
 \label{table:operatorprec}
