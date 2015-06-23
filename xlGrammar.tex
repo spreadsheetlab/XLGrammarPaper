@@ -451,7 +451,7 @@ If your implementation or parser generator can support the more straightforward 
 
 \todo{In evaluation note that we have achieved the design goals of section design decisions}
 
-The grammar is implemented in the Irony parser generator framework\footnote{https://irony.codeplex.com/} and the resulting parser is available for download\footnote{link for download}.
+The grammar is implemented in the Irony parser generator framework\footnote{https://irony.codeplex.com/} and the resulting parser is available for download\footnote{https://github.com/PerfectXL/XLParser}.
 
 To extract unique formulas and feed them to the parser we built a tool that opens spreadsheets using the Gembox third party library. The tool reads all cells and identifies which have the same formula in R1C1. It then selects the first cell from each group of cells that share the same formula in the R1C1 style and uses its formula string as input to the parser. It parses only one cell from each R1C1 group - the only differences between the formulas in the same group are the values of the references, so the structure of the produced parse trees is exactly the same.
 
