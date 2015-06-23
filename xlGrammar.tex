@@ -631,17 +631,11 @@ This makes a grammar for the English version quite useful.
 
 \section{Related work}
 \label{section:relatedWork}
+Most related to our research is the work of Badame and Dig~\cite{badame2012refactoring} who, as part of their proposed spreadsheet refactoring approach, presented a grammar for spreadsheet formulas. However, they do not evaluate their grammar, and upon inspection one can see that key ingredients are missing: e.g. external references, intersections and unions and named ranges. An extension of the same grammar was used to refactor formulas by Hermans and Dig \cite{hermans2014bumblebee}.
 
-\subsection{Analyzing spreadsheets and spreadsheet formulas}
+There have been related efforts, in which a preliminary grammar was tested on large code bases in order to extend and refine it (TODO David: PHP FB story)
 
-As part of proposed spreadsheet smells and refactorings, Badame and Dig \cite{badame2012refactoring} present a grammar for spreadsheet formulas.
-However, no evaluation of correctness takes place and on informal tests several omissions were found by the authors of this paper, e.g. external references, intersections and unions and named ranges are not included in that grammar.
-An extension of the same grammar was used to refactor formulas by Hermans and Dig \cite{hermans2014bumblebee}.
-These papers do provide example use cases for the grammar presented in this paper.
-
-- on inferring and testing undefined grammars
-- on analyzing spreadsheets using some sort of grammar
-- our work
+As explained in the introduction, there is a large body of related work that relies on parsing spreadsheet formulas in order to analyze spreadsheets. This includes our own worl in which we have worked on an algorithm to visualize spreadsheets as dataflow diagrams\cite{DBLP:conf/icse/HermansPD11}, and subsequently on detecting smells in spreadsheets \cite{DBLP:conf/icse/HermansPD12,DBLP:conf/icsm/Hermans212}. Related approaches exist, for example the work of Cunha that have worked on code smells~\cite{iccsa12} and smell-based fault localization~\cite{conf/icsme/CunhaFMPS14}. These papers too analyze spreadsheet formulas but do not detail whether they use a grammar or what alternative they use.
 
 \section{Conclusion}
 \label{section:conclusion}
