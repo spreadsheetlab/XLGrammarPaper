@@ -68,7 +68,9 @@ Finally, we identify smelly constructs and edge cases in the syntax of formulas.
 
 
 \section{Introduction}
-todo: why spreadsheets are important
+Spreadsheets are widely used in industry: Winston~\cite{Wins2001} estimates that 90\% of all analysts in industry perform calculations in
+spreadsheets. Their use is diverse, ranging from inventory administration to educational applications and from scientific
+modeling to financial systems. It is estimated that 90\% of desktops have Excel installed\cite{DBLP:conf/icse/BradleyM09} and that the number of spreadsheet programmers is bigger than that of software programmers\cite{DBLP:conf/vl/ScaffidiSM05}. Because of their widespread use, they have been the topic of research since the nineties\cite{DBLP:journals/sigplan/BellP93}.
 
 Spreadsheets are cell-oriented dataflow programs. The values in spreadsheets cells are either constants or they are calculated using formulas. Formulas can contain references to other cells, thus creating calculation trees. Calculation trees can be viewed as lines of code written in the spreadsheet formula language, containing variables (cell names), operations, function invocations, decision statements, and even loops. Spreadsheet calculation trees can be complex: An analysis of the Enron dataset \cite{EnronVSEuses} has found cells with calculation trees composed of more than 20 thousand cells and more than one thousand cells deep. In the same dataset the average number of formulas per spreadsheet is over two thousand, while there are spreadsheets with more than 150 thousand formulas.
 
