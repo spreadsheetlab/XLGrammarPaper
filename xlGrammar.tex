@@ -179,37 +179,38 @@ Generalized LR grammar parser generators provide more freedom, but were not chos
 \begin{table*}
 \label{table:tokens}
 \caption{Lexical tokens used in our grammar}
-\begin{tabular}{@{}lllll@{}}
+\begin{tabular}{@{}llll@{}}
 \toprule
-Token Name & Description & Regular Expression & Priority & Example \\
+Token Name & Description & Regular Expression & Priority \\
 \midrule
 %BINOP & Binary Operator & + $\mid$ - $\mid$ / $\mid$ * $\mid$ \textasciicircum $\mid$ \textless $\mid$ \textgreater $\mid$ = $\mid$ \textless= $\mid$ \textgreater= $\mid$ \textless \textgreater & 0 & + \\
-BOOL & Boolean literal & TRUE $\mid$ FALSE & 0 & TRUE \\
-CELL & Cell reference & \$? [A-Z]+ \$? [0-9]+ & 2 & $A$1 \\
-DDECALL & Dynamic Data Exchange & ' ([A-Z0-9\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ ' & 0 & \texttt{`NGK1,PRIM ACT 1'}\\
-ERROR & Error literal & \#NULL! $\mid$ \#DIV/0! $\mid$ \#VALUE! $\mid$ \#NAME? $\mid$ \#NUM! $\mid$ \#N/A & 0 & \#N/A \\
-ERROR_REF & Reference error literal & \#REF! & \#REF! \\
-FILE & External file reference & \textbackslash[ [0-9]+ \textbackslash] & 5 & [1]\\
-FUNCTION & Excel built-in function & (Any entry from the function list\tablefootnote{A function list is available as part of the reference implementation. Lists provide by Microsoft are also available in \cite{ExcelFunctionReference} and \cite{ExcelOfficialGrammar}.}) \textbackslash( & 5        & SUM( \\
-HORIZONTAL\_RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 & 1:4 \\
-MULTIPLE\_SHEETS & Multiple sheet references &
-[A-Z0-9]+ : ([A-Z0-9\_.]+ $\mid$ ' ([A-Z0-9\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+  ') !
-& 1 & Sheet1:'Escape '' 5'! \\
-NAMED\_RANGE & Named range & [A-Z\_][A-Z0-9\_.]* & -2 & MYNAME \\
-NAMED\_RANGE\_PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+[0-9]+)    {[}A-Z0-9\_.{]}+                                                                             & 3 & A1MYNAME \\
-NUMBER\_LITERAL & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & [0-9]+ ,? [0-9]* (e [0-9]+)? & 0 & 10.1e12 \\
-QUOTED\_FILE\_SHEET & A file reference within single quotes & '\textbackslash[ [0-9]+ \textbackslash] ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ '!
-& 5        & '{[}1{]}My Sheet'! \\
-REFERENCE\_FUNCTION & Excel built-in reference function & (INDEX $\mid$ OFFSET $\mid$ INDIRECT)\textbackslash( & 5 & INDEX( \\
-RESERVED\_NAME & An Excel reserved name & \_xlnm\textbackslash.  [A-Z\_]+ & -1 & \_xlnm.History \\
+BOOL & Boolean literal & TRUE $\mid$ FALSE & 0 \\
+CELL & Cell reference & \$? [A-Z]+ \$? [0-9]+ & 2 \\
+DDECALL & Dynamic Data Exchange & ' ([A-Z0-9\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ ' & 0 \\
+ERROR & Error literal & \#NULL! $\mid$ \#DIV/0! $\mid$ \#VALUE! $\mid$ \#NAME? $\mid$ \#NUM! $\mid$ \#N/A & 0 \\
+ERROR-REF & Reference error literal & \#REF! & 0 \\
+FILE & External file reference & \textbackslash[ [0-9]+ \textbackslash] & 5 \\
+FUNCTION & Excel built-in function & (Any entry from the function list\tablefootnote{A function list is available as part of the reference implementation. Lists provide by Microsoft are also available in \cite{ExcelFunctionReference} and \cite{ExcelOfficialGrammar}.}) \textbackslash( & 5        \\
+HORIZONTAL-RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 \\
+MULTIPLE-SHEETS & Multiple sheet references & \begin{tabular}[c]{@{}l@{}}
+[A-Z0-9]+ : ([A-Z0-9\_.]+$\mid$'([A-Z0-9\_ !\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+')!
+\end{tabular}
+& 1 \\
+NAMED-RANGE & Named range & [A-Z\_][A-Z0-9\_.]* & -2 \\
+NAMED-RANGE-PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+[0-9]+)    {[}A-Z0-9\_.{]}+                                                                             & 3 \\
+NUMBER-LITERAL & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & [0-9]+ ,? [0-9]* (e [0-9]+)? & 0 \\
+QUOTED-FILE-SHEET & A file reference within single quotes & '\textbackslash[ [0-9]+ \textbackslash] ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ '!
+& 5        \\
+REFERENCE-FUNCTION & Excel built-in reference function & (INDEX $\mid$ OFFSET $\mid$ INDIRECT)\textbackslash( & 5 \\
+RESERVED-NAME & An Excel reserved name & \_xlnm\textbackslash.  [A-Z\_]+ & -1 \\
 SHEET & The name of a worksheet &
 	([0-9A-Z\_.]+ $\mid$ ' ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+={}$\mid$:;\textless\textgreater,./?\textbackslash\textbackslash] $\mid$ '')+ ') !
-& 5        & Sheet1!            \\
-STRING & String literal & " ([\textasciicircum{} "] $\mid$ "")* " & 0        & "He Said: ""Hi"""  \\
+& 5        \\
+STRING & String literal & " ([\textasciicircum{} "] $\mid$ "")* " & 0       \\
 %UNOP\_POSTFIX & Unary postfix operator & \% & 0 & \% \\
 %UNOP\_PREFIX & Unary prefix operator & + $\mid$ - & 0 & -                  \\
-UDF & User Defined Function & (\_xll\textbackslash.)? [A-Z0-9]+  ( & 4 & MyFunction( \\
-VERTICAL\_RANGE & Range of columns & \$? [A-Z]+ : \$? [A-Z]+ & 0 & A:Z \\ 
+UDF & User Defined Function & (\_xll\textbackslash.)? [A-Z0-9]+  ( & 4 \\
+VERTICAL-RANGE & Range of columns & \$? [A-Z]+ : \$? [A-Z]+ & 0 \\ 
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -222,12 +223,31 @@ All tokens are case-insensitive.
 Our tokens also require the scanner to support token priorities. Removing the necessity for token priorities is possible by altering the tokens and production rules, but makes the grammar more complicated and the resulting tree harder to use, thus being detrimental to design goals 2 and 3.
 Leaving the tokens as-is but not providing priorities will still result in an usable grammar, but expect errors on edge cases.
 
-In addition to the tokens defined in Table \ref{table:tokens}, some string tokens are directly defined in the production rules in Figure \ref{figure:productions}
+In addition to the tokens defined in Table \ref{table:tokens}, some simple tokens are directly defined in the production rules in Figure \ref{figure:productions} in between quotes.
+
+\subsubsection{\textbf{Dates}}
+
+In Excel the user can enter date and time values in a cell.
+These are internally stored as positive floating point numbers with the integer portion representing the number of days since a Jan 0 1900 epoch and the fractional portion representing the portion of the day passed.
+Users see either the number or the date depending on presentation settings of the cell.
+
+This grammar only parses numeric dates and times and these are not distinguishable from other numbers.
+
+\subsubsection{\textbf{External References}}
+
+External references in formulas, both to external files and DDE, are not stored as part of the formula in the Microsoft Excel storage format, but instead are replaced by a numeric index.
+This index is then stored in a file level dictionary of external references.
+A formula that is presented to the user as \texttt{=[C:\textbackslash Path\textbackslash Filename.xlxs]Sheetname!A1} is internally stored as \texttt{[X]Sheetname!A1}, where \texttt{X} can be any number.
+
+For this reason the presented grammar supports only numeric external references.
+Adding support for full filenames can be achieved by introducing an additional token or altering the \texttt{FILE} token, but be aware that external filenames can be presented to and entered by the user in a myriad of different formats, depending on conditions such as if the file is opened in the spreadsheet program.
+
+
 
 \begin{figure}
-\centering
-\label{figure:productions}
 \caption{Production rules}
+\label{figure:productions}
+\centering
 \begin{grammar}
 <Start> ::= <Constant>
 	\alt '=' <Formula>
@@ -240,7 +260,7 @@ In addition to the tokens defined in Table \ref{table:tokens}, some string token
          \alt <FunctionCall>
          \alt `(' <Formula> `)'
          \alt <ConstantArray>
-         \alt "RESERVED_NAME"
+         \alt "RESERVED-NAME"
          
 <Constant> ::= "NUMBER" | "STRING" | "BOOL" | "ERROR"
 %         \alt "STRING"
@@ -275,20 +295,20 @@ In addition to the tokens defined in Table \ref{table:tokens}, some string token
     
 <ReferenceItem> ::= "CELL"
 	\alt <NamedRange>
-	\alt "REFERENCE_FUNCTION" Arguments `)'
-	\alt "VERTICAL_RANGE"
-	\alt "HORIZONTAL_RANGE"
-	\alt "ERROR_REF"
+	\alt "REFERENCE-FUNCTION" Arguments `)'
+	\alt "VERTICAL-RANGE"
+	\alt "HORIZONTAL-RANGE"
+	\alt "ERROR-REF"
 	
 <Prefix> ::= "SHEET"
 	\alt "FILE" "SHEET"
 	\alt "FILE" `!'
-	\alt "QUOTED_FILE_SHEET"
-	\alt "MULTIPLE_SHEETS"
-	\alt "FILE" "MULTIPLE_SHEETS"
+	\alt "QUOTED-FILE-SHEET"
+	\alt "MULTIPLE-SHEETS"
+	\alt "FILE" "MULTIPLE-SHEETS"
 	
-<NamedRange> ::= "NAMED_RANGE"
-            \alt "NAMED_RANGE_PREFIXED"
+<NamedRange> ::= "NAMED-RANGE"
+            \alt "NAMED-RANGE-PREFIXED"
 
 <Union> ::= <Reference> | <Reference> `,' <Union>
 	
@@ -304,38 +324,14 @@ In addition to the tokens defined in Table \ref{table:tokens}, some string token
 	
 <ArrayConstant> ::= <Constant>
 	\alt <UnOpPrefix> "NUMBER"
-	\alt "ERROR_REF"
+	\alt "ERROR-REF"
 
 \end{grammar}
 \end{figure}
 
-\subsection{Syntactic analysis}
-\label{subsection:productionRules}
-
-The complete production rules of our grammar can be found in Figure \ref{figure:productions} in Extended BNF syntax. The start symbol is $Start$.
-
-\begin{table}
-\label{table:operatorprec}
-\caption{Operator precedence in Excel Formulas}
-\begin{tabular}{lr}
-Operator                                                                & Precedence \\
- & higher = greater \\
-= \textless \  \textgreater \  \textless= \  \textgreater= \  \textless\textgreater & 1          \\
-\&                                                                      & 2          \\
-+ - (binary)                                                            & 3          \\
-* /                                                                     & 4          \\
-\textasciicircum                                                        & 5          \\
-\%                                                                      & 6          \\
-+ - (unary)                                                             & 7          \\
-: \texttt{\char32}                                                             & 8         
-\end{tabular}
-\end{table}
-
-The syntax diagrams of the \synt{Formula} and the \synt{Reference} rules, expanded to include terminal tokens, are illustrated in Figures \ref{figure:Formula} and \ref{figure:Reference}.
-
 \begin{figure}
+	\caption{Syntax diagram of the \synt{Formula} production rule with nonterminals exanded.}
 	\label{figure:Formula}
-	\caption{Syntax diagram of the \synt{Formula} production rule, expanded to terminal tokens}
 \begin{grammar}
 	<Formula> ::= \[[
 	\begin{stack} 
@@ -351,8 +347,8 @@ The syntax diagrams of the \synt{Formula} and the \synt{Reference} rules, expand
 \end{figure}
 
 \begin{figure*}
+	\caption{Syntax diagram of the \synt{Reference} production rule with nonterminals expanded.}
 	\label{figure:Reference}
-    \caption{Syntax diagram of the \synt{Reference} production rule, expanded to terminal tokens}
 	\centering
 	\begin{grammar}
 		<Reference> ::= \[[
@@ -365,6 +361,32 @@ The syntax diagrams of the \synt{Formula} and the \synt{Reference} rules, expand
 	\end{grammar}
 \end{figure*}
 
+\subsection{Syntactic analysis}
+\label{subsection:productionRules}
+
+The complete production rules of our grammar can be found in Figure \ref{figure:productions} in Extended BNF syntax.
+The start symbol is $Start$.
+
+\synt{Formula} and \synt{Reference} are the two most important production rules in this grammar.
+For your convencience and understanding, these production are also available in diagram form with production rules expanded to include tokens in Figures \ref{figure:Formula} and \ref{figure:Reference}.
+
+\begin{table}
+\caption{Operator precedence in Excel Formulas}
+\label{table:operatorprec}
+\begin{tabular}{lr}
+Operator                                                                & Precedence \\
+ & higher = greater \\
+= \textless \  \textgreater \  \textless= \  \textgreater= \  \textless\textgreater & 1          \\
+\&                                                                      & 2          \\
++ - (binary)                                                            & 3          \\
+* /                                                                     & 4          \\
+\textasciicircum                                                        & 5          \\
+\%                                                                      & 6          \\
++ - (unary)                                                             & 7          \\
+: \texttt{\char32}                                                             & 8         
+\end{tabular}
+\end{table}
+
 \subsection{Operator Precedence}
 
 All operators in Excel are left-associative, including the exponentiation operator which in most other languages is right-associative.
@@ -374,13 +396,13 @@ Often LALR parser generators support this feature, but if you parser generator d
 
 \subsection{Intersection operator}
 
-The intersection binary operator in Excel formulas is a single space, while the rest of the language is mostly whitespace independent.
-Care must thus be taken on this point when implementing this grammar.
+The intersection binary operator in Excel formulas is a single space, while the rest of the language is whitespace independent outside of strings.
 
-If your parser supports implicit operators the intersection operator can be implemented this way.
-An example of implicit operators outside of spreadsheet formulas is in calculus where multiplication is often omitted and $5a$ is equivalent to $5 \cdot a$ thus making $\cdot$ an implied operator.
+Our parser generator supported a feature called implicit operators which was used to implement this operator.
+Implicit operators are operators which are left out and only implied, for example in calculus the multiplication operator is often omitted: $5a$ is equivalent to $5 \cdot a$.
 
 \subsection{Ambiguity}
+\label{sec:ambiguity}
 
 Due to trade-offs on parsing references (see section \ref{tradeoff:references}) and on parsing unions (see section \ref{subsec:desing:unions}) our grammar is not fully unambiguous.
 This is because of the following rules:
@@ -397,34 +419,14 @@ Instruct your parser generator to shift on rule 1 because this is always a corre
 
 \subsection{Trade-offs}
 
-\todo{Can you check if references section is clear enough?}
-
 \subsubsection{\textbf{References}}
 \label{tradeoff:references}
 
 References are of great importance in spreadsheet formulas, and thus of interest for analysis.
-To support analysis (design goal 2) references have different production rules than other expressions.
-This is possible because operators working on references have the highest precedence, but is not perfect due to User Defined Functions of which the type is unknown.
-However, User Defined Functions are very rare as can be seen in section \ref{sec:evaluation}.
+To support easier analysis (design goal 2) references have different production rules than other expressions.
+This causes references to be easily identified and isolated, but has the downside of increasing ambiguity, see section \ref{sec:ambiguity}. 
 
-Another approach would be to parse all formulas similarly and implement a type system, however this would be very detrimental to both ease of analysis (design goal 2) and feasibility to implement (design goal 3).
-
-\subsubsection{\textbf{External References}}
-
-External references in formulas, both to external files and DDE, are not stored as part of the formula in the Microsoft Excel storage format, but instead are replaced by a numeric index.
-This index is then stored in a file level dictionary of external references.
-A formula that is presented to the user as \texttt{=[C:\textbackslash Path\textbackslash Filename.xlxs]Sheetname!A1} is internally stored as \texttt{[X]Sheetname!A1}, where \texttt{X} can be any number.
-
-For this reason the presented grammar supports only numeric external references.
-Adding support for full filenames can be achieved by introducing an additional token or altering the \texttt{FILE} token, but be aware that external filenames can be presented to and entered by the user in a myriad of different formats, depending on conditions such as if the file is opened in the spreadsheet program.
-
-\subsubsection{\textbf{Dates}}
-
-In Microsoft Excel the user can enter date and time values in a cell.
-These are internally stored as positive floating point numbers with the integer portion representing the number of days since a Jan 0 1900 epoch and the fractional portion representing the portion of the day passed.
-Users see either the number or the date depending on presentation settings of the cell.
-
-This grammar only parses numeric dates and times and these are not distinguishable from other numbers.
+Another approach would be to parse all formulas similarly and implement a type system, however this would be very detrimental to both ease of analysis (design goal 2) and ease of implementation (design goal 3).
 
 \subsubsection{\textbf{Unions}}
 \label{subsec:desing:unions}
@@ -480,8 +482,8 @@ The 42 formulas that were not parsed using the grammar defined in Section \ref{s
 The grammar resulted from many cycles of parse errors, enrichments and refinements. There are parts of the grammar that cover a particularly complex set of structures. In this section we analyze the formulas in the datasets and measure the frequency of their characteristics and grammatical structures. We also identify potentially smelly grammatical constructs and edge cases in the syntax of formulas.
 
 \begin{table*}
-	\label{table:occurences}
 	\caption{Frequency of spreadsheet formulas with specific grammatical structures in the Euses and Enron datasets}
+	\label{table:occurences}
 	\begin{tabular}{llrrrrrrrrr}
 		\hline
 		Syntax & Example & EUSES formulas &  &  &  & Enron formulas &  &  & \\
