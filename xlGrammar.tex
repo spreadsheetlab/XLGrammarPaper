@@ -371,28 +371,26 @@ The start symbol is $Start$.
 For your convencience and understanding, these production are also available in diagram form with production rules expanded to include tokens in Figures \ref{figure:Formula} and \ref{figure:Reference}.
 
 \begin{table}
-\caption{Operator precedence in Excel Formulas}
+\caption{Operator precedence in formulas}
 \label{table:operatorprec}
-\begin{tabular}{lr}
-Operator                                                                & Precedence \\
- & higher = greater \\
-= \textless \  \textgreater \  \textless= \  \textgreater= \  \textless\textgreater & 1          \\
-\&                                                                      & 2          \\
-+ - (binary)                                                            & 3          \\
-* /                                                                     & 4          \\
-\textasciicircum                                                        & 5          \\
-\%                                                                      & 6          \\
-+ - (unary)                                                             & 7          \\
-: \texttt{\char32}                                                             & 8         
+\begin{tabular}{ll}
+Precedence & Operator(s) \\
+Higher is greater & \\
+1 & = \textless \  \textgreater \  \textless= \  \textgreater= \  \textless\textgreater          \\
+2 & \&  \\
+3 & + - (binary) \\
+4 & $\ast$ \\
+5 & \textasciicircum \\
+6 & \% \\
+7 & + - (unary) \\
+8 & : , \texttt{\char32}
 \end{tabular}
 \end{table}
 
 \subsection{Operator Precedence}
 
 All operators in Excel are left-associative, including the exponentiation operator which in most other languages is right-associative.
-In order to resolve ambiguities in our grammar a LALR parser generator needs the operator precedence to be defined, which can be found in Table \ref{table:operatorprec}.
-
-Often LALR parser generators support this feature, but if you parser generator does not support operator precedence it will need to be manually encoded into the grammar.
+In order to resolve ambiguities a LALR parser generator needs the operator precedence to be defined, which can be found in table \ref{table:operatorprec}.
 
 \subsection{Intersection operator}
 
