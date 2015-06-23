@@ -125,7 +125,7 @@ In Microsoft Excel formulas can also call external programs through the Windows-
 These formulas take the form of \texttt{=Program|Topic!Arguments}.
 
 \subsection{Array Formulas and Arrays}
-
+\label{sec:arrayformulas}
 Most spreadsheet programs provide a ways to work with one- or two-dimensional matrices.
 The most common way is the previously mentioned ranges, which directly correspond to portions of the spreadsheet.
 However, there are two alternate ways.
@@ -317,6 +317,40 @@ Operator                                                                & Preced
 : \texttt{\char32}                                                             & 8         
 \end{tabular}
 \end{table}
+
+The syntax diagrams of the \synt{Formula} and the \synt{Reference} rules, expanded to include terminal tokens, are illustrated in Figures \ref{figure:Formula} and \ref{figure:Reference}.
+
+\begin{figure}
+	\label{figure:Formula}
+	\caption{Syntax diagram of the \synt{Formula} production rule, expanded to terminal tokens}
+\begin{grammar}
+	<Formula> ::= \[[
+	\begin{stack} 
+	\begin{stack}
+	\begin{stack} "FUNCTION" \\ "UDF" \end{stack} \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$' \\
+	\begin{stack} \\ '$+$' \\ '$-$' \end{stack} <Formula> \begin{stack} \\ '$\%$' \end{stack}\\ 
+	<Formula>  \begin{stack} '$+$' \\ '$-$' \\ '$*$' \\ '$/$' \\ '\textasciicircum'  \\ '\textless' \\ '\textgreater' \\ '$=$' \\ '$\textless=$' \\ '$\textgreater=$' \\ '$\textless\textgreater$'   \end{stack} <Formula>
+	\end{stack} \\
+	\begin{stack} "NUMBER" \\ "STRING" \\ "BOOL" \\ "ERROR"  \end{stack} \\ "RESERVED-NAME" \\ <Reference> \\ '$($' <Formula> '$)$' \\  '$\{$' \begin{rep} \begin{rep}	\begin{stack} \begin{stack} \begin{stack} \\ '$+$' \\ '$-$' \end{stack} "NUMBER" \\ "STRING" \\ "BOOL" \\ "ERROR"  \end{stack} \\ "ERROR-REF" \end{stack} \\  '$,$' \end{rep} \\ '$;$' \end{rep} '$\}$'
+	\end{stack}
+	\]]
+\end{grammar}
+\end{figure}
+
+\begin{figure*}
+	\label{figure:Reference}
+    \caption{Syntax diagram of the \synt{Reference} production rule, expanded to terminal tokens}
+	\centering
+	\begin{grammar}
+		<Reference> ::= \[[
+		\begin{stack} '$($' \begin{rep} <Reference> \\  '$,$' \end{rep} '$)$'\\ <Reference> \begin{stack} '$:$' \\ '$ $' \end{stack} <Reference> \\
+		\begin{stack} \\ \begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE_SHEETS" \end{stack} \\ "FILE" '$!$' \\ "QUOTED_FILE_SHEET" \end{stack}
+		\begin{stack} \begin{stack} "CELL" \\ "VERTICAL-RANGE" \\ "HORIZONTAL-RANGE" \\ \begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\ "ERROR-REF" \end{stack} \\  \begin{stack} "REFERENCE-FUNCTION" \\ "UDF" \end{stack} \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$'\end{stack}
+		\\"FILE" '$!$' "DDECALL"
+		\end{stack}
+		\]]
+	\end{grammar}
+\end{figure*}
 
 \subsection{Operator Precedence}
 
@@ -510,22 +544,7 @@ todo: add percentages for unique formulas, sort by frequency, change headers to 
 
 \subsubsection{Formulas and Functions}
 
-The \synt{Formula} rule covers all types of spreadsheet formula expressions. Its syntax diagram, decomposed to include terminal tokens, is illustrated below.
-
-\begin{grammar}
-	<Formula> ::= \[[
-	\begin{stack} 
-	\begin{stack}
-	\begin{stack} "FUNCTION" \\ "UDF" \end{stack} \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$' \\
-   \begin{stack} \\ '$+$' \\ '$-$' \end{stack} <Formula> \begin{stack} \\ '$\%$' \end{stack}\\ 
-	<Formula>  \begin{stack} '$+$' \\ '$-$' \\ '$*$' \\ '$/$' \\ '\textasciicircum'  \\ '\textless' \\ '\textgreater' \\ '$=$' \\ '$\textless=$' \\ '$\textgreater=$' \\ '$\textless\textgreater$'   \end{stack} <Formula>
-	\end{stack} \\
-	\begin{stack} "NUMBER" \\ "STRING" \\ "BOOL" \\ "ERROR"  \end{stack} \\ "RESERVED-NAME" \\ <Reference> \\ '$($' <Formula> '$)$' \\  '$\{$' \begin{rep} \begin{rep}	\begin{stack} \begin{stack} \begin{stack} \\ '$+$' \\ '$-$' \end{stack} "NUMBER" \\ "STRING" \\ "BOOL" \\ "ERROR"  \end{stack} \\ "ERROR-REF" \end{stack} \\  '$,$' \end{rep} \\ '$;$' \end{rep} '$\}$'
-	\end{stack}
-	\]]
-\end{grammar}
-
-According to it, spreadsheet formulas can be constants (\texttt{=5}), references (\texttt{=A3}), function calls (\texttt{=SUM(A1:A3)}), constant arrays???, or reserved names (\texttt{=_xlnm.Print_Area}). Function calls invoke actual named (system or user defined) functions or operators applied to one or more formulas. 
+The \synt{Formula} rule, drawn in diagram \ref{figure:Formula}, covers all types of spreadsheet formula expressions. According to it, spreadsheet formulas can be constants (\texttt{=5}), references (\texttt{=A3}), function calls (\texttt{=SUM(A1:A3)}), array constants(\texttt{=\{1,2;3,4\}}, explained in Section \ref{sec:arrayformulas}), or reserved names (\texttt{=_xlnm.Print_Area}). Function calls invoke actual named (system or user defined) functions or operators applied to one or more formulas. 
 	
 Table \ref{table:occurences} shows how frequently each of the production rules in Section \ref{section:productionRules} occurs in the formulas of the two datasets. Jointly, 85\% of the formulas include a function call. Actual named functions are invoked by 47\% of the formulas. The vast majority are system defined functions, but there is a significant amount of formula cells (303,789 - 1.34\%) invoking user-defined functions -e.g., \texttt{=[1]!erUserEmail(User_Id)}. A special case of user defined functions are the ones created using the Excel xll add-in library. Those are found in the dataset invoked as \texttt{_xll.functionName}, by 0.61\% of the formula cells.
 
@@ -546,20 +565,7 @@ Spreadsheet formulas allow for different types of references, including single c
 \texttt{= SUM(Sheet1!A1:'Sheet1'!A2)} \\
 \end{eqnarray*}
 
-The \synt{Reference} rule covers all types of referencing expressions. It was the rule that was the most complex to devise to cover all edge cases in the two datasets. Its syntax diagram, expanded to include terminal tokens, is shown above(???).
-
-\begin{figure*}
-	\centering
-	\begin{grammar}
-		<Reference> ::= \[[
-		\begin{stack} '$($' \begin{rep} <Reference> \\  '$,$' \end{rep} '$)$'\\ <Reference> \begin{stack} '$:$' \\ '$ $' \end{stack} <Reference> \\
-		\begin{stack} \\ \begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE_SHEETS" \end{stack} \\ "FILE" '$!$' \\ "QUOTED_FILE_SHEET" \end{stack}
-		\begin{stack} \begin{stack} "CELL" \\ "VERTICAL-RANGE" \\ "HORIZONTAL-RANGE" \\ \begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\ "ERROR-REF" \end{stack} \\  \begin{stack} "REFERENCE-FUNCTION" \\ "UDF" \end{stack} \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$'\end{stack}
-		\\"FILE" '$!$' "DDECALL"
-		\end{stack}
-		\]]
-	\end{grammar}
-\end{figure*}
+The \synt{Reference} rule, drawn in diagram \ref{figure:Reference}, covers all types of referencing expressions. It was the rule that was the most complex to devise to cover all edge cases in the two datasets.
 
 As shown in Table \ref{table:occurences}, 99.2\% of the formulas in the two datasets contain at least one \synt{Reference}, and 25\% of the formulas contain a reference that is not local, since it includes a \synt{Prefix}. External file references exist in almost 5\% of the formulas. 17\% of the formulas include a reference with a simple (\texttt{':'} separated) cell range. Named ranges exist in 7.2\% of formulas and, interestingly, horizontal and vertical ranges are rarely used (jointly, in 0.25\% of the formulas). References to errors are relatively common, with 0.55\% of formulas including errors like \texttt{=\#REF!E3}.
 
