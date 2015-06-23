@@ -447,17 +447,13 @@ If your implementation or parser generator can support the more straightforward 
 
 The grammar is implemented in the Irony parser generator framework\footnote{https://irony.codeplex.com/} and the resulting parser is available for download\footnote{link for download}.
 
-To extract formulas and feed them to the parser we built a tool that opens spreadsheets using the Gembox third party library. The tool reads all cells and identifies which have the same formula in R1C1. It then selects the first cell from each sibling class (i.e., group of cells that share the same formula in the R1C1 style) and uses its formula string as input to the parser. It parses only one cell from each sibling class - the only differences between the formulas in a sibling class are the values of the references, so the structure of the produced abstract syntax trees is exactly the same. The abstract syntax trees are then traversed to generate a variety of information, for example, the references of cells to other cells, the functions that are used, the operations that are performed and the fixed numbers in the formulas.
+To extract formulas and feed them to the parser we built a tool that opens spreadsheets using the Gembox third party library. The tool reads all cells and identifies which have the same formula in R1C1. It then selects the first cell from each sibling class (i.e., group of cells that share the same formula in the R1C1 style) and uses its formula string as input to the parser. It parses only one cell from each sibling class - the only differences between the formulas in a sibling class are the values of the references, so the structure of the produced abstract syntax trees is exactly the same.
 
 To evaluate the grammar we use it to parse a total of 1,039,751 unique formulas. Those were found in the two major datasets available in the spreadsheet research community: The Euses dataset \cite{euses}, comprising of 4,498 spreadsheets and the Enron email corpus \cite{enron}, which became available after the Enron company declared bankruptcy, comprising of 16,190 spreadsheets. We were not able to process 1087 (5.25\%) of these spreadsheets, either because they are password protected or because of read failures due to the Gembox library. In total, the 19,601 spreadsheets that were processed from the two datasets include 23,559,993 formula cells. These are grouped into 1,039,751 sibling classes, and this is the number of formulas that were used as input to the parser.
 
 To give a rough indication, processing these two datasets and extracting those results takes around 4 hours on a computer with an Intel Core i7 processor, 16GB of RAM and a Solid State Drive.
 
-\section{Discussion}
-\label{sec:discussion}
-
-\subsection{Unparsable valid formulas}
-
+\subsection{Results}
 Out of the 1,039,751 formulas from the two datasets that were used as input to the parser, 1,039,709 (99.99\%) were parsed successfully.
 The formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
 
@@ -467,27 +463,8 @@ The formulas that were not parsed using the grammar defined in Section \ref{sect
 	\item 39 formulas that are not returned correctly from the Gembox third party library that we use for opening spreadsheets. For example our tool reads and attempts to parse formula \texttt{IF(=7,AVERAGE(C4:C11),0)} and fails, but in reality the formula is \texttt{IF(B8=7,AVERAGE(C4:C11),0)} which does parse. All these 39 cases are parsed successfully when we manually provide them as input to the parser.
 \end{itemize}
 
-\subsection{Parsable invalid formulas}
-
-As stated in the design goals in section \ref{sec:designgoals} the goal of this grammar is to facilitate analysis of formulas, which means correctly parsing valid Excel formulas.
-Rejecting invalid formulas is not among the primary goals of this grammar, as one will normally not encounter invalid formulas in Excel files.
-Furthermore while the authors have two extensive datasets of valid formulas available, no such datasets of invalid formulas are known to the authors.
-As such the authors expect that the presented grammar is too broad and will parse a large number of formulas which are not valid.
-Using this grammar to parse possibly-invalid formulas like user-input might thus require additional safeguards.
-
-The following is a non-exhaustive list of restrictions on the validity of formulas not encoded into the presented grammar\footnote{These restrictions are in place in the Excel 2007 and later format. The Excel 2003 and earlier format often has lower limits.}:
-
-\begin{itemize}
-	\item Functions cannot have more than 255 arguments.
-	\item Function calls cannot be nested more than 64 levels deep.
-	\item The row number cannot exceed 1,048,576 ($2^{20}$) and the column number cannot exceed XFD ($2^{14}$).
-	\item A formula cannot be longer than 8,192 ($2^{13}$) characters.
-\end{itemize}
-
 \subsection{Grammar Analysis}
 The grammar resulted from many cycles of parse errors, enrichments and refinements. There are parts of the grammar that cover a particularly complex set of structures. In this section we analyze the formulas in the datasets and measure the frequency of their characteristics and grammatical structures. We also identify potentially smelly grammatical constructs and edge cases in the syntax of formulas.
-
-todo: add percentages for unique formulas, sort by frequency, change headers to euses formulas: unique and total
 
 \begin{table*}
 	\label{table:occurences}
@@ -526,26 +503,26 @@ todo: add percentages for unique formulas, sort by frequency, change headers to 
 		FILE '!' & \texttt{=[1]!today} & 264 & 0.30\% & 655 & 0.05\% & 1,776 & 0.19\% & 27,793 & 0.13\%\\
 		ERROR & \texttt{=IF(AND(R11=1,R14=TRUE),G19,0)} & 362 & 0.41\% & 19,630 & 1.54\% & 18 & 0.00\% & 7,615 & 0.04\%\\
 		'\%' & \texttt{=IF(E5>I8,3\%,0\%)} & 215 & 0.24\% & 1,091 & 0.09\% & 643 & 0.07\% & 15,515 & 0.07\%\\
-			Empty argument & \texttt{=DCOUNT(Lettergrades,,I80:I81)} & 128 & 0.14\% & 3,614 & 0.28\% & 1,215 & 0.13\% & 6,898 & 0.03\%\\
-			Complex range & \texttt{=SUM(I8:K8:M8)} & 0 & 0.00\% & 0 & 0.00\% & 359 & 0.04\% & 8,568 & 0.04\%\\
-			\synt{DynamicDataExchange} & \texttt{=TWINDDE|RSFRec!'NGH2 NET.CHNG''} & 121 & 0.14\% & 254 & 0.02\% & 3,155 & 0.33\% & 3,432 & 0.02\%\\
-			Intersection & \texttt{=Ending_Inventory Jan} & 98 & 0.11\% & 1,966 & 0.15\% & 200 & 0.02\% & 863 & 0.00\%\\
-			MULTIPLE-SHEETS & \texttt{=SUM(Sheet1:Sheet20!I29)} & 9 & 0.01\% & 234 & 0.02\% & 164 & 0.02\% & 1,752 & 0.01\%\\
-			Prefixed right ref. limit & \texttt{=SUM('Tot-1'!\$B8:'Tot-1'!B8)} & 108 & 0.12\% & 941 & 0.07\% & 39 & 0.00\% & 560 & 0.00\%\\
-			RESERVED-NAME & \texttt{=C23/_xlnm.Print_Area} & 7 & 0.01\% & 8 & 0.00\% & 69 & 0.01\% & 1,278 & 0.01\%\\
-			UDF reference & \texttt{=[1]!wbname()} & 251 & 0.28\% & 608 & 0.05\% & 81 & 0.01\% & 247 & 0.00\%\\
-			HORIZONTAL-RANGE & \texttt{=MATCH(F3,Prices!2:2,0)} & 0 & 0.00\% & 0 & 0.00\% & 11 & 0.00\% & 836 & 0.00\%\\
-			\synt{Union} & \texttt{=LARGE((F38,C38),1)} & 1 & 0.00\% & 34 & 0.00\% & 9 & 0.00\% & 351 & 0.00\%\\
-			\synt{ConstantArray} & \texttt{=FVSCHEDULE(1,{0.09;0.11;0.1})} & 15 & 0.02\% & 19 & 0.00\% & 0 & 0.00\% & 0 & 0.00\%\\
-			\hline
-			
+		Empty argument & \texttt{=DCOUNT(Lettergrades,,I80:I81)} & 128 & 0.14\% & 3,614 & 0.28\% & 1,215 & 0.13\% & 6,898 & 0.03\%\\
+		Complex range & \texttt{=SUM(I8:K8:M8)} & 0 & 0.00\% & 0 & 0.00\% & 359 & 0.04\% & 8,568 & 0.04\%\\
+		\synt{DynamicDataExchange} & \texttt{=TWINDDE|RSFRec!'NGH2 NET.CHNG''} & 121 & 0.14\% & 254 & 0.02\% & 3,155 & 0.33\% & 3,432 & 0.02\%\\
+		Intersection & \texttt{=Ending_Inventory Jan} & 98 & 0.11\% & 1,966 & 0.15\% & 200 & 0.02\% & 863 & 0.00\%\\
+		MULTIPLE-SHEETS & \texttt{=SUM(Sheet1:Sheet20!I29)} & 9 & 0.01\% & 234 & 0.02\% & 164 & 0.02\% & 1,752 & 0.01\%\\
+		Prefixed right ref. limit & \texttt{=SUM('Tot-1'!\$B8:'Tot-1'!B8)} & 108 & 0.12\% & 941 & 0.07\% & 39 & 0.00\% & 560 & 0.00\%\\
+		RESERVED-NAME & \texttt{=C23/_xlnm.Print_Area} & 7 & 0.01\% & 8 & 0.00\% & 69 & 0.01\% & 1,278 & 0.01\%\\
+		UDF reference & \texttt{=[1]!wbname()} & 251 & 0.28\% & 608 & 0.05\% & 81 & 0.01\% & 247 & 0.00\%\\
+		HORIZONTAL-RANGE & \texttt{=MATCH(F3,Prices!2:2,0)} & 0 & 0.00\% & 0 & 0.00\% & 11 & 0.00\% & 836 & 0.00\%\\
+		\synt{Union} & \texttt{=LARGE((F38,C38),1)} & 1 & 0.00\% & 34 & 0.00\% & 9 & 0.00\% & 351 & 0.00\%\\
+		\synt{ConstantArray} & \texttt{=FVSCHEDULE(1,{0.09;0.11;0.1})} & 15 & 0.02\% & 19 & 0.00\% & 0 & 0.00\% & 0 & 0.00\%\\
+		\hline
+		
 	\end{tabular}
 \end{table*}
 
 \subsubsection{Formulas and Functions}
 
 The \synt{Formula} rule, drawn in diagram \ref{figure:Formula}, covers all types of spreadsheet formula expressions. According to it, spreadsheet formulas can be constants (\texttt{=5}), references (\texttt{=A3}), function calls (\texttt{=SUM(A1:A3)}), array constants(\texttt{=\{1,2;3,4\}}, explained in Section \ref{sec:arrayformulas}), or reserved names (\texttt{=_xlnm.Print_Area}). Function calls invoke actual named (system or user defined) functions or operators applied to one or more formulas. 
-	
+
 Table \ref{table:occurences} shows how frequently each of the production rules in Section \ref{section:productionRules} occurs in the formulas of the two datasets. Jointly, 85\% of the formulas include a function call. Actual named functions are invoked by 47\% of the formulas. The vast majority are system defined functions, but there is a significant amount of formula cells (303,789 - 1.34\%) invoking user-defined functions -e.g., \texttt{=[1]!erUserEmail(User_Id)}. A special case of user defined functions are the ones created using the Excel xll add-in library. Those are found in the dataset invoked as \texttt{_xll.functionName}, by 0.61\% of the formula cells.
 
 Operators are used in 66.8\% of the formula cells, with binary (???) operators being the most common ones, appearing in 60\% of the formulas. Analyzing the utilization of constants, we find that 40\% of the formula cells contain at least one; more than one third (35.2\%) of the formula cells contain a number and 12\% are formulas that contain text. The reserved names are an edge case in the grammar, with 1,281 occurrences on the \texttt{_xlnm.Print_Area} and 5 occurrences of  \texttt{_xlnm.Database}.
@@ -553,16 +530,16 @@ Operators are used in 66.8\% of the formula cells, with binary (???) operators b
 Regarding function arguments, spreadsheet systems allow empty ones but this is rarely done -in only 0.03\% of the formula cells. Unions are also an edge case. Only 385 formula cells contain a union used as argument, e.g. \texttt{=LARGE((F38,C38),1)}. All occurrences were arguments of the \texttt{LARGE} and \texttt{SMALL} functions. In the Euses dataset we also found 19 cases of constant arrays used as arguments, e.g. \texttt{=FVSCHEDULE(1,{0.09;0.11;0.1})}.
 
 \subsubsection{References}
- 
+
 Spreadsheet formulas allow for different types of references, including single cell references, cell ranges, horizontal or vertical ranges, named ranges and reference-returning build-in or user-defined functions. All of these references can be internal (in the same or in different sheets) or external. Syntactically, they can be expressed in a number of ways. The simplest case of a reference to a cell range can be expressed in any of the following ways:
 
 \begin{eqnarray*}
-\texttt{SUM(A1:A2)} \\ 
-\texttt{= SUM(Sheet1!A1:A2)} \\
-\texttt{= SUM(Sheet1!A1:(A2))} \\
-\texttt{= SUM('Sheet1'!A1:A2)} \\
-\texttt{= SUM(Sheet1!A1:Sheet1!A2)} \\
-\texttt{= SUM(Sheet1!A1:'Sheet1'!A2)} \\
+	\texttt{SUM(A1:A2)} \\ 
+	\texttt{= SUM(Sheet1!A1:A2)} \\
+	\texttt{= SUM(Sheet1!A1:(A2))} \\
+	\texttt{= SUM('Sheet1'!A1:A2)} \\
+	\texttt{= SUM(Sheet1!A1:Sheet1!A2)} \\
+	\texttt{= SUM(Sheet1!A1:'Sheet1'!A2)} \\
 \end{eqnarray*}
 
 The \synt{Reference} rule, drawn in diagram \ref{figure:Reference}, covers all types of referencing expressions. It was the rule that was the most complex to devise to cover all edge cases in the two datasets.
@@ -573,9 +550,9 @@ Moving to the edge cases of the grammar, the structures that were less common in
 
 \begin{description}
 	\item[File-only external references] \hfill \\
-		External references are normally in the form \texttt{[File]Sheet!Cell}. In almost 28,500 formula cells (0.13\%), however, the sheet is not specified, e.g. \texttt{=[2]!LastTrade}. These are either cases of references to external named ranges or to external UDFs.
+	External references are normally in the form \texttt{[File]Sheet!Cell}. In almost 28,500 formula cells (0.13\%), however, the sheet is not specified, e.g. \texttt{=[2]!LastTrade}. These are either cases of references to external named ranges or to external UDFs.
 	\item[Multiple sheet references] \hfill \\
-	 Almost 2,000 cells (0.01\%) contain this complex case of reference, which spans across multiple sheets. An example formula is \texttt{=SUM(Sheet1:Sheet10!A5)}, evaluated by summing all cells in position \texttt{A5} from \texttt{Sheet1} to \texttt{Sheet10}.
+	Almost 2,000 cells (0.01\%) contain this complex case of reference, which spans across multiple sheets. An example formula is \texttt{=SUM(Sheet1:Sheet10!A5)}, evaluated by summing all cells in position \texttt{A5} from \texttt{Sheet1} to \texttt{Sheet10}.
 	\item[References to external UDFs] \hfill \\
 	855 cells contain references to external user-defined functions, for example \texttt{=[1]!SheetName()}.
 	\item[Prefixed right limits] \hfill \\
@@ -585,7 +562,7 @@ Moving to the edge cases of the grammar, the structures that were less common in
 A special edge case in the grammar are the functions that return references, namely the \texttt{INDEX}, the \texttt{OFFSET} and the \texttt{INDIRECT} functions -this is to the best of out knowledge, since the Excel functions reference guide does not enable filtering functions based on their output type and these three were the only functions that were found in the two datasets to be returning references. The \texttt{OFFSET} funtion, for example, returns a reference to a range that is a specified number of rows and columns from a cell or range of cells. An example formula utilizing it is \texttt{=STDEV(F399:OFFSET(F399,-(B17-1),0,1,1))}. Those functions are relatively common: they are found in 3.45\% of the formula cells, with the most common one being the \texttt{INDEX} (in 2.47\% of formula cells) and the least common one being the \texttt{INDIRECT} (in 0.21\%).
 
 Finally, dynamic data exchange links are a special case of references. They are used for receiving data from other applications, and they are defined as \texttt{ProgramName|Topic!Field}, e.g. \texttt{=TWINDDE|RSFRecord!'NGH2 NET.CHNG'} or \texttt{=GLDDEML|Action!'SGIMP,LA'/100}. 3,686 formula cells are found in the datasets to include this type of reference.
- 
+
 \subsubsection{Smelly grammar constructs}
 Having analyzed extensively the grammar of spreadsheets, there are two constructs that we consider to be smelly, i.e. counterintuitive, inconsistent to the rest of the grammar and error-prone: Complex ranges and the implicit intersect operator.
 
@@ -593,12 +570,31 @@ By \textit{complex ranges} we mean \synt{Reference}s that include more than two 
 
 The \textit{intersect operator} is included in this discussion because it is not declared as an operator. Intersection between two ranges in the grammar is represented in the most implicit way possible: by \texttt{\char32}, a single whitespace. For example, \texttt{A1:A10\char32A1:A5} is equivalent to \texttt{A1:A5}. Using this syntax, intersection is an implicit range formation operation, belonging to the \synt{Reference} rule, rather than a normal operation declared as a the \synt{Function}. An advantage of this approach is that it enables more natural language definition of intersections, e.g.  \texttt{=SUM((Total_Cost Jan):(Total_Cost Apr.))}. An alternative, in our opinion less error-prone definition of intersection, would be a dedicated build-in function used explicitly as \texttt{INTERSECT(A1:A10,A1:A5)}. In the two datasets, intersection operations are not common, as they are found in only 2,829 cases of formula cells.
 
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Parsable invalid formulas}
+
+As stated in the design goals in section \ref{sec:designgoals} the goal of this grammar is to facilitate analysis of formulas, which means correctly parsing valid Excel formulas.
+Rejecting invalid formulas is not among the primary goals of this grammar, as one will normally not encounter invalid formulas in Excel files.
+Furthermore while the authors have two extensive datasets of valid formulas available, no such datasets of invalid formulas are known to the authors.
+As such the authors expect that the presented grammar is too broad and will parse a large number of formulas which are not valid.
+Using this grammar to parse possibly-invalid formulas like user-input might thus require additional safeguards.
+
+The following is a non-exhaustive list of restrictions on the validity of formulas not encoded into the presented grammar\footnote{These restrictions are in place in the Excel 2007 and later format. The Excel 2003 and earlier format often has lower limits.}:
+
+\begin{itemize}
+	\item Functions cannot have more than 255 arguments.
+	\item Function calls cannot be nested more than 64 levels deep.
+	\item The row number cannot exceed 1,048,576 ($2^{20}$) and the column number cannot exceed XFD ($2^{14}$).
+	\item A formula cannot be longer than 8,192 ($2^{13}$) characters.
+\end{itemize}
+
+
 \subsection{Limitations}
 todo: check if the features below are supported in other spreadsheet systems
 
 todo: add that the datasets are both Excel spreadsheets only
-
-todo: note that we verified that it covers all cased of formulas that excel covers, but we cannot verify that its coverage is not greater than Excel: it might be more forgiving.
 
 todo: - grammar changes with different Excel versions, eg regular expressions support, labels in formulas now expanded to cell
 references, updates in the built-in functions list
