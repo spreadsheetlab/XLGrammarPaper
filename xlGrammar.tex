@@ -66,7 +66,6 @@ Finally, we identify smelly constructs and edge cases in the syntax of formulas.
 
 \IEEEpeerreviewmaketitle
 
-
 \section{Introduction}
 Spreadsheets are widely used in industry: Winston~\cite{Wins2001} estimates that 90\% of all analysts in industry perform calculations in
 spreadsheets. Their use is diverse, ranging from inventory administration to educational applications and from scientific
@@ -165,11 +164,11 @@ For previous and ongoing research the authors needed a grammar for Microsoft Exc
 \item Be compact enough to feasibly implement with a parser generator
 \end{enumerate}
 
-Microsoft has published an official grammar for Excel formulas \cite{ExcelOfficialGrammar}.
-However, this grammar is over 30 pages long and thus fails requirement 3.
-Furthermore because of the detail of the grammar and the large number of production rules the resulting parse trees fail requirement 2.
+While an official grammar for Excel formulas is published \cite{ExcelOfficialGrammar}, it does not meet the above requirements for two reasons.
+Firstly, it is over 30 pages long and thus fails requirement 3.
+Secondly, because of the detail of the grammar and the large number of production rules the resulting parse trees fail requirement 2.
 
-For this reason the authors decided to construct their own grammar based with the above requirements as design goals.
+For this reason the authors decided to construct their own grammar based with the above requirements as \emph{design goals}.
 
 \subsection{Grammar class}
 
@@ -223,7 +222,7 @@ All tokens are case-insensitive.
 Our tokens also require the scanner to support token priorities. Removing the necessity for token priorities is possible by altering the tokens and production rules, but makes the grammar more complicated and the resulting tree harder to use, thus being detrimental to design goals 2 and 3.
 Leaving the tokens as-is but not providing priorities will still result in an usable grammar, but expect errors on edge cases.
 
-In addition to the tokens defined in Table \ref{table:tokens}, some simple tokens are directly defined in the production rules in Figure \ref{figure:productions} in between quotes.
+Some simple tokens are directly defined in  in the production rules in Figure \ref{figure:productions} in between quotes for readability and compactness.
 
 \subsubsection{\textbf{Dates}}
 
@@ -413,7 +412,7 @@ This is because of the following rules:
 A formula like \texttt{=(A1)} can be interpreted as either a bracketed reference, an union of one reference, or a reference within a bracketed formula.
 
 In an LALR(1) parser the ambiguity manifests in a state where on a \texttt{)} token shifting on rule 1 and reducing on either rule 2 or 3 are possibilities, causing a shift-reduce conflict.
-Instruct your parser generator to shift on rule 1 because this is always a correct interpretation.
+This was solved by instructing the parser generator used to shift on rule 1 in case of conflict, because this always results is a correct interpretation and thus results in a correct parse tree.
 
 \subsection{Trade-offs}
 
@@ -429,7 +428,7 @@ Another approach would be to parse all formulas similarly and implement a type s
 \subsubsection{\textbf{Unions}}
 \label{subsec:desing:unions}
 
-As previously noted the comma serves as both a union operator and a function argument separator.
+As previously noted the comma serves both as an union operator and a function argument separator.
 This proves challenging to correctly straightforwardly implement in a LALR(1) grammar.
 
 A straightforward implementation would use productions similar to this:
@@ -437,7 +436,8 @@ A straightforward implementation would use productions similar to this:
 \begin{grammar}
 <Union> ::= Reference `,' Reference
 
-<Arguments> ::= <Argument> | <Argument> `,' <Arguments>
+<Arguments> ::= <Argument>
+	\alt <Argument> `,' <Arguments>
 \end{grammar}
 
 However, this will cause a reduce-reduce conflict because the parser will have a state wherein it can reduce to both a \synt{Union} or \synt{Argument} on a \texttt{,} token.
@@ -448,10 +448,10 @@ The presented grammar only parsers unions in between brackets, e.g. \texttt{=SMA
 This is a trade-off between a lower compatibility (design goal 1) and an easier implementation (design goal 3).
 We deem this decreased compatibility to be acceptable since unions are very rare (see section \ref{sec:evaluation}) and all but two were within brackets (see section \ref{sec:discussion}).
 
-Additionally formulas that this grammar now cannot parse often result in runtime errors after evaluation, for example \texttt{=A1,A1} does parse in a spreadsheet program, but produces the error \texttt{\#VALUE!} on evaluation.
+Additionally formulas that this grammar now cannot parse often result in runtime errors after evaluation.
+For example \texttt{=A1,A1} does parse in a spreadsheet program, but produces the error \texttt{\#VALUE!} on evaluation.
 
-If your implementation or parser generator can support the more straightforward definition we recommend altering the grammar on this point.
-
+Implementing the straightforward rules above, while desirable, is not possible without using a more powerful grammar class like GLR.
 
 \section{Evaluation}
 \label{sec:evaluation}
