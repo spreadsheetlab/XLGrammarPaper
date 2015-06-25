@@ -165,15 +165,16 @@ For previous and ongoing research the authors needed a grammar for Microsoft Exc
 \end{enumerate}
 
 While an official grammar for Excel formulas is published \cite{ExcelOfficialGrammar}, it does not meet the above requirements for two reasons.
-Firstly, it is over 30 pages long and thus fails requirement 3.
-Secondly, because of the detail of the grammar and the large number of production rules the resulting parse trees fail requirement 2.
+Firstly, it is over 30 pages long and contains hundreds of production rules and thus fails requirement 3.
+Secondly, because of the detail of the grammar and the large number of production rules the resulting parse trees are very complex and fail requirement 2.
 
 For this reason the authors decided to construct their own grammar based with the above requirements as \emph{design goals}.
 
 \subsection{Grammar class}
 
-The class of this grammar is LALR(1), which was motivated by the available tool support and relative few restrictions as opposed to LL(1) or recursive-dependent parsers, which supports design goals 2 and 3.
-Generalized LR grammar parser generators provide more freedom, but were not chosen because of lack of suitable tools for our target environment.
+While the class of this grammar is not strictly LALR(1) due to the present ambiguity, we implemented this grammar using a parser generator based on LALR(1) grammars.
+This is because the present ambiguity can be solved by defining operator precedence (section \ref{sec:operatorprecedence}) and manually resolving a conflict (section \ref{sec:ambiguity}).
+These two features are supported by most LALR(1) parser generators.
 
 \begin{table*}
 \label{table:tokens}
@@ -387,6 +388,7 @@ Higher is greater & \\
 \end{table}
 
 \subsection{Operator Precedence}
+\label{sec:operatorprecedence}
 
 All operators in Excel are left-associative, including the exponentiation operator which in most other languages is right-associative.
 In order to resolve ambiguities a LALR parser generator needs the operator precedence to be defined, which can be found in table \ref{table:operatorprec}.
@@ -412,7 +414,7 @@ This is because of the following rules:
 A formula like \texttt{=(A1)} can be interpreted as either a bracketed reference, an union of one reference, or a reference within a bracketed formula.
 
 In an LALR(1) parser the ambiguity manifests in a state where on a \texttt{)} token shifting on rule 1 and reducing on either rule 2 or 3 are possibilities, causing a shift-reduce conflict.
-This was solved by instructing the parser generator used to shift on rule 1 in case of conflict, because this always results is a correct interpretation and thus results in a correct parse tree.
+This was solved by instructing the parser generator used to shift on rule 1 in case of this conflict, because this always results is a correct interpretation and thus results in a correct parse tree.
 
 \subsection{Trade-offs}
 
@@ -451,7 +453,7 @@ We deem this decreased compatibility to be acceptable since unions are very rare
 Additionally formulas that this grammar now cannot parse often result in runtime errors after evaluation.
 For example \texttt{=A1,A1} does parse in a spreadsheet program, but produces the error \texttt{\#VALUE!} on evaluation.
 
-Implementing the straightforward rules above, while desirable, is not possible without using a more powerful grammar class like GLR.
+Implementing the straightforward rules above, while desirable, is not possible without using a more powerful grammar class.
 
 \section{Evaluation}
 \label{sec:evaluation}
@@ -594,10 +596,12 @@ The use of labels in formulas (a.k.a. natural language formulas) is another feat
 
 \subsection{Internationalization}
 
-Excel formulas differ depending on the language of the software. For example function arguments are separated by a semicolon instead of a comma in locales that use the comma as a decimal separator. Our grammar is only for the default (English) locale. Grammars for other locales can be gotten by replacing delimiters, error values and function names by their localized versions.
+Excel formulas differ depending on the language of the software. For example function arguments are separated by a semicolon instead of a comma in locales that use the comma as a decimal separator: the formula \texttt{=SUM(1.5,A1)} in the English version would be shown as \texttt{=SOM(1,5;A1)} in the Dutch version.
+Our grammar is only for the English locale.
+Grammars for other locales can be gotten by replacing delimiters, error values and function names by their localized versions.
 
 It is worth noting that Excel will always save formulas in either a locale-independent binary format (Excel 2003 and earlier format) or in its English version (Excel 2007 and later format). When interacting with Excel through its API two versions of the formula can be read or written: the English version and the version in the current locale.
-This makes a grammar for the English version quite useful, since the parser can eventually process all spreadsheets as long as their formulas are read using the English locale.
+This makes a grammar for the English version quite useful, since the parser can process all spreadsheets as long as their formulas are read using the English locale.
 
 \subsection{Grammar coverage}
 
@@ -620,7 +624,7 @@ The following is a non-exhaustive list of restrictions on the validity of formul
 \label{section:relatedWork}
 Most related to our research is the work of Badame and Dig~\cite{badame2012refactoring} who, as part of their proposed spreadsheet refactoring approach, presented a grammar for spreadsheet formulas. However, they do not evaluate their grammar, and upon inspection one can see that key ingredients are missing: e.g. external references, intersections and unions and named ranges. An extension of the same grammar was used to refactor formulas by Hermans and Dig \cite{hermans2014bumblebee}.
 
-%There have been related efforts, in which a preliminary grammar was tested on large code bases in order to extend and refine it (TODO David: PHP FB story)
+Efforts to reverse-engineer a formal language specification based on existing artifacts have been used successfully for other languages, including COBOL \cite{van1997obtaining} and C\# \cite{zaytsev2010recovery}.
 
 As explained in the introduction, there is a large body of related work that relies on parsing spreadsheet formulas in order to analyze spreadsheets. This includes our own worl in which we have worked on an algorithm to visualize spreadsheets as dataflow diagrams\cite{DBLP:conf/icse/HermansPD11}, and subsequently on detecting smells in spreadsheets \cite{DBLP:conf/icse/HermansPD12,DBLP:conf/icsm/Hermans212}. Related approaches exist, for example the work of Cunha that have worked on code smells~\cite{iccsa12} and smell-based fault localization~\cite{conf/icsme/CunhaFMPS14}. These papers too analyze spreadsheet formulas but do not detail whether they use a grammar or what alternative they use.
 
@@ -631,11 +635,11 @@ In this paper we present a grammar for spreadsheet formulas that we evaluated ag
 
 The grammar is compact, consisting of 20 production rules and producing processable parse trees, suited for further manipulation and analysis, having 20 types of non-terminal and 19 types of leaf nodes. We believe that the grammar is reliable and concise enough to facilitate further research on spreadsheet formula code bases. It has already been applied in other works for analyzing formula characteristics, calculation chains and code smells and for applying formula transformations. The grammar parser is available as open-source software.
 
-\section{Future Work}
-
 A weak point of the presented grammar is that the full extend of compatibility with the official Microsoft Excel Grammar is unknown.
 An improvement could be made to this grammar by comparing it to the official specification, either by improving compatibility or by extending the number of known limitations.
-In general the problem of determining whether two Context-free grammars are equivalent is undecidable, but in practice several techniques have been successfully used for this purpose.
+In general the problem of determining whether two Context-free grammars are equivalent is undecidable, but in practice several techniques have been successfully used for this purpose \cite{lammel2009introduction,fischer2012comparison}.
+
+Another improvement could be made by testing the grammar against datasets containing spreadsheets made in other spreadsheet programs, and by testing the grammar against datasets of spreadsheets containing spreadsheets made in other companies.
 
 
 \bibliographystyle{IEEEtran}
