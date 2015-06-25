@@ -73,7 +73,7 @@ modeling to financial systems. It is estimated that 90\% of desktops have Excel 
 
 Because of their widespread use, they have been the topic of research since the nineties\cite{DBLP:journals/sigplan/BellP93}. Recent spreadsheet research has often focused on analyzing spreadsheets. For example, there have been attempts to visualize spreadsheets ~\cite{DBLP:conf/icse/HermansPD11, Shio1999}. More recently, researchers have attempted to define \emph{spreadsheet smells}: applications of Fowler's code smells to spreadsheets~\cite{DBLP:conf/icse/HermansPD12, DBLP:conf/icsm/Hermans212}, followed by approaches to refactor spreadsheets~\cite{hermans2014bumblebee,badame2012refactoring}.
 
-These research works analyze the formulas within spreadsheets, and therefore often parse the formulas. This is done either by using simple grammars which have not been evaluated (\cite{badame2012refactoring}), or through implied, undefined grammars(\cite{DBLP:conf/icse/HermansPD11,DBLP:conf/icse/HermansPD12, DBLP:conf/icsm/Hermans212, hermans2014bumblebee}). The above analyses are our main motivation towards a defined grammar. It will enable parsing spreadsheet formulas into processable parse trees which can in turn be used to analyze cell references, extract metrics, find code smells and explore the structure of spreadsheets. Essentially, a reliable grammar can facilitate research on the spreadsheet formula code bases. Furthermore, research towards defining and verifying a formula grammar can facilitate exploring and possibly uncovering smelly syntactical constructs that are within the grammar coverage.
+These research works analyze the formulas within spreadsheets, and therefore often parse the formulas. This is done either by using simple grammars which have not been evaluated (\cite{badame2012refactoring}), or through implied, undefined grammars(\cite{DBLP:conf/icse/HermansPD11,DBLP:conf/icse/HermansPD12, DBLP:conf/icsm/Hermans212, hermans2014bumblebee}). The above analyses are our main motivation towards a defined grammar. Having such a grammar will enable parsing spreadsheet formulas into processable parse trees which can in turn be used to analyze cell references, extract metrics, find code smells and explore the structure of spreadsheets. Essentially, a reliable grammar can facilitate research on the spreadsheet formula code bases. Furthermore, research towards defining and verifying a formula grammar can facilitate exploring and possibly uncovering smelly syntactical constructs that are within the grammar coverage.
 
 To make a grammar suitable for these goals, the requirements that we set for it are (1) to be compatible with the official Excel formula language, (2) to produce parse trees suited for further manipulation and analysis, and (3) to be compact enough to feasibly implement with a parser generator. The approach that we took towards developing the grammar was gradual enrichment through trial-and-error: we started from a simple grammar containing only the well known formula structures, implemented its parser, and provided as input to it formulas extracted from spreadsheet datasets. We used the two major datasets that are available in the spreadsheet research community: The EUSES dataset \cite{euses} and the Enron corpus \cite{enron}, jointly containing over 20,000 spreadsheets. The final grammar resulted from many cycles of parse errors, enrichments and refinements, until all common and rare cases found in the datasets were supported.
 
@@ -211,9 +211,9 @@ VERTICAL-RANGE & Range of columns & \$? [A-Z]+ : \$? [A-Z]+ & 0 \\
 
 \subsection{Lexical analysis}
 
-Table \ref{table:tokens} contains the lexical tokens of the grammar, along with their identification patterns in the regular expression language.
+Table \ref{table:tokens} contains the lexical tokens of the grammar, along with their identification patterns in the regular expression language. All tokens are case-insensitive.
 
-All tokens are case-insensitive. They also require the lexical analyzer to support token priorities. Removing the necessity for token priorities is possible by altering the tokens and production rules, but makes the grammar more complicated and the resulting tree harder to use, thus being detrimental to design goals 2 and 3.
+Lexical analysis requires the scanner to support token priorities. Removing the necessity for token priorities is possible by altering the tokens and production rules, but makes the grammar more complicated and the resulting tree harder to use, thus being detrimental to design goals 2 and 3.
 
 Some simple tokens are directly defined in the production rules in Figure \ref{figure:productions} in between quotes for readability and compactness.
 
@@ -392,7 +392,7 @@ Implicit operators are operators which are left out and only implied, for exampl
 \label{sec:ambiguity}
 
 Due to trade-offs on parsing references (see section \ref{tradeoff:references}) and on parsing unions (see section \ref{subsec:desing:unions}) our grammar is not fully unambiguous.
-This is because of the following rules:
+Ambiguity exists between the following production rules:
 \begin{enumerate}
 \item \begin{grammar}<Reference> ::= `(' <Reference> `)'\end{grammar}
 \item \begin{grammar}<Reference> ::= `(' <Union> `)'\end{grammar}
@@ -446,13 +446,13 @@ Implementing the straightforward rules above, while desirable, is not possible w
 \section{Evaluation}
 \label{sec:evaluation}
 
-In this Section we explain how we implemented and evaluated the grammar using the datasets, we discuss the obtained results and the formula parse failures, and we present the grammar analysis of the datasets' formulas.
+In this Section we explain how we implemented and evaluated the grammar using the datasets and we discuss the obtained results and the formula parse failures. In the grammar analysis in Section \ref{subsection:grammarAnalysis} we examine how frequently the grammatical features occur in the formulas of the datasets.
 
 The grammar is implemented in the Irony parser generator framework\footnote{https://irony.codeplex.com/} and the resulting parser is available for download\footnote{https://github.com/PerfectXL/XLParser}.
 
-To extract unique formulas and feed them to the parser we built a tool that opens spreadsheets using the Gembox third party library. The tool reads all cells and identifies which have the same formula in R1C1. It then selects the first cell from each group of cells that share the same formula in the R1C1 style and uses its formula string as input for the parser. It parses only one cell from each R1C1 group - the only differences between the formulas in the same group are the values of the references, so the structure of the produced parse trees is exactly the same.
+To extract unique formulas and use them as input to the parser we built a tool that opens spreadsheets using the Gembox third party library. The tool reads all cells and identifies which have the same formula in R1C1. It then selects the first cell from each group of cells that share the same formula in the R1C1 style and uses its formula string as input for the parser. It parses only one cell from each R1C1 group - the only differences between the formulas in the same group are the values of the references, so the structure of the produced parse trees is exactly the same.
 
-To evaluate the grammar we use it to parse a total of 1,039,751 unique formulas. These originate from the two major datasets available in the spreadsheet research community: The EUSES dataset \cite{euses}, comprising of 4,498 spreadsheets and the Enron email corpus \cite{enron}, which became available after the Enron company declared bankruptcy, comprising of 16,190 spreadsheets. We were not able to process 1087 (5.25\%) of these spreadsheets, either because they are password protected or because of read failures due to the Gembox library. In total, the 19,601 spreadsheets that were processed from the two datasets include 22,632,306 formula cells. These are grouped into 1,039,751 R1C1 groups, and this is the number of unique formulas that were used as input to the parser.
+To evaluate the grammar we apply it for parsing a total of 1,039,751 unique formulas. These originate from the two major datasets available in the spreadsheet research community: The EUSES dataset \cite{euses}, comprising of 4,498 spreadsheets and the Enron email corpus \cite{enron}, which became available after the Enron company declared bankruptcy, comprising of 16,190 spreadsheets. We were not able to process 1087 (5.25\%) of these spreadsheets, either because they are password protected or because of read failures due to the Gembox library. In total, the 19,601 spreadsheets that were processed from the two datasets include 22,632,306 formula cells. These are grouped into 1,039,751 R1C1 groups, which is the number of unique formulas that were used as input to the parser.
 
 To give a rough indication, processing these two datasets and extracting these results takes around 4 hours on a computer with an Intel Core i7 processor, 16GB of RAM and a Solid State Drive.
 
@@ -462,12 +462,13 @@ Out of the 1,039,751 unique formulas from the two datasets that were used as inp
 The 42 formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
 
 \begin{itemize}
-	\item \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi} in two different sheets in the Enron dataset. These are cases of an union operations not within brackets that the grammar does not parse as explained in Section \ref{subsec:desing:unions}.
+	\item \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi} in two different sheets in the Enron dataset. These are cases of an union operations without parentheses that the grammar does not parse as explained in Section \ref{subsec:desing:unions}.
 	\item \texttt{=+Ë\textperthousand} was included in an Enron file that we assume to be either corrupt or another type of binary file, as the file is indecipherable.
 	\item 39 formulas that are not returned correctly from the Gembox third party library that we use for opening spreadsheets. For example our tool reads and attempts to parse formula \texttt{IF(=7,AVERAGE(C4:C11),0)} and fails, but in reality the formula is \texttt{IF(B8=7,AVERAGE(C4:C11),0)} which does parse. All these 39 cases are parsed successfully when we manually provide them as input to the parser.
 \end{itemize}
 
 \subsection{Grammar Analysis}
+\label{subsection:grammarAnalysis}
 The grammar resulted from many cycles of parse errors, enrichments and refinements. There are parts of the grammar that cover a particularly complex set of structures. In this section we analyze the formulas in the datasets and measure the frequency of their characteristics and grammatical structures. We also identify potentially smelly grammatical constructs and edge cases in the syntax of formulas.
 
 \begin{table*}
@@ -522,7 +523,7 @@ The grammar resulted from many cycles of parse errors, enrichments and refinemen
 
 \subsubsection{Formulas and Functions}
 
-The \synt{Formula} rule covers all types of spreadsheet formula expressions. As illustrated in diagram \ref{figure:Formula}, spreadsheet formulas can be constants (\texttt{=5}), references (\texttt{=A3}), function calls (\texttt{=SUM(A1:A3)}), array constants(\texttt{=\{1,2;3,4\}}, explained in Section \ref{sec:arrayformulas}), or reserved names (\texttt{=_xlnm.Print_Area}). Function calls invoke actual named (system or user defined) functions or operators applied to one or more formulas.
+The \synt{Formula} rule covers all types of spreadsheet formula expressions. As illustrated in the syntax diagram in Figure \ref{figure:Formula}, spreadsheet formulas can be constants (\texttt{=5}), references (\texttt{=A3}), function calls (\texttt{=SUM(A1:A3)}), array constants(\texttt{=\{1,2;3,4\}}, explained in Section \ref{sec:arrayformulas}), or reserved names (\texttt{=_xlnm.Print_Area}). Function calls invoke actual named (system or user defined) functions or operators applied to one or more formulas.
 
 Table \ref{table:occurences} shows how frequently each of the production rules in Section \ref{subsection:productionRules} occurs in the formulas of the two datasets. Jointly, 85.32\% of the formulas include a function call. Actual named functions are invoked by 46.7\% of the formulas. The vast majority are system defined functions, but there is a significant amount of formula cells (303,789 - 1.34\%) invoking user-defined functions -e.g., \texttt{=[1]!erUserEmail(User_Id)}. A special case of user defined functions are the ones created using the Excel xll add-in library. These are found in the dataset invoked as \texttt{_xll.functionName}, by 0.61\% of the formula cells.
 
@@ -530,7 +531,7 @@ Operators are used in 66.8\% of the formula cells, with binary operators being t
 
 Regarding function arguments, spreadsheet systems allow empty ones (e.g. \texttt{=SUM(,E35,E37)}) but this is rarely done -in only 0.05\% of the formula cells. Unions are also rare. Only 385 formula cells contain a union used as argument, e.g. \texttt{=LARGE((F38,C38),1)}. All occurrences were arguments of the \texttt{LARGE} and \texttt{SMALL} functions -these two functions require an array of cells to be declared as a single argument, necessitating a union if the cells are not in a single range. In the EUSES dataset we also found 19 cases of constant arrays used as arguments, e.g. \texttt{=FVSCHEDULE(1,{0.09;0.11;0.1})}.
 
-The \synt{ArrayFormula} rule, covering formulas surrounded by brackets, is the only part of the grammar that is not evaluated. The reason is that the Gembox library that we use for reading spreadsheets does not support array formulas -it reads them as regular formulas, without the surrounding brackets. For this reason, we cannot we extract information on their frequency in the two datasets.
+The \synt{ArrayFormula} rule, covering formulas surrounded by brackets, is the only part of the grammar that is not evaluated. The Gembox library that we use for reading spreadsheets does not support array formulas -it reads them as regular formulas, without the surrounding brackets. For this reason, we cannot we extract information on their frequency in the two datasets.
 
 \subsubsection{References}
 
@@ -567,11 +568,11 @@ A special uncommon case in the grammar are the functions that return references,
 Finally, DDE links, discussed in Section \ref{subsection:ExternalRefsDDE}, were found in 3,686 formula cells. Example formulas in the dataset include \texttt{=TWINDDE|RSFRecord!'NGH2 NET.CHNG'} and \texttt{=GLDDEML|Action!'SGIMP,LA'/100}.
 
 \subsubsection{Smelly grammar constructs}
-Having analyzed extensively the grammar of spreadsheets, there are two constructs that we consider to be smelly, i.e. counterintuitive, inconsistent to the rest of the grammar and error-prone: Complex ranges and the implicit intersect operator.
+There are two constructs in the spreadsheet formula grammar that we consider to be smelly, i.e. counterintuitive, inconsistent to the rest of the grammar and error-prone: Complex ranges and the implicit intersect operator.
 
-By \textit{complex ranges} we mean \synt{Reference}s that include more than two or different types of \texttt{':'} separated \synt{ReferenceItem}s. For example, range \texttt{B2:D4:C1}. Their smelly aspect is their evaluation. Normal cell ranges are in the form \texttt{top-left:bottom-right}, including all cells in between the two limits. However, the limits in complex ranges are not the ones specified in the formula: they are calculated as the upper leftmost and lower rightmost cell in the square that includes all defined cells. In the \texttt{B2:D4:C1} example, cell \texttt{B1} is also included in the range. Understanding the limits of the range becomes even less intuitive when named ranges and vertical or horizontal ranges are added. Moreover, this syntax does not add to expressiveness of the grammar: each range is still calculated as the cells within a single square, but without clearly user-defined limits. The analysis showed that complex ranges are rare: 8,583 formula cells	(0.04\%) include complex ranges in the Enron dataset, and they are all defined using three cell locations. 
+By \textit{complex ranges} we mean \synt{Reference}s that include more than two or different types of \texttt{':'} separated \synt{ReferenceItem}s. For example, range \texttt{B2:D4:C1}. Their smelly aspect is their evaluation. Simple cell ranges are in the form \texttt{top-left:bottom-right}, including all cells in between the two limits. However, the limits in complex ranges are not the ones specified in the formula: they are calculated as the upper leftmost and lower rightmost cell in the square that includes all defined cells. In the \texttt{B2:D4:C1} example, cell \texttt{B1} is also included in the range. Understanding the limits of the range becomes even less intuitive when named ranges and vertical or horizontal ranges are added. Moreover, this syntax does not add to expressiveness of the grammar: each range is still calculated as the cells within a single square, but without clearly user-defined limits. The analysis showed that complex ranges are rare: 8,583 formula cells	(0.04\%) include complex ranges in the Enron dataset, and they are all defined using three cell locations. 
 
-The \textit{intersect operator} is included in this discussion because it is not declared as an operator. Intersection between two ranges in the grammar is represented in the most implicit way possible: by \texttt{\char32}, a single whitespace. For example, \texttt{A1:A10\char32A1:A5} is equivalent to \texttt{A1:A5}. Using this syntax, intersection is an implicit range formation operation, belonging to the \synt{Reference} rule, rather than a normal operation declared as a the \synt{Function}. An advantage of this approach is that it enables more natural language definition of intersections, e.g. \texttt{=SUM((Total_Cost Jan):(Total_Cost Apr.))}. An alternative, in our opinion less error-prone definition of intersection, would be a dedicated build-in function used explicitly as \texttt{INTERSECT(A1:A10,A1:A5)}. In the two datasets, intersection operations are not common, as they are found in only 2,829 cases of formula cells.
+The \textit{intersect operator} is included in this discussion because it is not declared as an operator. Intersection between two ranges in the grammar is represented implicitly: by \texttt{\char32}, a single whitespace. For example, \texttt{A1:A10\char32A1:A5} is equivalent to \texttt{A1:A5}. Using this syntax, intersection is an implicit range formation operation, belonging to the \synt{Reference} rule, rather than a normal operation declared as a the \synt{Function}. An advantage of this approach is that it enables more natural language definition of intersections, e.g. \texttt{=SUM((Total_Cost Jan):(Total_Cost Apr.))}. An alternative, in our opinion less error-prone definition of intersection, would be a dedicated build-in function used explicitly as \texttt{INTERSECT(A1:A10,A1:A5)}. In the two datasets, intersection operations are not common, as they are found in only 2,829 cases of formula cells.
 
 \section{Discussion and Limitations}
 \label{sec:discussion}
@@ -580,9 +581,9 @@ The currently defined Excel grammar is able to parse 99,99\% of all formulas fro
 \subsection{Version-dependent grammar features}
 The grammar had been designed as a generic spreadsheet formula grammar, enriched to include all syntactical features found in the two datasets. Both datasets, however, contain spreadsheets created by -or converted to- Excel format. This limits the grammar support for features that are spreadsheet system-dependent or even version-dependent. The built-in functions list, for example, might change across versions, which would make the parser mistakenly recognize build-in as user-defined functions.
 
-Syntactical features can also be deprecated. An example is regular expressions in formulas. Excel allows defining formulas that include regular expressions, for example \texttt{=SUM('S*'!A1)} or \texttt{=SUM('Sheet?'!A1)}. However, in Excel 2010 and up, regular expressions are instantly resolved -in the example, to the multiple sheet reference \texttt{=SUM(Sheet2:Sheet3!A1)}, summing up all \texttt{A1} cells between \texttt{Sheet2} and \texttt{Sheet3}, where the sheets are all matching sheets, except the one that this formula is on. This way, in latest versions of Excel, saved spreadsheets never contain regular expressions.
+Syntactical features have also been deprecated. An example is regular expressions in formulas. Excel allows defining formulas that include regular expressions, for example \texttt{=SUM('S*'!A1)} or \texttt{=SUM('Sheet?'!A1)}. However, in Excel 2010 and up, regular expressions are instantly resolved -in the example, to the multiple sheet reference \texttt{=SUM(Sheet2:Sheet3!A1)}, summing up all \texttt{A1} cells between \texttt{Sheet2} and \texttt{Sheet3}, where the sheets are all matching sheets, except the one that this formula is on. This way, in latest versions of Excel, saved spreadsheets never contain regular expressions.
 
-The use of labels in formulas (a.k.a. natural language formulas) is another feature that was discontinued in Excel 2007. Labels were the headings that were typed above rows and columns, and they could be used in formulas instead of defined names or cell ranges. For example, formula \texttt{=Product A First Quarter} would return the intersection between the cell range with heading \texttt{Product A} and the one with heading \texttt{=First Quarter}. This feature is replaced in newer versions of Excel with the less error-prone named ranges feature. The proposed grammar does not support it, and it would mistakenly parse the labels as named ranges.
+The use of labels in formulas (referred to as natural language formulas) is another feature that was discontinued in Excel 2007. Labels were the headings that were typed above rows and columns, and they could be used in formulas instead of defined names or cell ranges. For example, formula \texttt{=Product A First Quarter} would return the intersection between the cell range with heading \texttt{Product A} and the one with heading \texttt{=First Quarter}. This feature is replaced in newer versions of Excel with the less error-prone named ranges feature. The grammar does not support it, and it would mistakenly parse the labels as named ranges.
 
 \subsection{Internationalization}
 
@@ -591,12 +592,12 @@ Our grammar is only for the English locale.
 Grammars for other locales can be gotten by replacing delimiters, error values and function names by their localized versions.
 
 It is worth noting that Excel will always save formulas in either a locale-independent binary format (Excel 2003 and earlier format) or in its English version (Excel 2007 and later format). When interacting with Excel through its API two versions of the formula can be read or written: the English version and the version in the current locale.
-This makes a grammar for the English version quite useful, since the parser can process all spreadsheets as long as their formulas are read using the English locale.
+This makes a grammar for the English version useful, since the parser can process all spreadsheets as long as their formulas are read using the English locale.
 
 \subsection{Rejection of invalid formulas}
 
-As stated in the design goals in Section \ref{sec:designgoals} the goal of this grammar is to facilitate analysis of formulas, which means correctly parsing valid spreadsheet formulas.
-Rejecting invalid formulas is not among the primary goals of this grammar, as one will normally not encounter invalid formulas in Excel files.
+As stated in the design goals in Section \ref{sec:designgoals}, the goal of this grammar is to facilitate analysis of formulas, which means correctly parsing valid spreadsheet formulas.
+Rejecting invalid formulas is not among the primary goals of this grammar, as the parser will normally not encounter invalid formulas in Excel files.
 Furthermore, while there exist two extensive datasets of valid formulas, to the best of our knowledge there are no such datasets of invalid formulas.
 As such we expect that the presented grammar is too broad and will parse a large number of formulas which are not valid.
 Using this grammar to parse possibly-invalid formulas like user-input might thus require additional safeguards.
@@ -616,7 +617,7 @@ Most related to our research is the work of Badame and Dig~\cite{badame2012refac
 
 Efforts to reverse-engineer a formal language specification based on existing artifacts have been used successfully for other languages, including COBOL \cite{van1997obtaining} and C\# \cite{zaytsev2010recovery}.
 
-As explained in the introduction, there is a large body of related work that relies on parsing spreadsheet formulas in order to analyze spreadsheets. This includes our own worl in which we have worked on an algorithm to visualize spreadsheets as dataflow diagrams\cite{DBLP:conf/icse/HermansPD11}, and subsequently on detecting smells in spreadsheets \cite{DBLP:conf/icse/HermansPD12,DBLP:conf/icsm/Hermans212}. Related approaches exist, for example the work of Cunha that have worked on code smells~\cite{iccsa12} and smell-based fault localization~\cite{conf/icsme/CunhaFMPS14}. These papers too analyze spreadsheet formulas but do not detail whether they use a grammar or what alternative they use.
+As explained in the introduction, there is a large body of related work that relies on parsing spreadsheet formulas in order to analyze spreadsheets. This includes our own work in which we have created an algorithm to visualize spreadsheets as dataflow diagrams\cite{DBLP:conf/icse/HermansPD11}, and subsequently on detecting smells in spreadsheets \cite{DBLP:conf/icse/HermansPD12,DBLP:conf/icsm/Hermans212}. Related approaches exist, for example the work of Cunha that have worked on code smells~\cite{iccsa12} and smell-based fault localization~\cite{conf/icsme/CunhaFMPS14}. These papers too analyze spreadsheet formulas but do not detail whether they use a grammar or what alternative they use.
 
 \section{Conclusion}
 \label{section:conclusion}
@@ -625,9 +626,9 @@ In this paper we present a grammar for spreadsheet formulas that we evaluated ag
 
 The grammar is compact, consisting of 20 production rules and producing processable parse trees, suited for further manipulation and analysis. We believe that the grammar is reliable and concise enough to facilitate further research on spreadsheet formula code bases. It has already been applied in other works for analyzing formula characteristics, calculation chains and code smells and for applying formula transformations. The grammar parser is available as open-source software.
 
-A weak point of the presented grammar is that the full extend of compatibility with the official Microsoft Excel Grammar is unknown.
+A weak point of the presented grammar is that the full extend of compatibility with the official Microsoft Excel grammar is unknown.
 An improvement could be made to this grammar by comparing it to the official specification, either by improving compatibility or by extending the number of known limitations.
-In general the problem of determining whether two Context-free grammars are equivalent is undecidable, but in practice several techniques have been successfully used for this purpose \cite{lammel2009introduction,fischer2012comparison}.
+In general the problem of determining whether two context-free grammars are equivalent is undecidable, but in practice several techniques have been successfully used for this purpose \cite{lammel2009introduction,fischer2012comparison}.
 
 Another improvement could be made by testing the grammar against datasets containing spreadsheets made in other spreadsheet programs, and by testing the grammar against datasets of spreadsheets containing spreadsheets made in other companies.
 
