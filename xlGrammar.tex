@@ -154,7 +154,7 @@ For previous and ongoing research the authors needed a grammar for Microsoft Exc
 \label{sec:designgoals}
 \begin{enumerate}
 \item Be compatible with the official language
-\item Produce a parse tree suited for further manipulation and analysis with minimal post-processing required
+\item Produce parse trees suited for further manipulation and analysis with minimal post-processing required
 \item Be compact enough to feasibly implement with a parser generator
 \end{enumerate}
 
@@ -162,7 +162,7 @@ While an official grammar for Excel formulas is published \cite{ExcelOfficialGra
 Firstly, it is over 30 pages long and contains hundreds of production rules and thus fails requirement 3.
 Secondly, because of the detail of the grammar and the large number of production rules the resulting parse trees are very complex and fail requirement 2.
 
-For this reason the authors decided to construct their own grammar based with the above requirements as \emph{design goals}.
+For this reason the authors decided to construct a new grammar with the above requirements as \emph{design goals}.
 
 \subsection{Grammar class}
 
@@ -211,32 +211,26 @@ VERTICAL-RANGE & Range of columns & \$? [A-Z]+ : \$? [A-Z]+ & 0 \\
 
 \subsection{Lexical analysis}
 
-Table \ref{table:tokens} contains an overview of the tokens produced by the scanner in our parser. The rules are given in a very simple regular expression language, but could be easily adapted for a scanner which does not support regular expression tokens. 
-All tokens are case-insensitive. 
+Table \ref{table:tokens} contains the lexical tokens of the grammar, along with their identification patterns in the regular expression language.
 
-Our tokens also require the scanner to support token priorities. Removing the necessity for token priorities is possible by altering the tokens and production rules, but makes the grammar more complicated and the resulting tree harder to use, thus being detrimental to design goals 2 and 3.
-Leaving the tokens as-is but not providing priorities will still result in an usable grammar, but expect errors on edge cases.
+All tokens are case-insensitive. They also require the lexical analyzer to support token priorities. Removing the necessity for token priorities is possible by altering the tokens and production rules, but makes the grammar more complicated and the resulting tree harder to use, thus being detrimental to design goals 2 and 3.
 
 Some simple tokens are directly defined in the production rules in Figure \ref{figure:productions} in between quotes for readability and compactness.
 
 \subsubsection{\textbf{Dates}}
 
-In Excel the user can enter date and time values in a cell.
-These are internally stored as positive floating point numbers with the integer portion representing the number of days since a Jan 0 1900 epoch and the fractional portion representing the portion of the day passed.
-Users see either the number or the date depending on presentation settings of the cell.
+The appearance of date and time values in spreadsheets depends on the presentation settings of cells. Internally, date and time values are stored as positive floating point numbers with the integer portion representing the number of days since a Jan 0 1900 epoch and the fractional portion representing the portion of the day passed.
 
-This grammar only parses numeric dates and times and these are not distinguishable from other numbers.
+For this reason, the grammar only parses numeric dates and times and these are not distinguishable from other numbers.
 
 \subsubsection{\textbf{External References}}
 
-External references in formulas, both to external files and DDE, are not stored as part of the formula in the Microsoft Excel storage format, but instead are replaced by a numeric index.
+The file names in external references in formulas, both to external files and DDE, are not stored as part of the formula in the Microsoft Excel storage format, but instead are replaced by a numeric index.
 This index is then stored in a file level dictionary of external references.
 A formula that is presented to the user as \texttt{=[C:\textbackslash Path\textbackslash Filename.xlxs]Sheetname!A1} is internally stored as \texttt{[X]Sheetname!A1}, where \texttt{X} can be any number.
 
 For this reason the presented grammar supports only numeric external references.
-Adding support for full filenames can be achieved by introducing an additional token or altering the \texttt{FILE} token, but be aware that external filenames can be presented to and entered by the user in a myriad of different formats, depending on conditions such as if the file is opened in the spreadsheet program.
-
-
+Adding support for full filenames can be achieved by introducing an additional token or altering the \texttt{FILE} token, but that external filenames can be presented to and entered by the user in a myriad of different formats, depending on conditions such as if the file is opened in the spreadsheet program.
 
 \begin{figure}
 \caption{Production rules}
@@ -358,11 +352,11 @@ Adding support for full filenames can be achieved by introducing an additional t
 \subsection{Syntactic analysis}
 \label{subsection:productionRules}
 
-The complete production rules of our grammar can be found in Figure \ref{figure:productions} in Extended BNF syntax.
+The complete production rules of our grammar in Extended BNF syntax can be found in Figure \ref{figure:productions}.
 The start symbol is $Start$.
 
 \synt{Formula} and \synt{Reference} are the two most important production rules in this grammar.
-For your convencience and understanding, these production are also available in diagram form with production rules expanded to include tokens in Figures \ref{figure:Formula} and \ref{figure:Reference}.
+These are also illustrated as syntax diagrams, expanded to include lexical tokens, in Figures \ref{figure:Formula} and \ref{figure:Reference}.
 
 \begin{table}
 \caption{Operator precedence in formulas}
@@ -389,9 +383,9 @@ In order to resolve ambiguities a LALR parser generator needs the operator prece
 
 \subsection{Intersection operator}
 
-The intersection binary operator in Excel formulas is a single space, while the rest of the language is whitespace independent outside of strings.
+The intersection binary operator in Excel formulas is a single space, while the rest of the language is whitespace independent outside of strings. While this is straightforward to define in EBNF, it can be challenging to implement using a parser generator.
 
-Our parser generator supported a feature called implicit operators which was used to implement this operator.
+Our parser generator supports a feature called implicit operators which was used to implement this operator.
 Implicit operators are operators which are left out and only implied, for example in calculus the multiplication operator is often omitted: $5a$ is equivalent to $5 \cdot a$.
 
 \subsection{Ambiguity}
@@ -405,10 +399,10 @@ This is because of the following rules:
 \item \begin{grammar}<Formula> ::= `(' <Formula> `)'\end{grammar}
 \end{enumerate}
 
-A formula like \texttt{=(A1)} can be interpreted as either a bracketed reference, an union of one reference, or a reference within a bracketed formula.
+A formula like \texttt{=(A1)} can be interpreted as either a bracketed reference, a union of one reference, or a reference within a bracketed formula.
 
-In an LALR(1) parser the ambiguity manifests in a state where on a \texttt{)} token shifting on rule 1 and reducing on either rule 2 or 3 are possibilities, causing a shift-reduce conflict.
-This was solved by instructing the parser generator used to shift on rule 1 in case of this conflict, because this always results is a correct interpretation and thus results in a correct parse tree.
+In an LALR(1) parser the ambiguity manifests in a state where, on a \texttt{')'} token, shifting on rule 1 and reducing on either rule 2 or 3 are possibilities, causing a shift-reduce conflict.
+This was solved by instructing the parser generator to shift on rule 1 in case of this conflict, because this always results in a correct interpretation and thus in a correct parse tree.
 
 \subsection{Trade-offs}
 
@@ -417,20 +411,20 @@ This was solved by instructing the parser generator used to shift on rule 1 in c
 
 References are of great importance in spreadsheet formulas, and thus of interest for analysis.
 To support easier analysis (design goal 2) references have different production rules than other expressions.
-This causes references to be easily identified and isolated, but has the downside of increasing ambiguity, see section \ref{sec:ambiguity}. 
+This causes references to be easily identified and isolated, but has the downside of increasing ambiguity, as explained in Section \ref{sec:ambiguity}. 
 
-Another approach would be to parse all formulas similarly and implement a type system, however this would be very detrimental to both ease of analysis (design goal 2) and ease of implementation (design goal 3).
+Another approach would be to parse all formulas similarly and implement a type system, however this would be very detrimental to both ease of analysis (design goal 2) and to ease of implementation (design goal 3).
 
 \subsubsection{\textbf{Unions}}
 \label{subsec:desing:unions}
 
-As previously noted the comma serves both as an union operator and a function argument separator.
-This proves challenging to correctly straightforwardly implement in a LALR(1) grammar.
+The comma serves both as an union operator and a function argument separator.
+This proves challenging to correctly implement in a LALR(1) grammar.
 
-A straightforward implementation would use productions similar to this:
+A straightforward implementation would use production rules similar to this:
 
 \begin{grammar}
-<Union> ::= Reference `,' Reference
+<Union> ::= <Reference> `,' <Reference>
 
 <Arguments> ::= <Argument>
 	\alt <Argument> `,' <Arguments>
@@ -438,13 +432,13 @@ A straightforward implementation would use productions similar to this:
 
 However, this will cause a reduce-reduce conflict because the parser will have a state wherein it can reduce to both a \synt{Union} or \synt{Argument} on a \texttt{,} token.
 Unfortunately there is no correct choice: in a formula like \texttt{=SUM(A1,1)} the parser must reduce on the \synt{Argument} nonterminal, while in a formula like \texttt{=A1,A1} the parser must reduce to the \synt{Union} nonterminal.
-With above production rules a LALR(1) parser could not correctly parse the language.
+With the above production rules a LALR(1) parser could not correctly parse the language.
 
-The presented grammar only parsers unions in between brackets, e.g. \texttt{=SMALL((A1,A2),1)}.
+The presented grammar only parsers unions in between parentheses, e.g. \texttt{=SMALL((A1,A2),1)}.
 This is a trade-off between a lower compatibility (design goal 1) and an easier implementation (design goal 3).
-We deem this decreased compatibility to be acceptable since unions are very rare (see section \ref{sec:evaluation}) and all but two were within brackets (see section \ref{sec:discussion}).
+We deem this decreased compatibility to be acceptable since unions are very rare (see section \ref{sec:evaluation}) and all but two were within parentheses (see section \ref{sec:discussion}).
 
-Additionally formulas that this grammar now cannot parse often result in runtime errors after evaluation.
+Additionally formulas that this grammar does not parse often result in runtime errors after evaluation.
 For example \texttt{=A1,A1} does parse in a spreadsheet program, but produces the error \texttt{\#VALUE!} on evaluation.
 
 Implementing the straightforward rules above, while desirable, is not possible without using a more powerful grammar class.
@@ -452,7 +446,7 @@ Implementing the straightforward rules above, while desirable, is not possible w
 \section{Evaluation}
 \label{sec:evaluation}
 
-In this Section we explain how we implemented and evaluated the grammar using the datasets, we discuss the obtained results and the formula parse failures, and then we present the grammar analysis of the datasets' formulas.
+In this Section we explain how we implemented and evaluated the grammar using the datasets, we discuss the obtained results and the formula parse failures, and we present the grammar analysis of the datasets' formulas.
 
 The grammar is implemented in the Irony parser generator framework\footnote{https://irony.codeplex.com/} and the resulting parser is available for download\footnote{https://github.com/PerfectXL/XLParser}.
 
