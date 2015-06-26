@@ -9,11 +9,14 @@
 \usepackage{eurosym}
 \usepackage{amsfonts}
 \usepackage{cite}
+\usepackage{caption}
+\usepackage{subcaption}
 
 % Modern encoding and fonts
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+ \usepackage{amsmath, amsthm, amssymb}
 
 %\usepackage{appendix}
 
@@ -171,8 +174,8 @@ This is because the present ambiguity can be solved by defining operator precede
 These two features are supported by most LALR(1) parser generators.
 
 \begin{table*}
-\label{table:tokens}
 \caption{Lexical tokens used in our grammar}
+\label{table:tokens}
 \begin{tabular}{@{}llll@{}}
 \toprule
 Token Name & Description & Regular Expression & Priority \\
@@ -472,8 +475,8 @@ The 42 formulas that were not parsed using the grammar defined in Section \ref{s
 The grammar resulted from many cycles of parse errors, enrichments and refinements. There are parts of the grammar that cover a particularly complex set of structures. In this section we analyze the formulas in the datasets and measure the frequency of their characteristics and grammatical structures. We also identify potentially smelly grammatical constructs and edge cases in the syntax of formulas.
 
 \begin{table*}
-	\label{table:occurences}
 	\caption{Frequency of spreadsheet formulas with specific grammatical structures in the EUSES and Enron datasets}
+	\label{table:occurences}
 	\centering
 	\begin{tabular}{llrrrrr}
 		\hline
@@ -537,18 +540,23 @@ The \synt{ArrayFormula} rule, covering formulas surrounded by brackets, is the o
 
 Spreadsheet formulas allow for different types of references, including single cell references, cell ranges, horizontal or vertical ranges, named ranges and reference-returning build-in or user-defined functions. All of these references can be internal (in the same or in different sheets) or external. Syntactically, they can be expressed in a number of ways. The simplest case of a reference to a cell range can be expressed in any of the following ways:
 
-\begin{eqnarray*}
+\begin{align}
 	\texttt{SUM(A1:A2)} \\ 
 	\texttt{= SUM(Sheet1!A1:A2)} \\
 	\texttt{= SUM(Sheet1!A1:(A2))} \\
 	\texttt{= SUM('Sheet1'!A1:A2)} \\
 	\texttt{= SUM(Sheet1!A1:Sheet1!A2)} \\
 	\texttt{= SUM(Sheet1!A1:'Sheet1'!A2)} \\
-\end{eqnarray*}
+	\texttt{= SUM(namedRangeA1A2)} \\ 
+	\texttt{= SUM(A1,A2)} \\ 
+	\texttt{= SUM((A1,A2))} \\ 
+	\texttt{= SUM(A1:A2:A1)} \\
+	\texttt{= SUM(A1:A2 A:A))} 
+\end{align}
 
 The \synt{Reference} rule, drawn in diagram \ref{figure:Reference}, covers all types of referencing expressions. It was the rule that was the most complex to devise to cover all cases found in the two datasets.
 
-As shown in Table \ref{table:occurences}, 99.21\% of the formulas in the two datasets contain at least one \synt{Reference}, and 24.97\% of the formulas contain a reference that is not local, since it includes a \synt{Prefix}. External file references exist in almost 5.02\% of the formulas. 17.02\% of the formulas include a reference with a simple (\texttt{':'} separated) cell range. Named ranges exist in 7.2\% of formulas and, interestingly, horizontal and vertical ranges are rarely used (jointly, in 0.25\% of the formulas). 0.55\% of formulas include references to errors, e.g. \texttt{=\#REF!E3}. These referencing errors are more than four times more common than all other types of errors combined -the \texttt{ERROR} token exists in 0.12\% of the formula cells.
+As shown in Table \ref{table:occurences}, 99.21\% of the formula cells in the two datasets contain at least one \synt{Reference}, and 24.97\% of these contain a reference that is not local, since it includes a \synt{Prefix}, like formulas (2)-(6). External file references exist in almost 5.02\% of the formulas. 17.02\% of the formulas include a reference to a \texttt{':'} separated cell range. Named ranges, like in the case of formula (7), exist in 7.2\% of formula cells and, interestingly, horizontal and vertical ranges are rarely used (jointly, in 0.25\% of the formulas). 0.55\% of formulas include references to errors, e.g. \texttt{=\#REF!E3}. These referencing errors are more than four times more common than all other types of errors combined -the \texttt{ERROR} token exists in 0.12\% of the formula cells.
 
 Moving to the edge cases of the grammar, the structures that were less common in the datasets include:
 
@@ -560,7 +568,7 @@ Moving to the edge cases of the grammar, the structures that were less common in
 	\item[References to external UDFs] \hfill \\
 	855 cells contain references to external user-defined functions, for example \texttt{=[1]!SheetName()}.
 	\item[Prefixed right limits] \hfill \\
-	1,501 cells include a reference with a prefix in the right limit, e.g. \texttt{=SUM(Deals!F9:'Deals'!F16)}. In all cases this prefix is identical to the first one, as continuous ranges spanning across multiple sheets are not supported by Excel. Still, this syntax is supported.
+	1,501 cells include a reference with a prefix in the right limit, like in formulas (5) and (6). In all cases this prefix is identical to the first one, as continuous ranges spanning across multiple sheets are not supported by Excel. Still, this syntax is supported.
 \end{description}
 
 A special uncommon case in the grammar are the functions that return references, namely the \texttt{INDEX}, the \texttt{OFFSET} and the \texttt{INDIRECT} functions. For example, \texttt{INDEX} returns the reference of the cell at the intersection of a particular row and, optionally, column, so \texttt{INDEX(B1:B10,3)} returns a reference to cell \texttt{B3} and can be used in a formula as \texttt{=SUM(A1:INDEX(B1:B10,3))} being equivalent to \texttt{=SUM(A1:B3)}. These functions are relatively common: they are found in 3.45\% of the formula cells, with the most common one being the \texttt{INDEX} (in 2.47\% of formula cells) and the least common one being the \texttt{INDIRECT} (in 0.21\%). In addition to these three functions, the official formula language specification includes the \texttt{IF} and \texttt{CHOOSE} functions as able to return references, but there was no formula in the datasets using them as such.
@@ -570,7 +578,27 @@ Finally, DDE links, discussed in Section \ref{subsection:ExternalRefsDDE}, were 
 \subsubsection{Smelly grammar constructs}
 There are two constructs in the spreadsheet formula grammar that we consider to be smelly, i.e. counterintuitive, inconsistent to the rest of the grammar and error-prone: Complex ranges and the implicit intersect operator.
 
-By \textit{complex ranges} we mean \synt{Reference}s that include more than two or different types of \texttt{':'} separated \synt{ReferenceItem}s. For example, range \texttt{B2:D4:C1}. Their smelly aspect is their evaluation. Simple cell ranges are in the form \texttt{top-left:bottom-right}, including all cells in between the two limits. However, the limits in complex ranges are not the ones specified in the formula: they are calculated as the upper leftmost and lower rightmost cell in the square that includes all defined cells. In the \texttt{B2:D4:C1} example, cell \texttt{B1} is also included in the range. Understanding the limits of the range becomes even less intuitive when named ranges and vertical or horizontal ranges are added. Moreover, this syntax does not add to expressiveness of the grammar: each range is still calculated as the cells within a single square, but without clearly user-defined limits. The analysis showed that complex ranges are rare: 8,583 formula cells	(0.04\%) include complex ranges in the Enron dataset, and they are all defined using three cell locations. 
+\begin{figure}
+	
+	\centering
+	\begin{subfigure}[b]{0.3\textwidth}
+		\centering
+		\includegraphics{complexRanges}
+		\caption{A range with four limits, equivalent to \texttt{B1:D5}}
+		\label{fig:complexA}
+	\end{subfigure}
+	~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+	%(or a blank line to force the subfigure onto a new line)
+	\begin{subfigure}[b]{0.3\textwidth}
+		\centering
+		\includegraphics{complexNamedRanges}
+		\caption{A range with a named range, equivalent to \texttt{A1:C3}}
+		\label{fig:complexB}
+	\end{subfigure}
+	\caption{Examples of references to complex ranges}\label{Figure:ComplexRanges}
+\end{figure}
+
+By \textit{complex ranges} we mean \synt{Reference}s that include more than two or different types of \texttt{':'} separated \synt{ReferenceItem}s. An example is range \texttt{B2:D4:C1:C5}, illustrated in Figure \ref{fig:complexA}. The smelly aspect of complex ranges is their evaluation. Simple cell ranges are in the form \texttt{top-left:bottom-right}, including all cells in between the two limits. However, the limits in complex ranges are not the ones specified in the formula: they are calculated as the upper leftmost and lower rightmost cell in the square that includes all defined cells. For example, range \texttt{B2:D4:C1:C5} is equivalent to \texttt{B1:D5}. Understanding the limits of the range becomes even less intuitive when vertical or horizontal ranges or named ranges are used, like in Figure \ref{fig:complexB} where the range is equivalent to \texttt{A1:C3}. Moreover, this syntax does not add to expressiveness of the grammar: each range is still calculated as the cells within a single square, but without clearly user-defined limits. The analysis showed that complex ranges are rare: 8,583 formula cells	(0.04\%) include complex ranges in the Enron dataset, and they are all defined using three cell locations. 
 
 The \textit{intersect operator} is included in this discussion because it is not declared as an operator. Intersection between two ranges in the grammar is represented implicitly: by \texttt{\char32}, a single whitespace. For example, \texttt{A1:A10\char32A1:A5} is equivalent to \texttt{A1:A5}. Using this syntax, intersection is an implicit range formation operation, belonging to the \synt{Reference} rule, rather than a normal operation declared as a the \synt{Function}. An advantage of this approach is that it enables more natural language definition of intersections, e.g. \texttt{=SUM((Total_Cost Jan):(Total_Cost Apr.))}. An alternative, in our opinion less error-prone definition of intersection, would be a dedicated build-in function used explicitly as \texttt{INTERSECT(A1:A10,A1:A5)}. In the two datasets, intersection operations are not common, as they are found in only 2,829 cases of formula cells.
 
@@ -583,7 +611,14 @@ The grammar had been designed as a generic spreadsheet formula grammar, enriched
 
 Syntactical features have also been deprecated. An example is regular expressions in formulas. Excel allows defining formulas that include regular expressions, for example \texttt{=SUM('S*'!A1)} or \texttt{=SUM('Sheet?'!A1)}. However, in Excel 2010 and up, regular expressions are instantly resolved -in the example, to the multiple sheet reference \texttt{=SUM(Sheet2:Sheet3!A1)}, summing up all \texttt{A1} cells between \texttt{Sheet2} and \texttt{Sheet3}, where the sheets are all matching sheets, except the one that this formula is on. This way, in latest versions of Excel, saved spreadsheets never contain regular expressions.
 
-The use of labels in formulas (referred to as natural language formulas) is another feature that was discontinued in Excel 2007. Labels were the headings that were typed above rows and columns, and they could be used in formulas instead of defined names or cell ranges. For example, formula \texttt{=Product A First Quarter} would return the intersection between the cell range with heading \texttt{Product A} and the one with heading \texttt{=First Quarter}. This feature is replaced in newer versions of Excel with the less error-prone named ranges feature. The grammar does not support it, and it would mistakenly parse the labels as named ranges.
+\begin{figure}
+	\caption{A natural language formula in Excel 2003}
+	\label{fig:labels}
+	\centering
+	\includegraphics{labels}
+\end{figure}
+
+The use of labels in formulas (referred to as natural language formulas) is another feature that was discontinued in Excel 2007. Labels were the headings that were typed above columns and before rows, and they could be used in formulas instead of defined names or cell ranges. Figure \ref{fig:labels} shows an example in Excel 2003, where formula \texttt{=Product A Store 2} returns the intersection between the cell range with heading \texttt{Product A} and the one with heading \texttt{Store 2}. This feature is replaced in newer versions of Excel with the less error-prone named ranges feature. When processing spreadsheets with newer versions of Excel, the references that include labels are automatically converted to cell-only references -in the example, the formula is converted to \texttt{=C2}. The grammar does not support the use of labels, and it would mistakenly parse them as named ranges.
 
 \subsection{Internationalization}
 
