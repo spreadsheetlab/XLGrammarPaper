@@ -321,19 +321,20 @@ Adding support for full filenames can be achieved by introducing an additional t
 \end{figure}
 
 \begin{figure}
-	\caption{Syntax diagram of the \synt{Formula} production rule with nonterminals exanded.}
+	\caption{Syntax diagram of the \synt{Formula} production rule with most production rules expanded.}
 	\label{figure:Formula}
 \begin{grammar}
-	<Formula> ::= \[[
+	<Formula> ::= \begin{syntdiag}[\footnotesize\sdlengths]
 	\begin{stack} 
 	\begin{stack}
 	\begin{stack} "FUNCTION" \\ "UDF" \end{stack} \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$' \\
 	\begin{stack} \\ '$+$' \\ '$-$' \end{stack} <Formula> \begin{stack} \\ '$\%$' \end{stack}\\ 
-	<Formula>  \begin{stack} '$+$' \\ '$-$' \\ '$*$' \\ '$/$' \\ '\textasciicircum'  \\ '\textless' \\ '\textgreater' \\ '$=$' \\ '$\textless=$' \\ '$\textgreater=$' \\ '$\textless\textgreater$'   \end{stack} <Formula>
+	%<Formula>  \begin{stack} '$+$' \\ '$-$' \\ '$*$' \\ '$/$' \\ '\textasciicircum'  \\ '\textless' \\ '\textgreater' \\ '$=$' \\ '$\textless=$' \\ '$\textgreater=$' \\ '$\textless\textgreater$'   \end{stack} <Formula>
+	<Formula> <BinOp> <Formula>
 	\end{stack} \\
 	\begin{stack} "NUMBER" \\ "STRING" \\ "BOOL" \\ "ERROR"  \end{stack} \\ "RESERVED-NAME" \\ <Reference> \\ '$($' <Formula> '$)$' \\  '$\{$' \begin{rep} \begin{rep}	\begin{stack} \begin{stack} \begin{stack} \\ '$+$' \\ '$-$' \end{stack} "NUMBER" \\ "STRING" \\ "BOOL" \\ "ERROR"  \end{stack} \\ "ERROR-REF" \end{stack} \\  '$,$' \end{rep} \\ '$;$' \end{rep} '$\}$'
 	\end{stack}
-	\]]
+	\end{syntdiag}
 \end{grammar}
 \end{figure}
 
@@ -342,13 +343,13 @@ Adding support for full filenames can be achieved by introducing an additional t
 	\label{figure:Reference}
 	\centering
 	\begin{grammar}
-		<Reference> ::= \[[
-		\begin{stack} '$($' \begin{rep} <Reference> \\  '$,$' \end{rep} '$)$'\\ <Reference> \begin{stack} '$:$' \\ '$ $' \end{stack} <Reference> \\
+		<Reference> ::= \begin{syntdiag}[\footnotesize\sdlengths]
+		\begin{stack} '$($' \begin{rep} <Reference> \\  '$,$' \end{rep} '$)$'\\ <Reference> \begin{stack} '$:$' \\ '\char32' \end{stack} <Reference> \\
 		\begin{stack} \\ \begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE_SHEETS" \end{stack} \\ "FILE" '$!$' \\ "QUOTED_FILE_SHEET" \end{stack}
 		\begin{stack} \begin{stack} "CELL" \\ "VERTICAL-RANGE" \\ "HORIZONTAL-RANGE" \\ \begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\ "ERROR-REF" \end{stack} \\  \begin{stack} "REFERENCE-FUNCTION" \\ "UDF" \end{stack} \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$'\end{stack}
 		\\"FILE" '$!$' "DDECALL"
 		\end{stack}
-		\]]
+		\end{syntdiag}
 	\end{grammar}
 \end{figure*}
 
