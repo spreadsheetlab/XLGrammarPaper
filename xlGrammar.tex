@@ -359,6 +359,26 @@ The start symbol is $Start$.
 
 \synt{Formula} and \synt{Reference} are the two most important production rules.
 These are also illustrated as syntax diagrams, with most production rules expanded, in Figures \ref{figure:Formula} and \ref{figure:Reference}.
+
+The \synt{Formula} rule covers all types of spreadsheet formula expressions: they can be constants (\texttt{=5}), references (\texttt{=A3}), function calls (\texttt{=SUM(A1:A3)}), array constants (\texttt{=\{1,2;3,4\}}, explained in Section \ref{sec:arrayformulas}), or reserved names (\texttt{=_xlnm.Print_Area}). Function calls invoke actual named (system or user defined) functions or operators applied to one or more formulas.
+
+The \synt{Reference} rule covers all types of referencing expressions, which are diverse. The simplest case of a reference to a cell range can be expressed in any of the following ways:
+\begin{align*}
+\texttt{SUM(A1:A2)} \\ 
+\texttt{= SUM(Sheet1!A1:A2)} \\
+\texttt{= SUM(Sheet1!A1:(A2))} \\
+\texttt{= SUM('Sheet1'!A1:A2)} \\
+\texttt{= SUM(Sheet1!A1:Sheet1!A2)} \\
+\texttt{= SUM(Sheet1!A1:'Sheet1'!A2)} \\
+\texttt{= SUM(namedRangeA1A2)} \\ 
+\texttt{= SUM(A1,A2)} \\ 
+\texttt{= SUM((A1,A2))} \\ 
+\texttt{= SUM(A1:A2:A1)} \\
+\texttt{= SUM(A1:A2 A:A))} 
+\end{align*}
+
+The \synt{Reference} rule, as shown in Figure \ref{figure:Reference}, supports internal (in the same or in different sheets), or external single cell references, cell ranges, horizontal and vertical ranges, named ranges and reference-returning, built-in or user-defined, functions.
+
 \begin{table}
 	\centering
 \caption{Operator precedence in formulas}
@@ -525,8 +545,6 @@ The grammar resulted from many cycles of parse errors, enrichments and refinemen
 
 \subsubsection{Formulas and Functions}
 
-The \synt{Formula} rule covers all types of spreadsheet formula expressions. As illustrated in the syntax diagram in Figure \ref{figure:Formula}, spreadsheet formulas can be constants (\texttt{=5}), references (\texttt{=A3}), function calls (\texttt{=SUM(A1:A3)}), array constants(\texttt{=\{1,2;3,4\}}, explained in Section \ref{sec:arrayformulas}), or reserved names (\texttt{=_xlnm.Print_Area}). Function calls invoke actual named (system or user defined) functions or operators applied to one or more formulas.
-
 Table \ref{table:occurences} shows how frequently each of the production rules occurs in the formulas of the two datasets. Jointly, 85.32\% of the formulas include a function call. Actual named functions are invoked by 46.7\% of the formulas. The vast majority are system defined functions, but there is a significant amount of formula cells (303,789 or 1.34\%) invoking user-defined functions---e.g., \texttt{=[1]!erUserEmail(User_Id)}. A special case of user defined functions are the ones created using a Excel xll add-in library. These are found in the dataset invoked as \texttt{_xll.functionName} by 0.61\% of the formula cells.
 
 Operators are used in 66.8\% of the formula cells, with binary operators being the most common ones, appearing in 59.93\% of the formulas. Analyzing the utilization of constants, we find that 39.38\% of the formula cells contain at least one; more than one third (35.2\%) of the formula cells contain a number and 11.97\% are formulas that contain text. Reserved names are uncommon, with 1,281 occurrences of the \texttt{_xlnm.Print_Area} and 5 occurrences of \texttt{_xlnm.Database}.
@@ -537,23 +555,7 @@ The \synt{ArrayFormula} rule, covering formulas surrounded by brackets, is the o
 
 \subsubsection{References}
 
-Spreadsheet formulas allow for different types of references, including single cell references, cell ranges, horizontal and vertical ranges, named ranges and reference-returning, built-in or user-defined, functions. All of these references can be internal (in the same or in different sheets), or external. Syntactically, they can be expressed in a number of ways. The simplest case of a reference to a cell range can be expressed in any of the following ways:
-\begin{align}
-	\texttt{SUM(A1:A2)} \\ 
-	\texttt{= SUM(Sheet1!A1:A2)} \\
-	\texttt{= SUM(Sheet1!A1:(A2))} \\
-	\texttt{= SUM('Sheet1'!A1:A2)} \\
-	\texttt{= SUM(Sheet1!A1:Sheet1!A2)} \\
-	\texttt{= SUM(Sheet1!A1:'Sheet1'!A2)} \\
-	\texttt{= SUM(namedRangeA1A2)} \\ 
-	\texttt{= SUM(A1,A2)} \\ 
-	\texttt{= SUM((A1,A2))} \\ 
-	\texttt{= SUM(A1:A2:A1)} \\
-	\texttt{= SUM(A1:A2 A:A))} 
-\end{align}
-The \synt{Reference} rule, drawn in diagram \ref{figure:Reference}, covers all types of referencing expressions.
-
-As shown in Table \ref{table:occurences}, 99.21\% of the formula cells in the two datasets contain at least one \synt{Reference}, and 24.97\% of these contain a reference that is not local, since it includes a \synt{Prefix}, like formulas (2)-(6). External file references exist in almost 5.02\% of the formulas. 17.02\% of the formulas include a reference to a \texttt{':'} separated cell range. Named ranges, like in the case of formula (7), exist in 7.2\% of formula cells. Interestingly, horizontal and vertical ranges are rarely used (jointly, in 0.25\% of the formulas). 0.55\% of formulas include references to errors, e.g. \texttt{=\#REF!E3}. These referencing errors are more than four times more common than all other types of errors combined---the \texttt{ERROR} token exists in 0.12\% of the formula cells.
+99.21\% of the formula cells in the two datasets contain at least one \synt{Reference}, and 24.97\% of these contain a reference that is not local, since it includes a \synt{Prefix}. External file references exist in almost 5.02\% of the formulas. 17.02\% of the formulas include a reference to a \texttt{':'} separated cell range. Named ranges exist in 7.2\% of formula cells. Interestingly, horizontal and vertical ranges are rarely used (jointly, in 0.25\% of the formulas). 0.55\% of formulas include references to errors, e.g. \texttt{=\#REF!E3}. These referencing errors are more than four times more common than all other types of errors combined---the \texttt{ERROR} token exists in 0.12\% of the formula cells.
 
 Moving to the edge cases of the grammar, the structures that are less common in the datasets include:
 \begin{description}
@@ -564,7 +566,7 @@ Moving to the edge cases of the grammar, the structures that are less common in 
 	\item[References to external UDFs] \hfill \\
 	855 cells contain references to external user-defined functions, for example \texttt{=[1]!SheetName()}.
 	\item[Prefixed right limits] \hfill \\
-	1,501 cells include a reference with a prefix in the right limit, like in formulas (5) and (6). In all cases this prefix is identical to the first one, as continuous ranges spanning across multiple sheets are not supported by Excel. Still, this syntax is supported.
+	1,501 cells include a reference with a prefix in the right limit, e.g. \texttt{=SUM('Tot-1'!\$B8:'Tot-1'!B8)}. In all cases this prefix is identical to the first one, as continuous ranges spanning across multiple sheets are not supported by Excel. Still, this syntax is supported.
 \end{description}
 
 A special case in the grammar are the functions that return references, namely the \texttt{INDEX}, \texttt{OFFSET} and  \texttt{INDIRECT} functions. \texttt{INDEX} returns the reference of the cell at the intersection of a particular row and, optionally, column, so \texttt{INDEX(B1:B10,3)} returns a reference to cell \texttt{B3} and can be used in a formula as \texttt{=SUM(A1:INDEX(B1:B10,3))}, being equivalent to \texttt{=SUM(A1:B3)}. These functions are relatively common: they are found in 3.45\% of the formula cells, with the most common one being the \texttt{INDEX} (in 2.47\% of formula cells) and the least common one being the \texttt{INDIRECT} (in 0.21\%). In addition to these three functions, the official Excel formula language specification includes the \texttt{IF} and \texttt{CHOOSE} functions as able to return references, but there were no formulas in the datasets using them as reference expressions.
