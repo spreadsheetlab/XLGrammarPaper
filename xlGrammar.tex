@@ -1,4 +1,4 @@
-
+% !TeX program = pdflatex
 \documentclass[conference]{IEEEtran}
 
 %\usepackage{cite}
@@ -185,8 +185,8 @@ CELL & Cell reference & \$? [A-Z]+ \$? [0-9]+ & 2 \\
 DDECALL & Dynamic Data Exchange link & ' ([A-Z0-9\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ ' & 0 \\
 ERROR & Error literal & \#NULL! $\mid$ \#DIV/0! $\mid$ \#VALUE! $\mid$ \#NAME? $\mid$ \#NUM! $\mid$ \#N/A & 0 \\
 ERROR-REF & Reference error literal & \#REF! & 0 \\
+EXCEL-FUNCTION & Excel built-in function & (Any entry from the function list\tablefootnote{A function list is available as part of the reference implementation. Lists provided by Microsoft are also available in \cite{ExcelFunctionReference} and \cite{ExcelOfficialGrammar}.}) \textbackslash( & 5        \\
 FILE & External file reference & \textbackslash[ [0-9]+ \textbackslash] & 5 \\
-FUNCTION & Excel built-in function & (Any entry from the function list\tablefootnote{A function list is available as part of the reference implementation. Lists provided by Microsoft are also available in \cite{ExcelFunctionReference} and \cite{ExcelOfficialGrammar}.}) \textbackslash( & 5        \\
 HORIZONTAL-RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 \\
 MULTIPLE-SHEETS & Multiple sheet references & \begin{tabular}[c]{@{}l@{}}
 [A-Z0-9]+ : ([A-Z0-9\_.]+$\mid$'([A-Z0-9\_ !\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+')!
@@ -197,7 +197,8 @@ NAMED-RANGE-PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with
 NUMBER & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & [0-9]+ ,? [0-9]* (e [0-9]+)? & 0 \\
 QUOTED-FILE-SHEET & A file reference within single quotes & '\textbackslash[ [0-9]+ \textbackslash] ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ '!
 & 5        \\
-REFERENCE-FUNCTION & Excel built-in reference function & (INDEX $\mid$ OFFSET $\mid$ INDIRECT)\textbackslash( & 5 \\
+REF-FUNCTION & Excel built-in reference function & (INDEX $\mid$ OFFSET $\mid$ INDIRECT)\textbackslash( & 5 \\
+REF-FUNCTION-COND & Excel built-in conditional reference function & (IF $\mid$ CHOOSE)\textbackslash( & 5 \\
 RESERVED-NAME & An Excel reserved name & \_xlnm\textbackslash.  [A-Z\_]+ & -1 \\
 SHEET & The name of a worksheet &
 	([0-9A-Z\_.]+ $\mid$ ' ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+={}$\mid$:;\textless\textgreater,./?\textbackslash\textbackslash] $\mid$ '')+ ') !
@@ -257,7 +258,7 @@ Adding support for full filenames can be achieved by introducing an additional t
 %         \alt "BOOL"
 %         \alt "ERROR"
          
-<FunctionCall> ::= <Function> <Arguments> `)'
+<FunctionCall> ::= "EXCEL-FUNCTION" <Arguments> `)'
 		\alt <UnOpPrefix> <Formula>
 		\alt <Formula> `\%'
 		\alt <Formula> <BinOp> <Formula>
@@ -267,7 +268,7 @@ Adding support for full filenames can be achieved by introducing an additional t
 <BinOp> ::= `+' | `-' | `*' | `/' | `\textasciicircum'
 	\alt `<' | `>' | `=' | `<=' | `>=' | `<>'
 
-<Function> ::= "FUNCTION" | "UDF"
+%<Function> ::=  | "UDF"
 	
 <Arguments> ::= <Argument>
 	\alt <Argument> `,' <Arguments>
@@ -275,19 +276,22 @@ Adding support for full filenames can be achieved by introducing an additional t
 <Argument> ::= <Formula> | $\epsilon$
 
 <Reference> ::= <ReferenceItem>
-	\alt <Reference> `:' <Reference>
-	\alt <Reference> `\ ' <Reference>
-	\alt `(' <Union> `)'
+    \alt <RefFunctionCall>
 	\alt `(' <Reference> `)' 
 	\alt <Prefix> <ReferenceItem>
-    \alt <Prefix> "UDF" <Arguments> `)'
+    %\alt <Prefix> "UDF" <Arguments> `)'
     \alt <DynamicDataExchange>
+
+<RefFunctionCall> ::= `(' <Union> `)'
+    \alt <RefFunctionName> <Arguments> `)'
+    \alt <Reference> `:' <Reference>
+	\alt <Reference> `\ ' <Reference>
     
 <ReferenceItem> ::= "CELL"
 	\alt <NamedRange>
-	\alt "REFERENCE-FUNCTION" Arguments `)'
 	\alt "VERTICAL-RANGE"
 	\alt "HORIZONTAL-RANGE"
+	\alt "UDF" <Arguments> `)'
 	\alt "ERROR-REF"
 	
 <Prefix> ::= "SHEET"
@@ -296,6 +300,9 @@ Adding support for full filenames can be achieved by introducing an additional t
 	\alt "QUOTED-FILE-SHEET"
 	\alt "MULTIPLE-SHEETS"
 	\alt "FILE" "MULTIPLE-SHEETS"
+
+<RefFunctionName> ::= "REF-FUNCTION"
+			\alt "REF-FUNCTION-COND"
 	
 <NamedRange> ::= "NAMED-RANGE"
             \alt "NAMED-RANGE-PREFIXED"
@@ -326,7 +333,7 @@ Adding support for full filenames can be achieved by introducing an additional t
 	<Formula> ::= \begin{syntdiag}[\footnotesize\sdlengths]
 	\begin{stack} 
 	\begin{stack}
-	\begin{stack} "FUNCTION" \\ "UDF" \end{stack} \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$' \\
+	"EXCEL-FUNCTION" \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$' \\
 	\begin{stack} \\ '$+$' \\ '$-$' \end{stack} <Formula> \begin{stack} \\ '$\%$' \end{stack}\\ 
 	%<Formula>  \begin{stack} '$+$' \\ '$-$' \\ '$*$' \\ '$/$' \\ '\textasciicircum'  \\ '\textless' \\ '\textgreater' \\ '$=$' \\ '$\textless=$' \\ '$\textgreater=$' \\ '$\textless\textgreater$'   \end{stack} <Formula>
 	<Formula> <BinOp> <Formula>
@@ -342,9 +349,23 @@ Adding support for full filenames can be achieved by introducing an additional t
 	\centering
 	\begin{grammar}
 		<Reference> ::= \begin{syntdiag}[\footnotesize\sdlengths]
-		\begin{stack} '$($' \begin{rep} <Reference> \\  '$,$' \end{rep} '$)$'\\ <Reference> \begin{stack} '$:$' \\ '\char32' \end{stack} <Reference> \\
-		\begin{stack} \\ \begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE-SHEETS" \end{stack} \\ "FILE" '$!$' \\ "QUOTED-FILE-SHEET" \end{stack}
-		\begin{stack} \begin{stack} "CELL" \\ "VERTICAL-RANGE" \\ "HORIZONTAL-RANGE" \\ \begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\ "ERROR-REF" \end{stack} \\  \begin{stack} "REFERENCE-FUNCTION" \\ "UDF" \end{stack} \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$'\end{stack}
+		\begin{stack} '$($' \begin{rep} <Reference> \\  '$,$' \end{rep} '$)$' \\
+		<Reference> \begin{stack} '$:$' \\ '\char32' \end{stack} <Reference> \\
+		\begin{stack} "REF-FUNCTION" \\ "REF-FUNCTION-COND" \end{stack} <Arguments> '$)$' \\
+		\begin{stack}
+			\\
+			\begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE-SHEETS" \end{stack} \\
+			"FILE" '$!$' \\
+			"QUOTED-FILE-SHEET"
+		\end{stack}
+		\begin{stack}
+			"CELL" \\
+			"VERTICAL-RANGE" \\
+			"HORIZONTAL-RANGE" \\
+			\begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\
+			"ERROR-REF" \\
+			"UDF" \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$'
+		\end{stack}
 		\\"FILE" '$!$' "DDECALL"
 		\end{stack}
 		\end{syntdiag}
@@ -571,7 +592,11 @@ Moving to the edge cases of the grammar, the structures that are less common in 
 	1,501 cells include a reference with a prefix in the right limit, e.g. \texttt{=SUM('Tot-1'!\$B8:'Tot-1'!B8)}. In all cases this prefix is identical to the first one, as continuous ranges spanning across multiple sheets are not supported by Excel. Still, this syntax is supported.
 \end{description}
 
-A special case in the grammar are the functions that return references, namely the \texttt{INDEX}, \texttt{OFFSET} and  \texttt{INDIRECT} functions. \texttt{INDEX} returns the reference of the cell at the intersection of a particular row and, optionally, column, so \texttt{INDEX(B1:B10,3)} returns a reference to cell \texttt{B3} and can be used in a formula as \texttt{=SUM(A1:INDEX(B1:B10,3))}, being equivalent to \texttt{=SUM(A1:B3)}. These functions are relatively common: they are found in 3.45\% of the formula cells, with the most common one being the \texttt{INDEX} (in 2.47\% of formula cells) and the least common one being the \texttt{INDIRECT} (in 0.21\%). In addition to these three functions, the official Excel formula language specification includes the \texttt{IF} and \texttt{CHOOSE} functions as able to return references, but there were no formulas in the datasets using them as reference expressions.
+A special case in the grammar are the functions that return references, namely the \texttt{INDEX}, \texttt{OFFSET} and  \texttt{INDIRECT} functions and the conditional functions that can return references \texttt{IF} and \texttt{CHOOSE}.
+For example, \texttt{INDEX} returns the reference of the cell at the intersection of a particular row and, optionally, column, so \texttt{INDEX(B1:B10,3)} returns a reference to cell \texttt{B3} and can be used in a formula as \texttt{=SUM(A1:INDEX(B1:B10,3))} being equivalent to \texttt{=SUM(A1:B3)}.
+These functions are relatively common: they are found in 3.45\% of the formula cells, with the most common one being the \texttt{INDEX} (in 2.47\% of formula cells) and the least common one being the \texttt{INDIRECT} (in 0.21\%).
+While the \texttt{IF} and \texttt{CHOOSE} functions can be part able to return references, there were no formulas in the datasets using them as such.
+An example of using those functions like this would be \texttt{=SUM(IF(A1=1,A2,A5):A10)}, which is equivalent to \texttt{=SUM(A2:A10)} if \texttt{A1} is \texttt{1} and to \texttt{=SUM(A5:A10)} otherwise.
 
 Finally, DDE links, discussed in Section \ref{subsection:ExternalRefsDDE}, were found in 3,686 formula cells. Example formulas in the dataset include \texttt{=TWINDDE|RSFRecord!'NGH2 NET.CHNG'} and \texttt{=GLDDEML|Action!'SGIMP,LA'/100}.
 
