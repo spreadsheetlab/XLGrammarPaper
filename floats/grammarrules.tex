@@ -1,0 +1,85 @@
+\begin{grammar}
+<Start> ::= <Constant>
+	\alt '=' <Formula>
+	\alt <ArrayFormula>
+	
+<ArrayFormula> ::= `\{=' <Formula> `\}'
+
+<Formula> ::= <Constant>
+         \alt <Reference>
+         \alt <FunctionCall>
+         \alt `(' <Formula> `)'
+         \alt <ConstantArray>
+         \alt "RESERVED-NAME"
+         
+<Constant> ::= "NUMBER" | "STRING" | "BOOL" | "ERROR"
+%         \alt "STRING"
+%         \alt "BOOL"
+%         \alt "ERROR"
+         
+<FunctionCall> ::= "EXCEL-FUNCTION" <Arguments> `)'
+		\alt <UnOpPrefix> <Formula>
+		\alt <Formula> `\%'
+		\alt <Formula> <BinOp> <Formula>
+		
+<UnOpPrefix> ::= `+' | `-'
+
+<BinOp> ::= `+' | `-' | `*' | `/' | `\textasciicircum'
+	\alt `<' | `>' | `=' | `<=' | `>=' | `<>'
+
+%<Function> ::=  | "UDF"
+	
+<Arguments> ::= <Argument>
+	\alt <Argument> `,' <Arguments>
+
+<Argument> ::= <Formula> | $\epsilon$
+
+<Reference> ::= <ReferenceItem>
+    \alt <RefFunctionCall>
+	\alt `(' <Reference> `)' 
+	\alt <Prefix> <ReferenceItem>
+    %\alt <Prefix> "UDF" <Arguments> `)'
+    \alt <DynamicDataExchange>
+
+<RefFunctionCall> ::= `(' <Union> `)'
+    \alt <RefFunctionName> <Arguments> `)'
+    \alt <Reference> `:' <Reference>
+	\alt <Reference> `\ ' <Reference>
+    
+<ReferenceItem> ::= "CELL"
+	\alt <NamedRange>
+	\alt "VERTICAL-RANGE"
+	\alt "HORIZONTAL-RANGE"
+	\alt "UDF" <Arguments> `)'
+	\alt "ERROR-REF"
+	
+<Prefix> ::= "SHEET"
+	\alt "FILE" "SHEET"
+	\alt "FILE" `!'
+	\alt "QUOTED-FILE-SHEET"
+	\alt "MULTIPLE-SHEETS"
+	\alt "FILE" "MULTIPLE-SHEETS"
+
+<RefFunctionName> ::= "REF-FUNCTION"
+			\alt "REF-FUNCTION-COND"
+	
+<NamedRange> ::= "NAMED-RANGE"
+            \alt "NAMED-RANGE-PREFIXED"
+
+<Union> ::= <Reference> | <Reference> `,' <Union>
+	
+<DynamicDataExchange> ::= "FILE" `!' "DDECALL"
+
+<ConstantArray> ::= `\{' <ArrayColumns> `\}'
+
+<ArrayColumns> ::= <ArrayRows>
+	\alt <ArrayRows> `;' <ArrayColumns>
+
+<ArrayRows> ::= <ArrayConstant>
+	\alt <ArrayConstant> `,' <ArrayRows>
+	
+<ArrayConstant> ::= <Constant>
+	\alt <UnOpPrefix> "NUMBER"
+	\alt "ERROR-REF"
+
+\end{grammar}

@@ -47,6 +47,8 @@
 \newcommand{\todo}[1]{\textbf{TODO: #1}}
 \newcommand{\ignore}[1]{}
 
+% Parse trees
+\usepackage{forest}
 
 \begin{document}
 \title{A Grammar for Spreadsheet Formulas\\Evaluated on Two Large Datasets}
@@ -167,6 +169,23 @@ Secondly, because of the detail of the grammar and the large number of productio
 
 For this reason the authors decided to construct a new grammar with the above requirements as \emph{design goals}.
 
+\begin{figure}
+	\caption{Microsoft parse tree for \texttt{SUM(B2,5)}}
+	\label{figure:parsetree-ms}
+	%\input{floats/railroad-formula}
+	\scalebox{.7}{
+	\input{floats/parsetree-ms-sumb25}
+	}
+\end{figure}
+\begin{figure}
+	\caption{XLParser parse tree for \texttt{SUM(B2,5)}}
+	\label{figure:parsetree-xlparser}
+	%\input{floats/railroad-formula}
+	\scalebox{.7}{
+	\input{floats/parsetree-ours-sumb25}
+	}
+\end{figure}
+
 \subsection{Grammar class}
 
 While the class of this grammar is not strictly LALR(1) due to the present ambiguity, we implemented this grammar using a LALR(1) parser generator.
@@ -175,41 +194,7 @@ These two features are supported by most LALR(1) parser generators.
 \begin{table*}
 \caption{Lexical tokens used in the grammar}
 \label{table:tokens}
-\begin{tabular}{@{}llll@{}}
-\toprule
-Token Name & Description & Regular Expression & Priority \\
-\midrule
-%BINOP & Binary Operator & + $\mid$ - $\mid$ / $\mid$ * $\mid$ \textasciicircum $\mid$ \textless $\mid$ \textgreater $\mid$ = $\mid$ \textless= $\mid$ \textgreater= $\mid$ \textless \textgreater & 0 & + \\
-BOOL & Boolean literal & TRUE $\mid$ FALSE & 0 \\
-CELL & Cell reference & \$? [A-Z]+ \$? [0-9]+ & 2 \\
-DDECALL & Dynamic Data Exchange link & ' ([A-Z0-9\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ ' & 0 \\
-ERROR & Error literal & \#NULL! $\mid$ \#DIV/0! $\mid$ \#VALUE! $\mid$ \#NAME? $\mid$ \#NUM! $\mid$ \#N/A & 0 \\
-ERROR-REF & Reference error literal & \#REF! & 0 \\
-EXCEL-FUNCTION & Excel built-in function & (Any entry from the function list\tablefootnote{A function list is available as part of the reference implementation. Lists provided by Microsoft are also available in \cite{ExcelFunctionReference} and \cite{ExcelOfficialGrammar}.}) \textbackslash( & 5        \\
-FILE & External file reference & \textbackslash[ [0-9]+ \textbackslash] & 5 \\
-HORIZONTAL-RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 \\
-MULTIPLE-SHEETS & Multiple sheet references & \begin{tabular}[c]{@{}l@{}}
-[A-Z0-9]+ : ([A-Z0-9\_.]+$\mid$'([A-Z0-9\_ !\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+')!
-\end{tabular}
-& 1 \\
-NAMED-RANGE & Named range & [A-Z\_][A-Z0-9\_.]* & -2 \\
-NAMED-RANGE-PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+[0-9]+)    {[}A-Z0-9\_.{]}+                                                                             & 3 \\
-NUMBER & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & [0-9]+ ,? [0-9]* (e [0-9]+)? & 0 \\
-QUOTED-FILE-SHEET & A file reference within single quotes & '\textbackslash[ [0-9]+ \textbackslash] ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ '!
-& 5        \\
-REF-FUNCTION & Excel built-in reference function & (INDEX $\mid$ OFFSET $\mid$ INDIRECT)\textbackslash( & 5 \\
-REF-FUNCTION-COND & Excel built-in conditional reference function & (IF $\mid$ CHOOSE)\textbackslash( & 5 \\
-RESERVED-NAME & An Excel reserved name & \_xlnm\textbackslash.  [A-Z\_]+ & -1 \\
-SHEET & The name of a worksheet &
-	([0-9A-Z\_.]+ $\mid$ ' ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+={}$\mid$:;\textless\textgreater,./?\textbackslash\textbackslash] $\mid$ '')+ ') !
-& 5        \\
-STRING & String literal & " ([\textasciicircum{} "] $\mid$ "")* " & 0       \\
-%UNOP\_POSTFIX & Unary postfix operator & \% & 0 & \% \\
-%UNOP\_PREFIX & Unary prefix operator & + $\mid$ - & 0 & -                  \\
-UDF & User Defined Function & (\_xll\textbackslash.)? [A-Z0-9]+  ( & 4 \\
-VERTICAL-RANGE & Range of columns & \$? [A-Z]+ : \$? [A-Z]+ & 0 \\ 
-\bottomrule
-\end{tabular}
+\input{floats/table-tokens}
 \end{table*}
 
 \subsection{Lexical analysis}
@@ -239,137 +224,19 @@ Adding support for full filenames can be achieved by introducing an additional t
 \caption{Production rules}
 \label{figure:productions}
 \centering
-\begin{grammar}
-<Start> ::= <Constant>
-	\alt '=' <Formula>
-	\alt <ArrayFormula>
-	
-<ArrayFormula> ::= `\{=' <Formula> `\}'
-
-<Formula> ::= <Constant>
-         \alt <Reference>
-         \alt <FunctionCall>
-         \alt `(' <Formula> `)'
-         \alt <ConstantArray>
-         \alt "RESERVED-NAME"
-         
-<Constant> ::= "NUMBER" | "STRING" | "BOOL" | "ERROR"
-%         \alt "STRING"
-%         \alt "BOOL"
-%         \alt "ERROR"
-         
-<FunctionCall> ::= "EXCEL-FUNCTION" <Arguments> `)'
-		\alt <UnOpPrefix> <Formula>
-		\alt <Formula> `\%'
-		\alt <Formula> <BinOp> <Formula>
-		
-<UnOpPrefix> ::= `+' | `-'
-
-<BinOp> ::= `+' | `-' | `*' | `/' | `\textasciicircum'
-	\alt `<' | `>' | `=' | `<=' | `>=' | `<>'
-
-%<Function> ::=  | "UDF"
-	
-<Arguments> ::= <Argument>
-	\alt <Argument> `,' <Arguments>
-
-<Argument> ::= <Formula> | $\epsilon$
-
-<Reference> ::= <ReferenceItem>
-    \alt <RefFunctionCall>
-	\alt `(' <Reference> `)' 
-	\alt <Prefix> <ReferenceItem>
-    %\alt <Prefix> "UDF" <Arguments> `)'
-    \alt <DynamicDataExchange>
-
-<RefFunctionCall> ::= `(' <Union> `)'
-    \alt <RefFunctionName> <Arguments> `)'
-    \alt <Reference> `:' <Reference>
-	\alt <Reference> `\ ' <Reference>
-    
-<ReferenceItem> ::= "CELL"
-	\alt <NamedRange>
-	\alt "VERTICAL-RANGE"
-	\alt "HORIZONTAL-RANGE"
-	\alt "UDF" <Arguments> `)'
-	\alt "ERROR-REF"
-	
-<Prefix> ::= "SHEET"
-	\alt "FILE" "SHEET"
-	\alt "FILE" `!'
-	\alt "QUOTED-FILE-SHEET"
-	\alt "MULTIPLE-SHEETS"
-	\alt "FILE" "MULTIPLE-SHEETS"
-
-<RefFunctionName> ::= "REF-FUNCTION"
-			\alt "REF-FUNCTION-COND"
-	
-<NamedRange> ::= "NAMED-RANGE"
-            \alt "NAMED-RANGE-PREFIXED"
-
-<Union> ::= <Reference> | <Reference> `,' <Union>
-	
-<DynamicDataExchange> ::= "FILE" `!' "DDECALL"
-
-<ConstantArray> ::= `\{' <ArrayColumns> `\}'
-
-<ArrayColumns> ::= <ArrayRows>
-	\alt <ArrayRows> `;' <ArrayColumns>
-
-<ArrayRows> ::= <ArrayConstant>
-	\alt <ArrayConstant> `,' <ArrayRows>
-	
-<ArrayConstant> ::= <Constant>
-	\alt <UnOpPrefix> "NUMBER"
-	\alt "ERROR-REF"
-
-\end{grammar}
+\input{floats/grammarrules}
 \end{figure}
 
 \begin{figure}
 	\caption{Syntax diagram of the \synt{Formula} production rule with most production rules expanded}
 	\label{figure:Formula}
-\begin{grammar}
-	<Formula> ::= \begin{syntdiag}[\footnotesize\sdlengths]
-	\begin{stack} 
-	\begin{stack}
-	"EXCEL-FUNCTION" \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$' \\
-	\begin{stack} \\ '$+$' \\ '$-$' \end{stack} <Formula> \begin{stack} \\ '$\%$' \end{stack}\\ 
-	%<Formula>  \begin{stack} '$+$' \\ '$-$' \\ '$*$' \\ '$/$' \\ '\textasciicircum'  \\ '\textless' \\ '\textgreater' \\ '$=$' \\ '$\textless=$' \\ '$\textgreater=$' \\ '$\textless\textgreater$'   \end{stack} <Formula>
-	<Formula> <BinOp> <Formula>
-	\end{stack} \\
-	\begin{stack} "NUMBER" \\ "STRING" \\ "BOOL" \\ "ERROR"  \end{stack} \\ "RESERVED-NAME" \\ <Reference> \\ '$($' <Formula> '$)$' \\  '$\{$' \begin{rep} \begin{rep}	\begin{stack} \begin{stack} \begin{stack} \\ '$+$' \\ '$-$' \end{stack} "NUMBER" \\ "STRING" \\ "BOOL" \\ "ERROR"  \end{stack} \\ "ERROR-REF" \end{stack} \\  '$,$' \end{rep} \\ '$;$' \end{rep} '$\}$'
-	\end{stack}
-	\end{syntdiag}
-\end{grammar}
+	\input{floats/railroad-formula}
 \end{figure}
 \begin{figure*}
 	\caption{Syntax diagram of the \synt{Reference} production rule with most production rules expanded}
 	\label{figure:Reference}
 	\centering
-	\begin{grammar}
-		<Reference> ::= \begin{syntdiag}[\footnotesize\sdlengths]
-		\begin{stack} '$($' \begin{rep} <Reference> \\  '$,$' \end{rep} '$)$' \\
-		<Reference> \begin{stack} '$:$' \\ '\char32' \end{stack} <Reference> \\
-		\begin{stack} "REF-FUNCTION" \\ "REF-FUNCTION-COND" \end{stack} <Arguments> '$)$' \\
-		\begin{stack}
-			\\
-			\begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE-SHEETS" \end{stack} \\
-			"FILE" '$!$' \\
-			"QUOTED-FILE-SHEET"
-		\end{stack}
-		\begin{stack}
-			"CELL" \\
-			"VERTICAL-RANGE" \\
-			"HORIZONTAL-RANGE" \\
-			\begin{stack} "NAMED-RANGE" \\ "NAMED-RANGE-COMBINED" \end{stack} \\
-			"ERROR-REF" \\
-			"UDF" \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$'
-		\end{stack}
-		\\"FILE" '$!$' "DDECALL"
-		\end{stack}
-		\end{syntdiag}
-	\end{grammar}
+	\input{floats/railroad-reference}
 \end{figure*}
 
 \subsection{Syntactical analysis}
@@ -402,25 +269,9 @@ The \synt{Reference} rule, as shown in Figure \ref{figure:Reference}, supports i
 
 \begin{table}
 	\centering
-\caption{Operator precedence in formulas}
-\label{table:operatorprec}
-\begin{tabular}{ll}
-\toprule
-Precedence & Operator(s) \\
-(higher is greater) & \\
-\midrule
-1 & = \textless \  \textgreater \  \textless= \  \textgreater= \  \textless\textgreater          \\
-2 & \&  \\
-3 & + - (binary) \\
-4 & $\ast$ / \\
-5 & \textasciicircum \\
-6 & \% \\
-7 & + - (unary) \\
-8 & , \\
-9 & \texttt{\char32} \\
-10 & : \\
-\bottomrule
-\end{tabular}
+	\caption{Operator precedence in formulas}
+	\label{table:operatorprec}
+	\input{floats/table-precedence}
 \end{table}
 
 \subsection{Operator Precedence}
@@ -520,50 +371,7 @@ The grammar resulted from many cycles of parse errors, enrichments and refinemen
 	\caption{Frequency of spreadsheet formulas with specific grammatical structures in the EUSES and Enron datasets}
 	\label{table:occurences}
 	\centering
-	\begin{tabular}{llrrrrr}
-		\hline
-		Syntax & Example &  \multicolumn{2}{c}{Unique formulas} & \multicolumn{2}{c}{Total formulas} \\
-		\hline
-		\synt{Formula} & \texttt{=1+2} &   \textbf{1,039,709} & & \textbf{22,630,110} & \\
-		\synt{Reference} & \texttt{=E9/E10}  & 966,860 & 92.99\% & 22,451,956 & \textbf{99.21\%}\\
-		CELL & \texttt{=A5}  & 955,518 & 91.90\% & 22,342,591 & 98.73\%\\
-		\synt{FunctionCall} & \texttt{=SUM(A5:A22)}  & 707,783 & 68.08\% & 19,308,203 & \textbf{85.32\%}\\
-		\synt{BinOp} & \texttt{=H10-H8}  & 399,046 & 38.38\% & 13,562,852 & \textbf{59.93\%}\\
-		\synt{Function} & \texttt{=SUM(A5:A22)}  & 293,183 & 28.20\% & 10,569,248 & \textbf{46.70\%}\\
-		FUNCTION & \texttt{=SUM(A5:A22)}  & 288,929 & 27.79\% & 10,459,005 & 46.22\%\\
-		\synt{Constant} & \texttt{=SUM(A5:A22)}  & 273,310 & 26.29\% & 8,912,021 & \textbf{39.38\%}\\
-		NUMBER & \texttt{=(B8/48)*15}  & 251,150 & 24.16\% & 7,966,125 &\textbf{ 35.20\%}\\
-		\synt{Prefix} & \texttt{=Sheet1!B1}  & 337,917 & 32.50\% & 5,651,635 & \textbf{24.97\%}\\
-		SHEET & \texttt{=Sheet1!B1}  & 304,170 & 29.26\% & 5,335,009 & 23.57\%\\
-		\synt{Reference} ':' \synt{Reference} & \texttt{=SUM(A5:A22)}  & 184,877 & 17.78\% & 3,852,467 & \textbf{17.02\%}\\
-		\synt{UnOpPrefix} & \texttt{=+B11+1}  & 218,527 & 21.02\% & 3,283,935 & 14.51\%\\
-		STRING & \texttt{=COUNTIF(B\$4:B\$46,">=90")}  & 57,317 & 5.51\% & 2,708,039 &\textbf{11.97\%}\\
-		\synt{NamedRange} & \texttt{=SUM(freq)}  & 21,240 & 2.04\% & 1,630,263 & \textbf{7.20\%}\\
-		BOOL & \texttt{=IF(AND(R11=1,R14=TRUE),G19,0)}  & 7,522 & 0.72\% & 1,264,751 & 5.59\%\\
-		FILE & \texttt{=[11]Sheet1!C5}  & 104,941 & 10.09\% & 1,135,234 & \textbf{5.02\%}\\
-		REFERENCE-FUNCTION & \texttt{=SUM(J9:INDEX(J9:J41,B43))}  & 10,515 & 1.01\% & 780,050 &\textbf{ 3.45\%}\\
-		QUOTED-FILE-SHEET & \texttt{=('[2]Detail I\&E'!D62)/1000}  & 33,782 & 3.25\% & 325,499 & 1.44\%\\
-		UDF & \texttt{=SQRT(_eoq2(C5,C4,C6,C7))}  & 23,202 & 2.23\% & \textbf{303,789} & \textbf{1.34\%}\\
-		'_xll.' & \texttt{=_xll.RiskTriang(F9,F7,F8)}  & 12,426 & 1.20\% & 137,886 & \textbf{0.61\%}\\
-		ERROR-REF & \texttt{=AVERAGE(\#REF!)}  & 3,482 & 0.33\% & 123,476 & \textbf{0.55\%}\\
-		(' \synt{Reference} ')' & \texttt{=(2*(B29))/(1+B29)}  & 5,259 & 0.51\% & 85,724 & 0.38\%\\
-		VERTICAL-RANGE & \texttt{=COUNT(A:A)}  & 860 & 0.08\% & 56,118 & \textbf{0.25\%}\\
-		FILE '!' & \texttt{=[1]!today}  & 2,040 & 0.20\% & \textbf{28,448} &\textbf{0.13\%}\\
-		ERROR & \texttt{=IF(AND(R11=1,R14=TRUE),G19,0)}  & 380 & 0.04\% & 27,245 & \textbf{0.12\%}\\
-		'\%' & \texttt{=IF(E5>I8,3\%,0\%)}  & 858 & 0.08\% & 16,606 & 0.07\%\\
-			Empty argument & \texttt{=DCOUNT(Lettergrades,,I80:I81)}  & 1,343 & 0.13\% & 10,512 & \textbf{0.05\%}\\
-			Complex range & \texttt{=SUM(I8:K8:M8)}  & 369 & 0.04\% & \textbf{8,583} &\textbf{0.04\%}\\
-			\synt{DynamicDataExchange} & \texttt{=TWINDDE|RSFRec!'NGH2 NET.CHNG''}  & 3,276 & 0.32\% & \textbf{3,686} & 0.02\%\\
-			Intersection & \texttt{=Ending_Inventory Jan}  & 298 & 0.03\% & \textbf{2,829} & 0.01\%\\
-			MULTIPLE-SHEETS & \texttt{=SUM(Sheet1:Sheet20!I29)}  & 173 & 0.02\% &\textbf{1,986} &\textbf{ 0.01\%}\\
-			Prefixed right reference limit & \texttt{=SUM('Tot-1'!\$B8:'Tot-1'!B8)}  & 147 & 0.01\% & \textbf{1,501} & 0.01\%\\
-			RESERVED-NAME & \texttt{=C23/_xlnm.Print_Area}  & 76 & 0.01\% &\textbf{1,286} & 0.01\%\\
-			UDF reference & \texttt{=[1]!wbname()}  & 332 & 0.03\% & \textbf{855} & 0.00\%\\
-			HORIZONTAL-RANGE & \texttt{=MATCH(F3,Prices!2:2,0)}  & 11 & 0.00\% & 836 & \textbf{0.00\%}\\
-			\synt{Union} & \texttt{=LARGE((F38,C38),1)}  & 10 & 0.00\% & \textbf{385} & 0.00\%\\
-			\synt{ConstantArray} & \texttt{=FVSCHEDULE(1,{0.09;0.11;0.1})}  & 15 & 0.00\% & \textbf{19} & 0.00\%\\
-			\hline
-	\end{tabular}
+	\input{floats/table-occurences}
 \end{table*}
 
 \subsubsection{Formulas and Functions}
