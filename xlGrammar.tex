@@ -170,21 +170,24 @@ Secondly, because of the detail of the grammar and the large number of productio
 For this reason the authors decided to construct a new grammar with the above requirements as \emph{design goals}.
 
 \begin{figure}
+	\caption{XLParser parse tree for \texttt{SUM(B2,5)}}
+	\label{figure:parsetree-xlparser}
+	\centering
+	\scalebox{.7}{
+	\input{floats/parsetree-ours-sumb25}
+	}
+	\hspace{3.5em}
+\end{figure}
+
+\begin{figure}
 	\caption{Microsoft parse tree for \texttt{SUM(B2,5)}}
 	\label{figure:parsetree-ms}
-	%\input{floats/railroad-formula}
+	\centering
 	\scalebox{.7}{
 	\input{floats/parsetree-ms-sumb25}
 	}
 \end{figure}
-\begin{figure}
-	\caption{XLParser parse tree for \texttt{SUM(B2,5)}}
-	\label{figure:parsetree-xlparser}
-	%\input{floats/railroad-formula}
-	\scalebox{.7}{
-	\input{floats/parsetree-ours-sumb25}
-	}
-\end{figure}
+
 
 \subsection{Grammar class}
 
