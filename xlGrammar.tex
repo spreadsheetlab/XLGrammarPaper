@@ -389,7 +389,7 @@ Moving to the edge cases of the grammar, the structures that are less common in 
 	\item[References to external UDFs] \hfill \\
 	855 cells (0.004\%) contain references to external user-defined functions, for example \texttt{=[1]!SheetName()}.
 	\item[Prefixed right limits] \hfill \\
-	1,501 cells (0.007\%) include a reference with a prefix in the right limit, e.g. \texttt{=SUM('Tot-1'!\$B8:'Tot-1'!B8)}. In all cases this prefix is identical to the first one, as continuous ranges spanning across multiple sheets are not supported by Excel. Still, this syntax is supported.
+	1,501 cells (0.01\%) include a reference with a prefix in the right limit, e.g. \texttt{=SUM('Tot-1'!\$B8:'Tot-1'!B8)}. In all cases this prefix is identical to the first one, as continuous ranges spanning across multiple sheets are not supported by Excel. Still, this syntax is supported.
 \end{description}
 
 A special case in the grammar are the functions that return references, namely the \texttt{INDEX}, \texttt{OFFSET} and  \texttt{INDIRECT} functions and the conditional functions that can return references \texttt{IF} and \texttt{CHOOSE}.
