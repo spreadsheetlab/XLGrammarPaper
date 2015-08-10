@@ -8,7 +8,7 @@
 
 \usepackage{eurosym}
 \usepackage{amsfonts}
-\usepackage{cite}
+\usepackage[noadjust]{cite}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage[hidelinks]{hyperref}
@@ -75,13 +75,13 @@ Finally, we identify smelly constructs and uncommon cases in the syntax of formu
 \section{Introduction}
 Spreadsheets are widely used in industry: Winston~\cite{Wins2001} estimates that 90\% of all analysts in industry perform calculations in
 spreadsheets. Their use is diverse, ranging from inventory administration to educational applications and from scientific
-modeling to financial systems. It is estimated that 90\% of desktops have Excel installed\cite{DBLP:conf/icse/BradleyM09} and that the number of spreadsheet programmers is bigger than that of software programmers\cite{DBLP:conf/vl/ScaffidiSM05}. 
+modeling to financial systems. It is estimated that 90\% of desktops have Excel installed \cite{DBLP:conf/icse/BradleyM09} and that the number of spreadsheet programmers is bigger than that of software programmers \cite{DBLP:conf/vl/ScaffidiSM05}. 
 
-Because of their widespread use, spreadsheets have been the topic of research since the nineties\cite{DBLP:journals/sigplan/BellP93}. Recent research has often focused on analyzing spreadsheets. For example, there have been attempts to visualize spreadsheets \cite{DBLP:conf/icse/HermansPD11, Shio1999}. More recently, researchers have attempted to define \emph{spreadsheet smells}: applications of Fowler's code smells to spreadsheets \cite{DBLP:conf/icse/HermansPD12, DBLP:conf/icsm/Hermans212}, followed by approaches to refactor spreadsheets \cite{hermans2014bumblebee,badame2012refactoring}.
+Because of their widespread use, spreadsheets have been the topic of research since the nineties \cite{DBLP:journals/sigplan/BellP93}. Recent research has often focused on analyzing spreadsheets. For example, there have been attempts to visualize spreadsheets \cite{DBLP:conf/icse/HermansPD11, Shio1999}. More recently, researchers have attempted to define \emph{spreadsheet smells}: applications of Fowler's code smells to spreadsheets \cite{DBLP:conf/icse/HermansPD12, DBLP:conf/icsm/Hermans212}, followed by approaches to refactor spreadsheets \cite{hermans2014bumblebee,badame2012refactoring}.
 
 These research works analyze the formulas within spreadsheets, and therefore often involve formula parsing. This is done either by using simple grammars which have not been evaluated (\cite{badame2012refactoring}), or through implied, undefined grammars (\cite{DBLP:conf/icse/HermansPD11,DBLP:conf/icse/HermansPD12, DBLP:conf/icsm/Hermans212, hermans2014bumblebee}). The above analyses are our main motivation towards a defined grammar. Having such a grammar will enable parsing spreadsheet formulas into processable parse trees which can in turn be used to analyze cell references, extract metrics, find code smells and explore the structure of spreadsheets. Essentially, a reliable grammar can facilitate research on spreadsheet formula code bases.
 
-To make a grammar suitable for this goal, the requirements that we set for it are (1) to be compatible with the official Excel formula language, (2) to produce parse trees suited for further manipulation and analysis, and (3) to be compact enough to feasibly implement with a parser generator. The approach that we took towards developing the grammar was gradual enrichment through trial-and-error: we started from a simple grammar containing only the most common and well known formula structures, implemented its parser, and provided as input to it formulas extracted from spreadsheet datasets. We used the two major datasets that are available in the spreadsheet research community: The EUSES dataset \cite{euses} and the Enron corpus \cite{enron}, jointly containing over 20,000 spreadsheets. The final grammar resulted from many cycles of parse errors, enrichments and refinements, until all common and rare cases found in the datasets were supported.
+To make a grammar suitable for this goal, the requirements that we set for it are (1) to be compatible with the official Excel formula language, (2) to produce parse trees suited for further manipulation and analysis, and (3) to be compact enough to feasibly implement with a parser generator. The approach that we took towards developing the grammar was gradual enrichment through trial-and-error: we started from a simple grammar containing only the most common and well known formula structures, implemented its parser, and provided as input to it formulas extracted from spreadsheet datasets. We used two major datasets that are available in the spreadsheet research community: The EUSES dataset \cite{euses} and the Enron corpus \cite{enron}, jointly containing over 20,000 spreadsheets. The final grammar resulted from many cycles of parse errors, enrichments and refinements, until all common and rare cases found in the datasets were supported.
 
 The contributions of this paper are (1) a concise grammar for spreadsheet formulas, (2) the evaluation of the compatibility of the grammar using two major datasets, and (3) an analysis of the common formula characteristics and of the rare grammatical cases in the datasets.
 
@@ -94,7 +94,7 @@ Spreadsheets are cell-oriented dataflow programs which are Turing complete \cite
 A single spreadsheet \emph{file} corresponds to a single (\emph{work})\emph{book}.
 A workbook can contain any number of (\emph{work})\emph{sheets}.
 A sheet consists of a two-dimensional grid of \emph{cells}.
-The grid consists or verticals \emph{rows} and horizontal \emph{columns}.
+The grid consists of verticals \emph{rows} and horizontal \emph{columns}.
 Rows are numbered sequentially top-to-bottom starting at 1, while columns are numbered left-to-right alphabetically, i.e. base-26 using A to Z as digits, starting at `A', making column 27 `AA'.
 
 A cell can be empty or contain a \emph{constant value}, a \emph{formula} or an \emph{array formula}.
@@ -180,7 +180,7 @@ For this reason the authors decided to construct a new grammar with the above re
 
 \subsection{Grammar class}
 
-While the class of this grammar is not strictly LALR(1) due to the present ambiguity, we implemented this grammar using a LALR(1) parser generator.
+While the class of this grammar is not strictly LALR(1) due to the ambiguity discussed in Section \ref{sec:ambiguity}, we implemented this grammar using a LALR(1) parser generator.
 This is because the present ambiguity can be solved by defining operator precedence (section \ref{sec:operatorprecedence}) and manually resolving conflicts (Section \ref{sec:ambiguity}).
 These two features are supported by most LALR(1) parser generators.
 \begin{table*}
@@ -353,7 +353,7 @@ The 42 formulas that were not parsed using the grammar defined in Section \ref{s
 \begin{itemize}
 	\item \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi}, found in two different workbooks in the Enron dataset. These are cases of an union operations without parentheses that the grammar does not parse as explained in Section \ref{subsec:desing:unions}.
 	\item \texttt{=+Ë\textperthousand} was included in an Enron file that we assume to be either corrupt or another type of binary file, as the file is indecipherable.
-	\item 39 formulas that are not returned correctly from the Gembox library. For example our tool reads and attempts to parse the formula \texttt{IF(=7,AVERAGE(C4:C11),0)} and fails, but in reality the formula is \texttt{IF(B8=7,AVERAGE(C4:C11),0)} which can be parsed. All these 39 cases are parsed successfully when we manually provide them as input to the parser.
+	\item 39 formulas that are not returned correctly from the Gembox library. For example our tool reads and attempts to parse the formula \texttt{IF(=7,AVERAGE(C4:C1 1),0)} and fails, but in reality the formula is \texttt{IF(B8=7,AVERAGE(C4:C11),0)} which can be parsed. All these 39 cases are parsed successfully when we manually provide them as input to the parser.
 \end{itemize}
 
 \subsection{Grammar Analysis}
@@ -387,9 +387,9 @@ Moving to the edge cases of the grammar, the structures that are less common in 
 	\item[Multiple sheet references] \hfill \\
 	1,986 cells (0.01\%) contain this complex case of reference, which spans across multiple sheets. An example formula is \texttt{=SUM(Sheet1:Sheet10!A5)}, evaluated by summing all cells in position A5 from Sheet1 to Sheet10.
 	\item[References to external UDFs] \hfill \\
-	855 cells contain references to external user-defined functions, for example \texttt{=[1]!SheetName()}.
+	855 cells (0.004\%) contain references to external user-defined functions, for example \texttt{=[1]!SheetName()}.
 	\item[Prefixed right limits] \hfill \\
-	1,501 cells include a reference with a prefix in the right limit, e.g. \texttt{=SUM('Tot-1'!\$B8:'Tot-1'!B8)}. In all cases this prefix is identical to the first one, as continuous ranges spanning across multiple sheets are not supported by Excel. Still, this syntax is supported.
+	1,501 cells (0.007\%) include a reference with a prefix in the right limit, e.g. \texttt{=SUM('Tot-1'!\$B8:'Tot-1'!B8)}. In all cases this prefix is identical to the first one, as continuous ranges spanning across multiple sheets are not supported by Excel. Still, this syntax is supported.
 \end{description}
 
 A special case in the grammar are the functions that return references, namely the \texttt{INDEX}, \texttt{OFFSET} and  \texttt{INDIRECT} functions and the conditional functions that can return references \texttt{IF} and \texttt{CHOOSE}.
@@ -473,7 +473,7 @@ Efforts to reverse-engineer a formal language specification based on existing ar
 
 Most related to our research on the spreadsheet formula language is the work of Badame and Dig~\cite{badame2012refactoring} who, as part of their proposed spreadsheet refactoring approach, presented a grammar for spreadsheet formulas. However, they do not evaluate their grammar, and upon inspection one can see that key ingredients are missing: e.g. external references, intersections, unions and named ranges. An extension of the same grammar was used to refactor formulas by Hermans and Dig \cite{hermans2014bumblebee}.
 
-As explained in the introduction, there is a large body of related work that relies on parsing spreadsheet formulas in order to analyze spreadsheets. This includes our own work in which we have created an algorithm to visualize spreadsheets as dataflow diagrams\cite{DBLP:conf/icse/HermansPD11}, and subsequently on detecting smells in spreadsheets \cite{DBLP:conf/icse/HermansPD12,DBLP:conf/icsm/Hermans212}. Related approaches exist, for example the work of Cunha that have worked on code smells~\cite{iccsa12} and smell-based fault localization~\cite{conf/icsme/CunhaFMPS14}. These papers too analyze spreadsheet formulas but do not detail which grammar or what alternative they use.
+As explained in the introduction, there is a large body of related work that relies on parsing spreadsheet formulas in order to analyze spreadsheets. This includes our own work in which we have created an algorithm to visualize spreadsheets as dataflow diagrams \cite{DBLP:conf/icse/HermansPD11}, and subsequently on detecting smells in spreadsheets \cite{DBLP:conf/icse/HermansPD12,DBLP:conf/icsm/Hermans212}. Related approaches exist, for example the work of Cunha that have worked on code smells~\cite{iccsa12} and smell-based fault localization~\cite{conf/icsme/CunhaFMPS14}. These papers too analyze spreadsheet formulas but do not detail which grammar or what alternative they use.
 
 \section{Conclusion}
 \label{section:conclusion}
