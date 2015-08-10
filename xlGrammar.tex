@@ -107,7 +107,7 @@ The value of any cell can be used in a formula by concatenating its column and r
 If the value of a cell changes this new value will be propagated to all formulas that use it.
 
 When copying a cell to another cell by default references will be adjusted by the offset, for example copying \texttt{=A1} from cell B1 to C2 will cause the copied formula to become \texttt{=B2}.
-This can be prevented by making the reference absolute by prepending a \texttt{\$} to the column index, row index or both.
+This can be prevented by prepending a \texttt{\$} to the column index, row index or both.
 The formula \texttt{=\$A\$1} will remain the same on copy while \texttt{=\$A1} will still have its row number adjusted.
 
 References can also be \emph{ranges}, which are collections of cells.
