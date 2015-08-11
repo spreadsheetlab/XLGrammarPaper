@@ -154,29 +154,31 @@ For previous and ongoing research the authors needed a grammar for Microsoft Exc
 \end{enumerate}
 
 While an official grammar for Excel formulas is published \cite{ExcelOfficialGrammar}, it does not meet the above requirements for two reasons: firstly, it is over 30 pages long and contains hundreds of production rules and thus fails requirement 3.
-Secondly, because of the detail of the grammar and the large number of production rules the resulting parse trees are very complex and fail requirement 2.
+Secondly, because of the detail of the grammar and the large number of production rules the resulting parse trees are very complex and fail requirement 2. An example is drawn in Figure \ref{figure:parsetrees}(a): formula \texttt{SUM(B2,5)} results to a 37-node tree with a depth of 18 nodes.
 
-For this reason the authors decided to construct a new grammar with the above requirements as \emph{design goals}.
-
-\begin{figure}
-	\caption{XLParser parse tree for \texttt{SUM(B2,5)}}
-	\label{figure:parsetree-xlparser}
-	\centering
-	\scalebox{.7}{
-	\input{floats/parsetree-ours-sumb25}
-	}
-	\hspace{3.5em}
-\end{figure}
+For these reasons the authors decided to construct a new grammar with the above requirements as \emph{design goals}.
 
 \begin{figure}
-	\caption{Microsoft parse tree for \texttt{SUM(B2,5)}}
-	\label{figure:parsetree-ms}
+	\caption{Parse trees for formula \texttt{SUM(B2,5)}}
 	\centering
-	\scalebox{.7}{
-	\input{floats/parsetree-ms-sumb25}
-	}
+	\begin{subfigure}[b]{0.3\textwidth}
+		\centering
+		\caption{Microsoft Excel parse tree, constructed based on reference \cite{ExcelOfficialGrammar}}
+		\scalebox{.7}{
+			\input{floats/parsetree-ms-sumb25}
+		}
+	\end{subfigure}
+	
+	
+	\begin{subfigure}[b]{0.3\textwidth}
+		\centering
+		\caption{Parse tree produced using the defined grammar}
+		\scalebox{.7}{
+			\input{floats/parsetree-ours-sumb25}
+		}
+	\end{subfigure}
+	\label{figure:parsetrees}
 \end{figure}
-
 
 \subsection{Grammar class}
 
