@@ -29,8 +29,7 @@
 
 %<Function> ::=  | "UDF"
 	
-<Arguments> ::= <Argument>
-	\alt <Argument> `,' <Arguments>
+<Arguments> ::= <Argument> \{ `,' <Argument> \} | $\epsilon$
 
 <Argument> ::= <Formula> | $\epsilon$
 
@@ -66,19 +65,17 @@
 <NamedRange> ::= "NAMED-RANGE"
             \alt "NAMED-RANGE-PREFIXED"
 
-<Union> ::= <Reference> | <Reference> `,' <Union>
+<Union> ::= <Reference> \{ `,' <Reference> \}
 	
 <DynamicDataExchange> ::= "FILE" `!' "DDECALL"
 
 <ConstantArray> ::= `\{' <ArrayColumns> `\}'
 
-<ArrayColumns> ::= <ArrayRows>
-	\alt <ArrayRows> `;' <ArrayColumns>
+<ArrayColumns> ::= <ArrayRows> \{ `;' <ArrayRows> \}
 
-<ArrayRows> ::= <ArrayConstant>
-	\alt <ArrayConstant> `,' <ArrayRows>
+<ArrayRows> ::= <ArrayConst> \{ `,' <ArrayConst> \}
 	
-<ArrayConstant> ::= <Constant>
+<ArrayConst> ::= <Constant>
 	\alt <UnOpPrefix> "NUMBER"
 	\alt "ERROR-REF"
 
