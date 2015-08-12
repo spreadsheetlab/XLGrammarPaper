@@ -11,6 +11,7 @@
 \usepackage[noadjust]{cite}
 \usepackage[font=small]{caption}
 \usepackage{subcaption}
+\usepackage[hyphens]{url}
 \usepackage[hidelinks]{hyperref}
 
 % Modern encoding and fonts
@@ -18,6 +19,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
  \usepackage{amsmath, amsthm, amssymb}
+ \usepackage{multicol}
 
 %\usepackage{appendix}
 
@@ -154,29 +156,31 @@ For previous and ongoing research the authors needed a grammar for Microsoft Exc
 \end{enumerate}
 
 While an official grammar for Excel formulas is published \cite{ExcelOfficialGrammar}, it does not meet the above requirements for two reasons: firstly, it is over 30 pages long and contains hundreds of production rules and thus fails requirement 3.
-Secondly, because of the detail of the grammar and the large number of production rules the resulting parse trees are very complex and fail requirement 2.
+Secondly, because of the detail of the grammar and the large number of production rules the resulting parse trees are very complex and fail requirement 2. An example is drawn in Figure \ref{figure:parsetrees}(a): formula \texttt{SUM(B2,5)} results to a 37-node tree with a depth of 18 nodes.
 
-For this reason the authors decided to construct a new grammar with the above requirements as \emph{design goals}.
-
-\begin{figure}
-	\caption{XLParser parse tree for \texttt{SUM(B2,5)}}
-	\label{figure:parsetree-xlparser}
-	\centering
-	\scalebox{.7}{
-	\input{floats/parsetree-ours-sumb25}
-	}
-	\hspace{3.5em}
-\end{figure}
+For these reasons the authors decided to construct a new grammar with the above requirements as \emph{design goals}.
 
 \begin{figure}
-	\caption{Microsoft parse tree for \texttt{SUM(B2,5)}}
-	\label{figure:parsetree-ms}
+	\caption{Parse trees for formula \texttt{SUM(B2,5)}}
 	\centering
-	\scalebox{.7}{
-	\input{floats/parsetree-ms-sumb25}
-	}
+	\begin{subfigure}[b]{0.3\textwidth}
+		\centering
+		\caption{Microsoft Excel parse tree, constructed based on reference \cite{ExcelOfficialGrammar}}
+		\scalebox{.7}{
+			\input{floats/parsetree-ms-sumb25}
+		}
+	\end{subfigure}
+	
+	
+	\begin{subfigure}[b]{0.3\textwidth}
+		\centering
+		\caption{Parse tree produced using the defined grammar}
+		\scalebox{.7}{
+			\input{floats/parsetree-ours-sumb25}
+		}
+	\end{subfigure}
+	\label{figure:parsetrees}
 \end{figure}
-
 
 \subsection{Grammar class}
 
@@ -243,19 +247,21 @@ These are also illustrated as syntax diagrams, with most production rules expand
 The \synt{Formula} rule covers all types of spreadsheet formula expressions: they can be constants (\texttt{=5}), references (\texttt{=A3}), function calls (\texttt{=SUM(A1:A3)}), array constants (\texttt{=\{1,2;3,4\}}, explained in Section \ref{sec:arrayformulas}), or reserved names (\texttt{=_xlnm.Print_Area}). Function calls invoke actual named (system or user defined) functions or operators applied to one or more formulas.
 
 The \synt{Reference} rule covers all types of referencing expressions, which are diverse. The simplest case of a reference to a cell range can be expressed in any of the following ways:
-\begin{align*}
-\texttt{SUM(A1:A2)} \\ 
-\texttt{= SUM(Sheet1!A1:A2)} \\
-\texttt{= SUM(Sheet1!A1:(A2))} \\
-\texttt{= SUM('Sheet1'!A1:A2)} \\
-\texttt{= SUM(Sheet1!A1:Sheet1!A2)} \\
-\texttt{= SUM(Sheet1!A1:'Sheet1'!A2)} \\
-\texttt{= SUM(namedRangeA1A2)} \\ 
-\texttt{= SUM(A1,A2)} \\ 
-\texttt{= SUM((A1,A2))} \\ 
-\texttt{= SUM(A1:A2:A1)} \\
-\texttt{= SUM(A1:A2 A:A))} 
-\end{align*}
+
+\begin{multicols}{2}
+	\texttt{SUM(A1:A2)} \\ 
+	\texttt{= SUM(Sheet!A1:A2)} \\
+	\texttt{= SUM(Sheet!A1:(A2))} \\
+	\texttt{= SUM('Sheet'!A1:A2)} \\
+	\texttt{= SUM(Sheet!A1:Sheet!A2)}
+		\columnbreak
+	\texttt{= SUM(Sheet!A1:'Sheet'!A2)} \\
+	\texttt{= SUM(namedRangeA1A2)} \\ 
+	\texttt{= SUM(A1,A2)} \\ 
+	\texttt{= SUM((A1,A2))} \\ 
+	\texttt{= SUM(A1:A2:A1)} \\
+	\texttt{= SUM(A1:A2 A:A))} 
+\end{multicols}
 
 The \synt{Reference} rule, as shown in Figure \ref{figure:Reference}, supports internal (in the same or in different sheets), or external single cell references, cell ranges, horizontal and vertical ranges, named ranges and reference-returning, built-in or user-defined, functions.
 
@@ -340,7 +346,7 @@ The grammar is implemented using the Irony parser generator framework\footnote{\
 
 To extract unique formulas from spreadsheets and use them as input to the parser we built a tool that opens spreadsheets using a third-party library called Gembox\footnote{\url{http://www.gemboxsoftware.com/}}. This tool reads all cells and identifies the unique formulas, rejecting these with adjusted references due to cell copying (e.g. formulas \texttt{=C1} and \texttt{=C2} are considered the same if contained in cells A1 and A2 respectively). The tool then uses each unique formula string as input to the parser.
 
-To evaluate the grammar we use it for parsing a total of 1,039,751 unique formulas. These originate from the two major datasets available in the spreadsheet research community: The EUSES dataset \cite{euses}, comprising of 4,498 spreadsheets and the Enron email corpus \cite{enron}, which became available after the Enron company declared bankruptcy, comprising of 16,190 spreadsheets. We were not able to process 1087 (5.25\%) of these spreadsheets, either because they are password protected, or because of read failures in the Gembox library. In total, the 19,601 spreadsheets that were processed from the two datasets include 22,632,306 formula cells with 1,039,751 unique formulas.
+To evaluate the grammar we use it for parsing a total of 1,039,751 unique formulas. These originate from the two major datasets available in the spreadsheet research community: The EUSES dataset \cite{euses}, comprising of 4,498 spreadsheets and the Enron email corpus \cite{enron}, which became available after the Enron company declared bankruptcy, comprising of 16,190 spreadsheets. We were not able to process 1087 (5.25\%) of these spreadsheets, either because they are password protected, or because of read failures in the Gembox library. In total, the 19,601 spreadsheets that were processed from the two datasets include 22,632,306 formula cells with 1,039,751 unique formulas ---89,312 from the EUSES and 950,439 from the Enron dataset.
 
 To give a rough indication, processing these two datasets and extracting these results takes around 4 hours on a computer with an Intel Core i7 processor, 16GB of RAM and a Solid State Drive.
 
@@ -404,6 +410,7 @@ Finally, DDE links, discussed in Section \ref{subsection:ExternalRefsDDE}, were 
 There are two constructs in the spreadsheet formula grammar that we consider to be smelly, i.e. counterintuitive or inconsistent to the rest of the grammar and error-prone: complex ranges and the intersect operator.
 \begin{figure}
 	\centering
+	\caption{Examples of references to complex ranges}\label{Figure:ComplexRanges}
 	\begin{subfigure}[b]{0.3\textwidth}
 		\centering
 		\includegraphics{complexRanges}
@@ -418,7 +425,6 @@ There are two constructs in the spreadsheet formula grammar that we consider to 
 		\caption{A range with a named range, equivalent to \texttt{A1:C3}, marked gray}
 		\label{fig:complexB}
 	\end{subfigure}
-	\caption{Examples of references to complex ranges}\label{Figure:ComplexRanges}
 \end{figure}
 
 By \textit{complex ranges} we mean \synt{Reference}s that include more than two or different types of \texttt{':'} separated \synt{ReferenceItem}s. An example is range \texttt{B2:D4:C1:C5}, illustrated in Figure \ref{fig:complexA}. The smelly aspect of complex ranges is their evaluation. Simple cell ranges are in the form \texttt{top-left:bottom-right}, including all cells in between the two limits. However, the limits in complex ranges are not the ones specified in the formula: they are calculated as the upper leftmost and lower rightmost cell in the square that includes all defined cells. For example, range \texttt{B2:D4:C1:C5} is equivalent to \texttt{B1:D5}. Understanding the limits of the range becomes even less intuitive when vertical or horizontal ranges or named ranges are used, like in Figure \ref{fig:complexB}. Moreover, this syntax does not add to expressiveness of the grammar: each range is still calculated as the cells within a single square, but without clearly user-defined limits. The analysis showed that complex ranges are rare: 8,583 formula cells	(0.04\%) include complex ranges in the Enron dataset, and they are all defined using three cell locations. 
