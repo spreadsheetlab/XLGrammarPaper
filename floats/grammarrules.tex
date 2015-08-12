@@ -1,9 +1,7 @@
 \begin{grammar}
 <Start> ::= <Constant>
 	\alt '=' <Formula>
-	\alt <ArrayFormula>
-	
-<ArrayFormula> ::= `\{=' <Formula> `\}'
+	\alt `\{=' <Formula> `\}'
 
 <Formula> ::= <Constant>
          \alt <Reference>
@@ -38,7 +36,8 @@
 	\alt `(' <Reference> `)' 
 	\alt <Prefix> <ReferenceItem>
     %\alt <Prefix> "UDF" <Arguments> `)'
-    \alt <DynamicDataExchange>
+%    \alt <DynamicDataExchange>
+	\alt "FILE" `!' "DDECALL"
 
 <RefFunctionCall> ::= `(' <Union> `)'
     \alt <RefFunctionName> <Arguments> `)'
@@ -62,12 +61,13 @@
 <RefFunctionName> ::= "REF-FUNCTION"
 			\alt "REF-FUNCTION-COND"
 	
-<NamedRange> ::= "NAMED-RANGE"
-            \alt "NAMED-RANGE-PREFIXED"
+%<NamedRange> ::= "NAMED-RANGE"
+%            \alt "NAMED-RANGE-PREFIXED"
+<NamedRange> ::= "NR" | "NR-PREFIXED"
 
 <Union> ::= <Reference> \{ `,' <Reference> \}
 	
-<DynamicDataExchange> ::= "FILE" `!' "DDECALL"
+%<DynamicDataExchange> ::= "FILE" `!' "DDECALL"
 
 <ConstantArray> ::= `\{' <ArrayColumns> `\}'
 

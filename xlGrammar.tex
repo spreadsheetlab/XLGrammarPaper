@@ -52,6 +52,10 @@
 % Parse trees
 \usepackage{forest}
 
+%\renewcommand{\sdsize}{ %
+%\small %
+%}
+
 \begin{document}
 \title{A Grammar for Spreadsheet Formulas\\Evaluated on Two Large Datasets}
 
@@ -413,18 +417,18 @@ There are two constructs in the spreadsheet formula grammar that we consider to 
 	\caption{Examples of references to complex ranges}\label{Figure:ComplexRanges}
 	\begin{subfigure}[b]{0.4\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{complexRanges}
+		\includegraphics[width=0.9\textwidth]{complexRanges}
 		\vspace{0.0001mm}
-		\caption{A range with four limits \texttt{B2:D4:C1:C5}, \\ equivalent to the area marked gray \texttt{B1:D5}}
+		\caption{A range with four limits \texttt{B2:D4:C1:C5}, equivalent to the area marked gray \texttt{B1:D5}}
 		\label{fig:complexA}
 	\end{subfigure}
 	~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
 	%(or a blank line to force the subfigure onto a new line)
 	\begin{subfigure}[b]{0.4\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{complexNamedRanges}
+		\includegraphics[width=0.9\textwidth]{complexNamedRanges}
 		\vspace{0.1mm}
-		\caption{A range with a named range \texttt{rangeC2D3:B1}, \\ equivalent to the area marked gray \texttt{A1:C3}}
+		\caption{A range with a named range \texttt{rangeC2D3:B1}, equivalent to the area marked gray \texttt{A1:C3}}
 		\label{fig:complexB}
 	\end{subfigure}
 \end{figure}
@@ -445,7 +449,7 @@ Syntactical features have also been deprecated. An example is regular expression
 	\caption{A natural language formula in Excel 2003}
 	\label{fig:labels}
 	\centering
-	\includegraphics{labels}
+	\includegraphics[width=0.3\textwidth]{labels}
 \end{figure}
 
 The use of labels in formulas (referred to as natural language formulas) is another feature that was discontinued in Excel 2007. Labels were the headings that were typed above columns and before rows, and they could be used in formulas instead of defined names or cell ranges. Figure \ref{fig:labels} shows an example in Excel 2003, where formula \texttt{=Product A Store 2} returns the intersection between the cell range with heading \texttt{Product A} and the one with heading \texttt{Store 2}. This feature is replaced in newer versions of Excel with the less error-prone named ranges feature. When processing spreadsheets with newer versions of Excel, the references that include labels are automatically converted to cell-only references---in the example, the formula is converted to \texttt{=C2}. The grammar does not support the use of labels, and it would mistakenly parse them as named ranges.

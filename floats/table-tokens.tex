@@ -15,8 +15,8 @@ MULTIPLE-SHEETS & Multiple sheet references & \begin{tabular}[c]{@{}l@{}}
 [A-Z0-9]+ : ([A-Z0-9\_.]+$\mid$'([A-Z0-9\_ !\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+')!
 \end{tabular}
 & 1 \\
-NAMED-RANGE & Named range & [A-Z\_][A-Z0-9\_.]* & -2 \\
-NAMED-RANGE-PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+[0-9]+)    {[}A-Z0-9\_.{]}+                                                                             & 3 \\
+NR & Named range & [A-Z\_][A-Z0-9\_.]* & -2 \\
+NR-PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+[0-9]+)    {[}A-Z0-9\_.{]}+                                                                             & 3 \\
 NUMBER & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & [0-9]+ ,? [0-9]* (e [0-9]+)? & 0 \\
 QUOTED-FILE-SHEET & A file reference within single quotes & '\textbackslash[ [0-9]+ \textbackslash] ([0-9A-Z\_ !@\#\$\%\textasciicircum{}\&*()\-+=\{\}:;$\mid$\textless\textgreater,./?\textbackslash{}\textbackslash{}] $\mid$ '')+ '!
 & 5        \\
