@@ -18,7 +18,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
- \usepackage{amsmath, amsthm, amssymb}
+% \usepackage{amsmath, amsthm, amssym2b}
  \usepackage{multicol}
 
 %\usepackage{appendix}
@@ -202,6 +202,8 @@ These two features are supported by most LALR(1) parser generators.
 \subsection{Lexical analysis}
 
 Table \ref{table:tokens} contains the lexical tokens of the grammar, along with their identification patterns in the regular expression language. All tokens are case-insensitive.
+Characters are defined as unicode characters x9,xA,xD and x20 and upwards.
+The construct \texttt{[\textasciicircum$\ldots$]} must be read as any character except those specified in $\ldots$.
 
 Lexical analysis requires the scanner to support token priorities. Removing the necessity for token priorities is possible by altering the tokens and production rules, but makes the grammar more complicated and the resulting tree harder to use, thus being detrimental to design goals 2 and 3.
 
