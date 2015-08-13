@@ -57,6 +57,9 @@
 \widowpenalty = 10000
 \displaywidowpenalty = 10000
 
+% Balance last columns
+\usepackage{flushend}
+
 \begin{document}
 \title{A Grammar for Spreadsheet Formulas\\Evaluated on Two Large Datasets}
 
@@ -143,9 +146,8 @@ In spreadsheet programs it is possible to work with one- or two-dimensional matr
 They are surrounded by curly brackets, columns are separated by commas, and rows by semicolons.
 Several matrix operations are available, for example \texttt{=SUM(\{1,2,3\}*10)} will evaluate to 60.
 
-\emph{Array Formulas} use the same syntax as normal formulas, except that the user must enter \emph{Ctrl} + \emph{Shift} + \emph{Enter} to signal that it is an array formula.
-Excel and LibreOffice surround the formula with curly braces.
-Google docs works differently and requires the user to surround an array formula with \texttt{ARRAYFORMULA($\ldots$)}. Marking a formula as an array formula will enable one- or two-dimensional ranges to be treated as arrays.
+\emph{Array Formulas} use the same syntax as normal formulas, except that the user must signal that it is an array formula, usually by pressing \emph{Ctrl} + \emph{Shift} + \emph{Enter}.
+Marking a formula as an array formula will enable one- or two-dimensional ranges to be treated as arrays.
 For example, if \texttt{A1},\texttt{A3},\texttt{A3} contain the values \texttt{1},\texttt{2},\texttt{3}, the array formula \texttt{\{=SUM(A1:A3*10)\}} will evaluate to \texttt{60}.
 
 \section{Spreadsheet Formula Grammar}
@@ -161,7 +163,8 @@ For previous and ongoing research the authors needed a grammar for Microsoft Exc
 \end{enumerate}
 
 While an official grammar for Excel formulas is published \cite{ExcelOfficialGrammar}, it does not meet the above requirements for two reasons: firstly, it is over 30 pages long and contains hundreds of production rules and thus fails requirement 3.
-Secondly, because of the detail of the grammar and the large number of production rules the resulting parse trees are very complex and fail requirement 2. An example is drawn in Figure \ref{figure:parsetrees}(a): formula \texttt{SUM(B2,5)} results to a 37-node tree with a depth of 18 nodes.
+Secondly, because of the detail of the grammar and the large number of production rules the resulting parse trees are very complex and thus fail requirement 2.
+An example is given in Figure \ref{figure:parsetrees}(a): the relatively simple formula \texttt{SUM(B2,5)} results in a 37-node tree with a depth of 18 nodes, while the grammar presented in this paper results in a 18-node tree with a depth of 9 nodes.
 
 For these reasons the authors decided to construct a new grammar with the above requirements as \emph{design goals}.
 
@@ -171,15 +174,17 @@ For these reasons the authors decided to construct a new grammar with the above 
 	\begin{subfigure}[b]{0.3\textwidth}
 		%\centering
 		\caption{Microsoft Excel parse tree, constructed based on reference \cite{ExcelOfficialGrammar}}
-		\hspace{-1.5em}
+		\hspace{-2em}
 		\scalebox{.7}{
 			\input{floats/parsetree-ms-sumb25}
 		}
 	\end{subfigure}
-	
+%\end{figure}
+%\begin{figure}
 	\begin{subfigure}[b]{0.3\textwidth}
 		%\centering
 		\vspace{1em}
+		\hspace{-0.5em}
 		\caption{Parse tree produced using the grammar defined in this paper}
 		\scalebox{.7}{
 			\input{floats/parsetree-ours-sumb25}
@@ -224,25 +229,6 @@ A formula that is presented to the user as \texttt{=[C:\textbackslash Path\textb
 For this reason the presented grammar supports only numeric file names in external references.
 Adding support for full filenames can be achieved by introducing an additional token or altering the \texttt{FILE} token, but that external filenames can be presented to and entered by the user in a number of different formats, depending on conditions such as if the file is opened in the spreadsheet program.
 
-\begin{figure}
-\caption{Production rules}
-\label{figure:productions}
-\centering
-\input{floats/grammarrules}
-\end{figure}
-
-\begin{figure}
-	\caption{Syntax diagram of the \synt{Formula} production rule with most production rules expanded}
-	\label{figure:Formula}
-	\input{floats/railroad-formula}
-\end{figure}
-\begin{figure*}
-	\caption{Syntax diagram of the \synt{Reference} production rule with most production rules expanded}
-	\label{figure:Reference}
-	\centering
-	\input{floats/railroad-reference}
-\end{figure*}
-
 \subsection{Syntactical analysis}
 \label{subsection:productionRules}
 
@@ -274,22 +260,42 @@ The \synt{Reference} rule covers all types of referencing expressions, which are
 
 The \synt{Reference} rule, as shown in Figure \ref{figure:Reference}, supports internal (in the same or in different sheets), or external single cell references, cell ranges, horizontal and vertical ranges, named ranges and reference-returning, built-in or user-defined, functions.
 
-\begin{table}
-	\centering
-	\caption{Operator precedence in formulas}
-	\label{table:operatorprec}
-	\input{floats/table-precedence}
-\end{table}
-
 \subsection{Operator Precedence}
 \label{sec:operatorprecedence}
 
 All operators in Excel are left-associative, including the exponentiation operator, which in most other languages is right-associative.
 In order to resolve ambiguities, a LALR parser generator needs the operator precedence to be defined as listed in Table \ref{table:operatorprec}.
 
+\begin{figure}[p]
+\caption{Production rules}
+\label{figure:productions}
+\centering
+\input{floats/grammarrules}
+\end{figure}
+
+\begin{figure}[p]
+	\caption{Syntax diagram of the \synt{Formula} production rule with most production rules expanded}
+	\label{figure:Formula}
+	\input{floats/railroad-formula}
+\end{figure}
+\begin{figure}[p]
+	\caption{Syntax diagram of the \synt{Reference} production rule with most production rules expanded}
+	\label{figure:Reference}
+	\centering
+	\input{floats/railroad-reference}
+\end{figure}
+
+\begin{table}[p]
+	\centering
+	\caption{Operator precedence in formulas}
+	\label{table:operatorprec}
+	\input{floats/table-precedence}
+\end{table}
+
 \subsection{Intersection operator}
 
-The intersection binary operator in Excel formulas is a single space, even though the rest of the language is whitespace independent. While this is straightforward to define in EBNF, it can be challenging to implement using a parser generator.
+The intersection binary operator in Excel formulas is a single space.
+While this is straightforward to define in EBNF, it can be challenging to implement using a parser generator.
 
 Our parser generator supports a feature called implicit operators which was used to implement this operator.
 Implicit operators are operators which are left out and only implied, for example in calculus the multiplication operator is often omitted: $5a$ is equivalent to $5 \cdot a$.
@@ -465,8 +471,14 @@ Excel formulas differ depending on the language of the software. For example fun
 Our grammar supports only the English locale.
 Grammars for other locales can be derived by replacing delimiters, error values and function names with their localized versions.
 
-It is worth noting that Excel will always save formulas in either a locale-independent binary format (Excel 2003 and earlier) or in its English version (Excel 2007 and later). When interacting with Excel through its API two versions of the formula can be read or written: the English version and the version in the current locale.
+It is worth noting that Excel will always save formulas in either a locale-independent form (Excel 2003 and earlier format) or in its English version (Excel 2007 and later format). When interacting with Excel through its API two versions of the formula can be read or written: the English version and the version in the current locale.
 This makes a grammar for the English version useful, since the parser can process all spreadsheets as long as their formulas are read using the always available English locale.
+
+\subsection{Other spreadsheet software dialects}
+
+While other spreadsheets program have generally adopted the Excel formula syntax, they sometimes differ slightly.
+For example, LibreOffice uses \texttt{!} as the intersection operator instead of \texttt{\char32}.
+The presented grammar will need to be modified to account for these differences before it can be used on other dialects.
 
 \subsection{Rejection of invalid formulas}
 
@@ -483,6 +495,11 @@ The following is a non-exhaustive list of restrictions on the validity of formul
 	\item The row number cannot exceed 1,048,576 ($2^{20}$) and the column number cannot exceed XFD ($2^{14}$).
 	\item A formula cannot be longer than 8,192 ($2^{13}$) characters.
 \end{itemize}
+
+\subsection{Parse tree correctness}
+
+While we have empirically shown a high compatibility in terms of successful parse rate, we do not have as much evidence that the produced parse trees are correct as this is only tested by usage of and unit tests in the reference implementation.
+However, we believe it is unlikely that a formula can be parsed with the presented grammar but would be interpreted differently by Excel.
 
 \section{Related work}
 \label{section:relatedWork}
@@ -501,8 +518,6 @@ The grammar is compact, consisting of 20 production rules and producing processa
 A weak point of the presented grammar is that the full extend of compatibility with the official Microsoft Excel grammar is unknown.
 An improvement could be made to this grammar by comparing it to the official specification, thus either improving compatibility, or extending the number of known limitations.
 In general, the problem of determining whether two context-free grammars are equivalent is undecidable, but in practice several techniques have been successfully used for this purpose \cite{lammel2009introduction,fischer2012comparison}.
-
-Future work also includes testing the grammar against datasets of spreadsheets created in other spreadsheet systems, and also against datasets from other industry domains.
 
 % Disable dashing similar author names in the bibliography
 \bstctlcite{IEEEexample:BSTcontrol}

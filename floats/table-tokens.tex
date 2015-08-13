@@ -1,3 +1,5 @@
+\stepcounter{footnote}
+
 \begin{tabular}{@{}llll@{}}
 \toprule
 Token Name & Description & Contents & Priority \\
@@ -8,7 +10,7 @@ CELL & Cell reference & \$? [A-Z]+ \$? [0-9]+ & 2 \\
 DDECALL & Dynamic Data Exchange link & ' ([\textasciicircum{} '] $\mid$ '')+ ' & 0 \\
 ERROR & Error literal & \begin{tabular}[c]{@{}l@{}} \#NULL! $\mid$ \#DIV/0! $\mid$ \#VALUE! \\ $\mid$ \#NAME? $\mid$ \#NUM! $\mid$ \#N/A \end{tabular} & 0 \\
 ERROR-REF & Reference error literal & \#REF! & 0 \\
-EXCEL-FUNCTION & Excel built-in function & (Any entry from the function list\tablefootnote{A function list is available as part of the reference implementation. Lists provided by Microsoft are also available in \cite{ExcelFunctionReference} and \cite{ExcelOfficialGrammar}.}) \textbackslash( & 5        \\
+EXCEL-FUNCTION & Excel built-in function & (Any entry from the function list\begin{footnotesize}\textsuperscript{\number\value{footnote}}\end{footnotesize}) \textbackslash( & 5        \\
 FILE & External file reference & \textbackslash[ [0-9]+ \textbackslash] & 5 \\
 HORIZONTAL-RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 \\
 MULTIPLE-SHEETS & Multiple sheet references & 
@@ -35,4 +37,7 @@ $\Box_1$ & Extended characters & \begin{tabular}[c]{@{}l@{}} Non-control Unicode
 $\Box_2$ & Sheet characters & \begin{tabular}[c]{@{}l@{}} Any character except ' * [ ] \textbackslash\ : / ? or any operator \end{tabular} & \\
 $\Box_3$ & Enclosed sheet characters & \begin{tabular}[c]{@{}l@{}} Any character except ' * [ ] \textbackslash\ : / ? \end{tabular} & \\
 \bottomrule
+\multicolumn{4}{l}{\begin{footnotesize}\textsuperscript{\number\value{footnote}} A function list is available as part of the reference implementation. Lists provided by Microsoft are also available in \cite{ExcelFunctionReference} and \cite{ExcelOfficialGrammar}.\end{footnotesize}}\\
 \end{tabular}
+
+\stepcounter{footnote}
