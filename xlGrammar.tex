@@ -95,7 +95,7 @@ To make a grammar suitable for this goal, the requirements that we set for it ar
 
 The contributions of this paper are (1) a concise grammar for spreadsheet formulas, (2) the evaluation of the compatibility of the grammar using two major datasets, and (3) an analysis of the common formula characteristics and of the rare grammatical cases in the datasets.
 
-The remainder of the paper is organized as follows: In the following section we summarize the basic concepts of spreadsheets and of the formula language. In Section \ref{section:grammar} we present the spreadsheet formula grammar, its lexical and syntactical analysis rules, and details on precedence and ambiguity. Section \ref{sec:evaluation} explains how we implemented and evaluated the grammar, presents the obtained results, and analyses the formula characteristics of the datasets. In Section \ref{sec:discussion} we discuss the grammar and its limitations. Section \ref{section:relatedWork} presents related work and Section \ref{section:conclusion} concludes the paper.
+The remainder of the paper is organized as follows: In the following section we summarize the basic concepts of spreadsheets and of the formula language. In Section \ref{section:grammar} we present the spreadsheet formula grammar, its lexical and syntactical analysis rules, and details on precedence and ambiguity. Section \ref{sec:evaluation} explains how we evaluated the grammar, presents the obtained results, and analyses the formula characteristics of the datasets. In Section \ref{sec:discussion} we discuss the grammar and its limitations. Section \ref{section:relatedWork} presents related work and Section \ref{section:conclusion} concludes the paper.
 
 \section{Background}
 
@@ -123,7 +123,7 @@ The formula \texttt{=\$A\$1} will remain the same on copy while \texttt{=\$A1} w
 References can also be \emph{ranges}, which are collections of cells.
 Ranges can be constructed by three operators: the range operator \texttt{:}, the union operator \texttt{,} (a comma) and the intersection operator \texttt{\char32} (a single whitespace).
 The range operator creates a rectangular range with the two cells as top-left and bottom-right corners, so \texttt{=SUM(A1:B10)} will sum all cells in columns A and B with row number 1 through 10.
-The range operator is also used to construct ranges of whole rows or columns, for example \texttt{3:5} is the range of the complete rows three through five, and \texttt{A:D} is the range of columns A through D.
+The range operator is also used to construct ranges of whole rows or columns, for example \texttt{3:5} is the range of the complete rows three through five.
 The union operator, which is different from the mathematical union as duplicates are allowed, combines two references, so \texttt{A1,C5} will be a range of two cells, \texttt{A1} and \texttt{C5}.
 Lastly the intersection operator takes only the cells which are in both arguments, \texttt{=A:A 5:5} will thus be equivalent to \texttt{=A5}.
 
@@ -162,8 +162,8 @@ For previous and ongoing research the authors needed a grammar for Microsoft Exc
 \item Be compact enough to feasibly implement with a parser generator
 \end{enumerate}
 
-While an official grammar for Excel formulas is published \cite{ExcelOfficialGrammar}, it does not meet the above requirements for two reasons: firstly, it is over 30 pages long and contains hundreds of production rules and thus fails requirement 3.
-Secondly, because of the detail of the grammar and the large number of production rules the resulting parse trees are very complex and thus fail requirement 2.
+While an official grammar for Excel formulas is published \cite{ExcelOfficialGrammar}, it does not meet the above requirements for two reasons: first, it is over 30 pages long and contains hundreds of production rules and thus fails requirement 3.
+Second, because of the detail of the grammar and the large number of production rules, the resulting parse trees are very complex and thus fail requirement 2.
 An example is given in Figure \ref{figure:parsetrees}: the relatively simple formula \texttt{SUM(B2,5)} results in a 37-node tree with a depth of 18 nodes when using the Microsoft grammar, while the grammar presented in this paper results in a 18-node tree with a depth of 9 nodes.
 
 For these reasons the authors decided to construct a new grammar with the above requirements as \emph{design goals}.
@@ -179,8 +179,8 @@ For these reasons the authors decided to construct a new grammar with the above 
 			\input{floats/parsetree-ms-sumb25}
 		}
 	\end{subfigure}
-%\end{figure}
-%\begin{figure}
+	%\end{figure}
+	%\begin{figure}
 	\begin{subfigure}[b]{0.3\textwidth}
 		%\centering
 		\vspace{1em}
@@ -208,11 +208,10 @@ These two features are supported by most LALR(1) parser generators.
 
 Table \ref{table:tokens} contains the lexical tokens of the grammar, along with their identification patterns in the regular expression language. All tokens are case-insensitive.
 Characters are defined as unicode characters x9,xA,xD and x20 and upwards.
-The construct \texttt{[\textasciicircum$\ldots$]} must be read as any character except those specified in $\ldots$.
 
 Lexical analysis requires the scanner to support token priorities. Removing the necessity for token priorities is possible by altering the tokens and production rules, but makes the grammar more complicated and the resulting tree harder to use, thus being detrimental to design goals 2 and 3.
 
-Some simple tokens are directly defined in the production rules in Figure \ref{figure:productions} in between quotes for readability and compactness.
+Some simple tokens (e.g. '\%', '!') are directly defined in the production rules in Figure \ref{figure:productions} in between quotes for readability and compactness.
 
 \subsubsection{\textbf{Dates}}
 
@@ -224,7 +223,7 @@ For this reason, the grammar only parses numeric dates and times and these are n
 
 The file names of external references in formulas, both to external files and DDE, are not stored as part of the formula in the Microsoft Excel storage format, but instead are replaced by a numeric index.
 This index is then stored in a file level dictionary of external references.
-A formula that is presented to the user as \texttt{=[C:\textbackslash Path\textbackslash Filename.xlxs]Sheetname!A1} is internally stored as \texttt{[X]Sheetname!A1}, where \texttt{X} can be any number.
+A formula that is presented to the user as \texttt{=[C:\textbackslash Path\textbackslash Filename.xlxs]Sheet1!A1} is internally stored as \texttt{[X]Sheet1!A1}, where \texttt{X} can be any number.
 
 For this reason the presented grammar supports only numeric file names in external references.
 Adding support for full filenames can be achieved by introducing an additional token or altering the \texttt{FILE} token, but that external filenames can be presented to and entered by the user in a number of different formats, depending on conditions such as if the file is opened in the spreadsheet program.
@@ -308,7 +307,7 @@ Due to trade-offs on parsing references (see section \ref{tradeoff:references}) 
 Ambiguity exists between the following production rules:
 \begin{enumerate}
 \item \begin{grammar}<Reference> ::= `(' <Reference> `)'\end{grammar}
-\item \begin{grammar}<Reference> ::= `(' <Union> `)'\end{grammar}
+\item \begin{grammar}<RefFunctionCall> ::= `(' <Union> `)'\end{grammar}
 \item \begin{grammar}<Formula> ::= `(' <Formula> `)'\end{grammar}
 \end{enumerate}
 
@@ -348,7 +347,7 @@ With the above production rules a LALR(1) parser could not correctly parse the l
 
 The presented grammar only parses unions in between parentheses, e.g. \texttt{=SMALL((A1,A2),1)}.
 This is a trade-off between a lower compatibility (design goal 1) and an easier implementation (design goal 3).
-We deem this decreased compatibility to be acceptable since unions are very rare (discussed in Section \ref{subsection:grammarAnalysis}) and all but two were within parentheses (Section \ref{subsection:unparsableFormulas}).
+We deem this decreased compatibility to be acceptable since unions are very rare (discussed in Section \ref{subsection:grammarAnalysis}) and all but two were without parentheses (Section \ref{subsection:unparsableFormulas}).
 
 \section{Evaluation}
 \label{sec:evaluation}
