@@ -2,43 +2,46 @@
 		\hline
 		Syntax & Example &  \multicolumn{2}{c}{Unique formulas} & \multicolumn{2}{c}{Total formulas} \\
 		\hline
-		\synt{Formula} & \texttt{=1+2} &   \textbf{1,039,709} & & \textbf{22,630,110} & \\
-		\synt{Reference} & \texttt{=E9/E10}  & 966,860 & 92.99\% & 22,451,956 & \textbf{99.21\%}\\
-		CELL & \texttt{=A5}  & 955,518 & 91.90\% & 22,342,591 & 98.73\%\\
-		\synt{FunctionCall} & \texttt{=SUM(A5:A22)}  & 707,783 & 68.08\% & 19,308,203 & \textbf{85.32\%}\\
-		\synt{BinOp} & \texttt{=H10-H8}  & 399,046 & 38.38\% & 13,562,852 & \textbf{59.93\%}\\
-		\synt{Function} & \texttt{=SUM(A5:A22)}  & 293,183 & 28.20\% & 10,569,248 & \textbf{46.70\%}\\
-		FUNCTION & \texttt{=SUM(A5:A22)}  & 288,929 & 27.79\% & 10,459,005 & 46.22\%\\
-		\synt{Constant} & \texttt{=SUM(A5:A22)}  & 273,310 & 26.29\% & 8,912,021 & \textbf{39.38\%}\\
-		NUMBER & \texttt{=(B8/48)*15}  & 251,150 & 24.16\% & 7,966,125 &\textbf{ 35.20\%}\\
-		\synt{Prefix} & \texttt{=Sheet1!B1}  & 337,917 & 32.50\% & 5,651,635 & \textbf{24.97\%}\\
-		SHEET & \texttt{=Sheet1!B1}  & 304,170 & 29.26\% & 5,335,009 & 23.57\%\\
-		\synt{Reference} ':' \synt{Reference} & \texttt{=SUM(A5:A22)}  & 184,877 & 17.78\% & 3,852,467 & \textbf{17.02\%}\\
-		\synt{UnOpPrefix} & \texttt{=+B11+1}  & 218,527 & 21.02\% & 3,283,935 & 14.51\%\\
-		STRING & \texttt{=COUNTIF(B\$4:B\$46,">=90")}  & 57,317 & 5.51\% & 2,708,039 &\textbf{11.97\%}\\
-		\synt{NamedRange} & \texttt{=SUM(freq)}  & 21,240 & 2.04\% & 1,630,263 & \textbf{7.20\%}\\
-		BOOL & \texttt{=IF(AND(R11=1,R14=TRUE),G19,0)}  & 7,522 & 0.72\% & 1,264,751 & 5.59\%\\
-		FILE & \texttt{=[11]Sheet1!C5}  & 104,941 & 10.09\% & 1,135,234 & \textbf{5.02\%}\\
-		REFERENCE-FUNCTION & \texttt{=SUM(J9:INDEX(J9:J41,B43))}  & 10,515 & 1.01\% & 780,050 &\textbf{ 3.45\%}\\
-		QUOTED-FILE-SHEET & \texttt{=('[2]Detail I\&E'!D62)/1000}  & 33,782 & 3.25\% & 325,499 & 1.44\%\\
-		UDF & \texttt{=SQRT(_eoq2(C5,C4,C6,C7))}  & 23,202 & 2.23\% & \textbf{303,789} & \textbf{1.34\%}\\
-		'_xll.' & \texttt{=_xll.RiskTriang(F9,F7,F8)}  & 12,426 & 1.20\% & 137,886 & \textbf{0.61\%}\\
-		ERROR-REF & \texttt{=AVERAGE(\#REF!)}  & 3,482 & 0.33\% & 123,476 & \textbf{0.55\%}\\
-		(' \synt{Reference} ')' & \texttt{=(2*(B29))/(1+B29)}  & 5,259 & 0.51\% & 85,724 & 0.38\%\\
-		VERTICAL-RANGE & \texttt{=COUNT(A:A)}  & 860 & 0.08\% & 56,118 & \textbf{0.25\%}\\
-		FILE '!' & \texttt{=[1]!today}  & 2,040 & 0.20\% & \textbf{28,448} &\textbf{0.13\%}\\
-		ERROR & \texttt{=IF(AND(R11=1,R14=TRUE),G19,0)}  & 380 & 0.04\% & 27,245 & \textbf{0.12\%}\\
-		'\%' & \texttt{=IF(E5>I8,3\%,0\%)}  & 858 & 0.08\% & 16,606 & 0.07\%\\
-			Empty argument & \texttt{=DCOUNT(Lettergrades,,I80:I81)}  & 1,343 & 0.13\% & 10,512 & \textbf{0.05\%}\\
-			Complex range & \texttt{=SUM(I8:K8:M8)}  & 369 & 0.04\% & \textbf{8,583} &\textbf{0.04\%}\\
-			\synt{DynamicDataExchange} & \texttt{=TWINDDE|RSFRec!'NGH2 NET.CHNG''}  & 3,276 & 0.32\% & \textbf{3,686} & 0.02\%\\
-			Intersection & \texttt{=Ending_Inventory Jan}  & 298 & 0.03\% & \textbf{2,829} & 0.01\%\\
-			MULTIPLE-SHEETS & \texttt{=SUM(Sheet1:Sheet20!I29)}  & 173 & 0.02\% &\textbf{1,986} &\textbf{ 0.01\%}\\
-			Prefixed right reference limit & \texttt{=SUM('Tot-1'!\$B8:'Tot-1'!B8)}  & 147 & 0.01\% & \textbf{1,501} & \textbf{0.01}\%\\
-			RESERVED-NAME & \texttt{=C23/_xlnm.Print_Area}  & 76 & 0.01\% &\textbf{1,286} & 0.01\%\\
-			UDF reference & \texttt{=[1]!wbname()}  & 332 & 0.03\% & \textbf{855} & 0.00\%\\
-			HORIZONTAL-RANGE & \texttt{=MATCH(F3,Prices!2:2,0)}  & 11 & 0.00\% & 836 & \textbf{0.00\%}\\
-			\synt{Union} & \texttt{=LARGE((F38,C38),1)}  & 10 & 0.00\% & \textbf{385} & 0.00\%\\
-			\synt{ConstantArray} & \texttt{=FVSCHEDULE(1,{0.09;0.11;0.1})}  & 15 & 0.00\% & \textbf{19} & 0.00\%\\
+			\synt{Formula} & \texttt{=1+2} &  & \textbf{1,035,586} & & \textbf{22,310,406} & \\
+			\synt{Reference} & \texttt{=E9/E10} &  & 962,783 & 92.97\% & 22,131,002 & \textbf{99.20\%}\\
+			CELL & \texttt{=A5} &  & 951,521 & 91.88\% & 22,021,833 & 98.71\%\\
+			\synt{FunctionCall} & \texttt{=SUM(A5:A22)} &  & 701,626 & 67.75\% & 18,944,204 & \textbf{84.91\%}\\
+			\synt{BinOp} & \texttt{=H10-H8} &  & 397,580 & 38.39\% & 13,333,844 & \textbf{59.77\%}\\
+			\synt{Constant} & \texttt{=A5+134} &  & 271,585 & 26.23\% & 8,731,489 & \textbf{39.14\%}\\
+			EXCEL-FUNCTION & \texttt{=SUM(A5:A22)} &  & 264,673 & 25.56\% & 7,991,329 & 35.82\%\\
+			NUMBER & \texttt{=(B8/48)*15} &  & 250,085 & 24.15\% & 7,849,495 & \textbf{35.18\%}\\
+			\synt{Prefix} & \texttt{=Sheet1!B1} &  & 337,727 & 32.61\% & 5,599,011 & \textbf{25.10\%}\\
+			\synt{RefFunctionName} & \texttt{=SUM(J9:INDEX(J9:J41,B43))} &  & 55,680 & 5.38\% & 5,349,237 & \textbf{23.98\%}\\
+			SHEET & \texttt{=Sheet1!B1} &  & 303,981 & 29.35\% & 5,282,386 & 23.68\%\\
+			REF-FUNCTION-COND & \texttt{=IF(A1<0,0,1)} &  & 50,171 & 4.84\% & 4,872,661 & \textbf{21.84\%}\\
+			\synt{Reference} ':' \synt{Reference} & \texttt{=SUM(A5:A22)} &  & 184,451 & 17.81\% & 3,735,005 & \textbf{16.74\%}\\
+			\synt{UnOpPrefix} & \texttt{=+B11+1} &  & 218,397 & 21.09\% & 3,289,326 & 14.74\%\\
+			STRING & \texttt{=IF(AD3<0,"buy","sell")} &  & 56,635 & 5.47\% & 2,587,971 & \textbf{11.60\%}\\
+			\synt{NamedRange} & \texttt{=SUM(freq)} &  & 20,686 & 2.00\% & 1,645,120 & \textbf{7.37\%}\\
+			BOOL & \texttt{=IF(AND(R11=1,R14=TRUE),G19,0)} &  & 7,532 & 0.73\% & 1,183,798 & 5.31\%\\
+			FILE & \texttt{=[11]Sheet1!C5} &  & 104,892 & 10.13\% & 1,135,185 & \textbf{5.09\%}\\
+			REF-FUNCTION & \texttt{=SUM(J9:INDEX(J9:J41,B43))} &  & 9,907 & 0.96\% & 778,056 & \textbf{3.49\%}\\
+			
+			QUOTED-FILE-SHEET & \texttt{=('[2]Detail I\&E'!D62)/1000} &  & 33,781 & 3.26\% & 325,498 & 1.46\%\\
+			UDF & \texttt{=SQRT(_eoq2(C5,C4,C6,C7))} &  & 21,352 & 2.06\% & \textbf{286,210} & \textbf{1.28\%}\\
+			(' \synt{Reference} ')' & \texttt{=(2*(B29))/(1+B29)} &  & 6,394 & 0.62\% & 266,420 & 1.19\%\\
+			_xll. & \texttt{=_xll.RiskTriang(F9,F7,F8)} &  & 11,922 & 1.15\% & 127,348 & \textbf{0.57\%}\\
+			ERROR-REF & \texttt{=AVERAGE(\#REF!)} &  & 3,477 & 0.34\% & 123,447 & \textbf{0.55\%}\\
+			VERTICAL-RANGE & \texttt{=COUNT(A:A)} &  & 851 & 0.08\% & 55,254 & \textbf{0.25\%}\\
+			FILE '!' & \texttt{=[1]!today} &  & 2,040 & 0.20\% & \textbf{28,448} & \textbf{0.13\%}\\
+			ERROR & \texttt{=IF(R14=TRUE,G19,\#N/A)} &  & 379 & 0.04\% & 27,237 & \textbf{0.12\%}\\
+			'\%' & \texttt{=IF(E5>I8,3\%,0\%)} &  & 858 & 0.08\% & 16,606 & 0.07\%\\
+				Empty argument & \texttt{=DCOUNT(Lettergrades,,I80:I81)} &  & 1,343 & 0.13\% & 10,512 & \textbf{0.05\%}\\
+				Complex ranges & \texttt{=SUM(I8:K8:M8)} &  & 367 & 0.04\% & \textbf{8,581} & \textbf{0.04\%}\\
+				DDECALL & \texttt{=TWINDDE|RSFRec!'NGH2 NET.CHNG''} &  & 3,276 & 0.32\% & \textbf{3,686} & 0.02\%\\
+				Intersection & \texttt{=Ending_Inventory Jan} &  & 304 & 0.03\% & \textbf{2,343} & 0.01\%\\
+				MULTIPLE-SHEETS & \texttt{=SUM(Sheet1:Sheet20!I29)} &  & 173 & 0.02\% & \textbf{1,986} & \textbf{0.01\%}\\
+				Prefixed right ref. limit & \texttt{=SUM('Tot-1'!\$B8:'Tot-1'!B8)} &  & 147 & 0.01\% & \textbf{1,501} & \textbf{0.01\%}\\
+				UDF reference & \texttt{=[1]!wbname()} &  & 332 & 0.03\% & \textbf{855} & 0.00\%\\
+				HORIZONTAL-RANGE & \texttt{=MATCH(F3,Prices!2:2,0)} &  & 11 & 0.00\% & 836 & \textbf{0.00\%}\\
+				\synt{Union} & \texttt{=LARGE((F38,C38),1)} &  & 10 & 0.00\% & \textbf{385} & 0.00\%\\
+				RESERVED_NAME & \texttt{=C23/_xlnm.Print_Area} &  & 70 & 0.01\% & \textbf{276} & 0.00\%\\
+				FILE MULTIPLE-SHEETS & \texttt{=SUM([2]Section3A:formulas!B11)} &  & 4 & 0.00\% & 189 & 0.00\%\\
+				\synt{ConstantArray} & \texttt{=FVSCHEDULE(1,{0.09;0.11;0.1})} &  & 15 & 0.00\% & \textbf{19} & 0.00\%\\
 			\hline
 	\end{tabular}
