@@ -502,8 +502,7 @@ Our grammar does not incorporate any of these limits.
 
 \subsection{Parse tree correctness}
 
-While we have empirically shown a high compatibility in terms of successful parse rate, we do not have as much evidence that the produced parse trees are correct as this is only tested by usage of and unit tests in the reference implementation.
-However, we believe it is unlikely that a formula can be parsed with the presented grammar but would be interpreted differently by Excel.
+While we have empirically shown a high compatibility in terms of successful parse rate, we do not have as much evidence that the produced parse trees are correct as this is only tested by usage and unit tests in the reference implementation. We have manually sampled numerous parse trees and we have found them to be semantically correct. We believe it is unlikely that a formula parsed with the presented grammar would be interpreted differently by Excel, but we do seek for additional feedback on possible erroneous parse trees from the research community.
 
 \section{Related work}
 \label{section:relatedWork}
