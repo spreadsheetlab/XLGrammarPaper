@@ -335,10 +335,9 @@ This proves challenging to correctly implement in a LALR(1) grammar.
 
 A straightforward implementation would use production rules similar to this:
 \begin{grammar}
-<Union> ::= <Reference> `,' <Reference>
+<Union> ::= <Reference> \{ `,' <Reference> \}
 
-<Arguments> ::= <Argument>
-	\alt <Argument> `,' <Arguments>
+<Arguments> ::= <Argument> \{ `,' <Argument> \} | $\epsilon$
 \end{grammar}
 
 However, this will cause a reduce-reduce conflict because the parser will have a state wherein it can reduce to both a \synt{Union} or an \synt{Argument} on a \texttt{,} token.

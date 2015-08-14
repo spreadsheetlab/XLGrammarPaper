@@ -39,7 +39,7 @@
 %    \alt <DynamicDataExchange>
 	\alt "FILE" `!' "DDECALL"
 
-<RefFunctionCall> ::= `(' <Union> `)'
+<RefFunctionCall> ::= <Union>
     \alt <RefFunctionName> <Arguments> `)'
     \alt <Reference> `:' <Reference>
 	\alt <Reference> `\ ' <Reference>
@@ -65,7 +65,7 @@
 %            \alt "NAMED-RANGE-PREFIXED"
 <NamedRange> ::= "NR" | "NR-PREFIXED"
 
-<Union> ::= <Reference> \{ `,' <Reference> \}
+<Union> ::= `(' <Reference> \{ `,' <Reference> \} `)'
 	
 %<DynamicDataExchange> ::= "FILE" `!' "DDECALL"
 
