@@ -164,7 +164,7 @@ For previous and ongoing research the authors needed a grammar for Microsoft Exc
 
 While an official grammar for Excel formulas is published \cite{ExcelOfficialGrammar}, it does not meet the above requirements for two reasons: first, it is over 30 pages long and contains hundreds of production rules and thus fails requirement 3.
 Second, because of the detail of the grammar and the large number of production rules, the resulting parse trees are very complex and thus fail requirement 2.
-An example is given in Figure \ref{figure:parsetrees}: the relatively simple formula \texttt{SUM(B2,5)} results in a 37-node tree with a depth of 18 nodes when using the Microsoft grammar, while the grammar presented in this paper results in a 18-node tree with a depth of 9 nodes.
+An example is given in Figure \ref{figure:parsetrees}(a): the relatively simple formula \texttt{SUM(B2,5)} results in a 37-node tree with a depth of 18 nodes.
 
 For these reasons the authors decided to construct a new grammar with the above requirements as \emph{design goals}.
 
@@ -233,7 +233,7 @@ Adding support for full filenames can be achieved by introducing an additional t
 
 The complete production rules of our grammar in Extended BNF syntax are listed in Figure \ref{figure:productions}.
 Patterns inside \{ and \} can be repeated zero or more times.
-The start symbol is $Start$.
+The start symbol is $Start$. An example parse tree produced using this grammar is drawn in Figure \ref{figure:parsetrees}(b).
 
 \synt{Formula} and \synt{Reference} are the two most important production rules.
 These are also illustrated as syntax diagrams, with most production rules expanded, in Figures \ref{figure:Formula} and \ref{figure:Reference}.
@@ -454,7 +454,7 @@ The currently defined formula grammar is able to parse 99,99\% of all formulas f
 
 \subsection{Dialects}
 
-While other spreadsheets program have generally adopted the Excel formula syntax, there are slight differences between programs and even Excel versions.
+While other spreadsheet programs have generally adopted the Excel formula syntax, there are slight differences between programs and even Excel versions.
 The grammar has been designed as a generically as possible and has been enriched to include all syntactical features found in the two datasets.
 Both datasets, however, contain spreadsheets created in, or converted to, Excel format.
 This limits the grammar support for language elements that are spreadsheet system-dependent or even version-dependent.
@@ -462,7 +462,7 @@ The built-in functions list for example might change across versions, which woul
 Another example is found in LibreOffice, which uses \texttt{~} as the union operator instead of \texttt{,}.
 The presented grammar will need to be modified to account for these differences before it can be used on other dialects.
 
-Syntactical features have also been deprecated between Excel version.
+Syntactical features have also been deprecated between Excel versions.
 An example is regular expressions in formulas.
 Excel allows defining formulas that include regular expressions, for example \texttt{=SUM('S*'!A1)} or \texttt{=SUM('Sheet?'!A1)}.
 However, in Excel 2010 and up, regular expressions are instantly resolved---in the example, to the multiple sheet reference \texttt{=SUM(Sheet2:Sheet3!A1)}, summing up all A1 cells between Sheet2 and Sheet3, where the sheets are all sheets matching the regular expression, except the one that the formula is on.
