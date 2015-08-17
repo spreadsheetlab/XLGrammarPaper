@@ -14,7 +14,8 @@ EXCEL-FUNCTION & Excel built-in function & (Any entry from the function list\beg
 FILE & External file reference & \textbackslash[ [0-9]+ \textbackslash] & 5 \\
 HORIZONTAL-RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 \\
 MULTIPLE-SHEETS & Multiple sheet references & 
-$\Box_2$+ : ($\Box_2$+ $\mid$ '($\Box_3$ $\mid$ '')+')!
+%$\Box_2$+ : ($\Box_2$+ $\mid$ '($\Box_3$ $\mid$ '')+')!
+(($\Box_2$+ : $\Box_2$+)|( ' ($\Box_3$ $\mid$ '')+ : ($\Box_3$ $\mid$ '')+ ' )) !
 & 1 \\
 NR & Named range & [A-Z\_\textbackslash\textbackslash][A-Z0-9\textbackslash\textbackslash\_.$\Box_1$]* & -2 \\
 NR-PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+[0-9]+)    {[}A-Z0-9\_.$\Box_1${]}+                                                                             & 3 \\
@@ -34,7 +35,7 @@ VERTICAL-RANGE & Range of columns & \$? [A-Z]+ : \$? [A-Z]+ & 0 \\
 \midrule
 Placeholder character & Placeholder for & Specification & \\
 $\Box_1$ & Extended characters & \begin{tabular}[c]{@{}l@{}} Non-control Unicode characters x80 and up \end{tabular} & \\
-$\Box_2$ & Sheet characters & \begin{tabular}[c]{@{}l@{}} Any character except\\ ' * [ ] \textbackslash\ : / ? ( ) ; \{ \} \# = < > \& + - * / \textasciicircum{} \% , \texttt{\char32} \end{tabular}& \\
+$\Box_2$ & Sheet characters & \begin{tabular}[c]{@{}l@{}} Any character except\\ ' * [ ] \textbackslash\ : / ? ( ) ; \{ \} \# " = < > \& + - * / \textasciicircum{} \% , \texttt{\char32} \end{tabular}& \\
 $\Box_3$ & Enclosed sheet characters & \begin{tabular}[c]{@{}l@{}} Any character except ' * [ ] \textbackslash\ : / ? \end{tabular} & \\
 \bottomrule
 \multicolumn{4}{l}{\begin{footnotesize}\textsuperscript{\number\value{footnote}} A function list is available as part of the reference implementation. Lists provided by Microsoft are also available in \cite{ExcelFunctionReference} and \cite{ExcelOfficialGrammar}.\end{footnotesize}}\\
