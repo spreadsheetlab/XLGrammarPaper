@@ -205,7 +205,6 @@ These two features are supported by most LALR(1) parser generators.
 \end{table*}
 
 \subsection{Lexical analysis}
-
 Table \ref{table:tokens} contains the lexical tokens of the grammar, along with their identification patterns in the regular expression language. All tokens are case-insensitive.
 Characters are defined as unicode characters x9,xA,xD and x20 and upwards.
 
@@ -375,7 +374,7 @@ The 28 formulas that were not parsed using the grammar defined in Section \ref{s
 
 \subsection{Grammar Analysis}
 \label{subsection:grammarAnalysis}
-In this section we analyze the formulas in the datasets and measure the frequency of their characteristics and grammatical structures. We also identify potentially smelly grammatical constructs and edge cases in the syntax of formulas.
+In this section we analyze the formulas in the datasets and measure the frequency of their characteristics and grammatical structures. We also identify potentially smelly grammatical constructs and rare syntactical cases.
 \begin{table*}
 	\caption{Frequency of spreadsheet formulas with specific grammatical structures in the EUSES and Enron datasets}
 	\label{table:occurences}
@@ -386,7 +385,7 @@ In this section we analyze the formulas in the datasets and measure the frequenc
 \subsubsection{Formulas and Functions}
 
 Table \ref{table:occurences} shows how frequently each of the production rules occurs in the formulas of the two datasets. Jointly, 84.91\% of the formulas include a function call. System-defined value-returning functions are invoked by 35.82\% of the formulas.
-A significant amount of formula cells (286,210 or 1.28\%) invoke user-defined functions---e.g., \texttt{=[1]!erUserEmail(User_Id)}. A special case of user defined functions are the ones created using a Excel xll add-in library. These are found in the dataset invoked as \texttt{_xll.functionName} by 0.57\% of the formula cells.
+A significant amount of formula cells (286,210 or 1.28\%) invoke user-defined functions---e.g., \texttt{=[1]!erUserEmail(User_Id)}. A special case of user defined functions are the ones created using a Excel xll add-in library. These are invoked as \texttt{_xll.functionName} by 0.57\% of the formula cells.
 
 Operators are used in 66.74\% of the formula cells, with binary operators being the most common ones, appearing in 59.77\% of the formulas. Analyzing the utilization of constants, we find that 39.14\% of the formula cells contain at least one; more than one third (35.18\%) of the formula cells contain a number and 11.60\% are formulas that contain text. Reserved names are uncommon, with 271 occurrences of the \texttt{_xlnm.Print_Area} and 5 occurrences of \texttt{_xlnm.Database}.
 
@@ -401,7 +400,7 @@ The array formulas rule, covering \synt{Formula}s surrounded by brackets, is the
 Moving to the edge cases of the grammar, the structures that are less common in the datasets include:
 \begin{description}
 	\item[File-only external references] \hfill \\
-	External references are normally in the form \texttt{[File]Sheet!Cell}. In 28,448 formula cells (0.13\%), however, the sheet is not specified, e.g. \texttt{=[2]!LastTrade}. These are either cases of references to external named ranges or to external UDFs.
+	External references are normally in the form \texttt{[File]Sheet!Cell}. In 28,448 formula cells (0.13\%), however, the sheet is not specified, e.g. \texttt{=[2]!LastTrade}. These are cases of references to either external named ranges or external UDFs.
 	\item[Multiple sheet references] \hfill \\
 	1,986 cells (0.01\%) contain this complex case of reference, which spans across multiple sheets. An example formula is \texttt{=SUM(Sheet1:Sheet10!A5)}, evaluated by summing all cells in position A5 from Sheet1 to Sheet10. In 189 cells, the reference is to external files.
 	\item[References to external UDFs] \hfill \\
@@ -416,7 +415,7 @@ These reference returning functions are relatively common: they are found in 3.4
 While the \texttt{IF} and \texttt{CHOOSE} functions can be part of reference expressions, there were no formulas in the datasets using them as such.
 An example of using those functions like this would be \texttt{=SUM(IF(A1=1,A2,A5):A10)}, which is equivalent to \texttt{=SUM(A2:A10)} if \texttt{A1} is \texttt{1} and to \texttt{=SUM(A5:A10)} otherwise.
 
-Finally, DDE links, discussed in Section \ref{subsection:ExternalRefsDDE}, were found in 3,686 formula cells. Example formulas in the dataset include \texttt{=TWINDDE|RSFRecord!'NGH2 NET.CHNG'} and \texttt{=GLDDEML|Action!'SGIMP,LA'/100}.
+Finally, DDE links, discussed in Section \ref{subsection:ExternalRefsDDE}, were found in 3,686 formula cells.
 
 \subsubsection{Smelly grammar constructs}
 There are two constructs in the spreadsheet formula grammar that we consider to be smelly, i.e. counterintuitive or inconsistent to the rest of the grammar and error-prone: complex ranges and the intersect operator.
@@ -464,8 +463,8 @@ The presented grammar will need to be modified to account for these differences 
 Syntactical features have also been deprecated between Excel versions.
 An example is regular expressions in formulas.
 Excel allows defining formulas that include regular expressions, for example \texttt{=SUM('S*'!A1)} or \texttt{=SUM('Sheet?'!A1)}.
-However, in Excel 2010 and up, regular expressions are instantly resolved---in the example, to the multiple sheet reference \texttt{=SUM(Sheet2:Sheet3!A1)}, summing up all A1 cells between Sheet2 and Sheet3, where the sheets are all sheets matching the regular expression, except the one that the formula is on.
-This way, in latest versions of Excel, saved spreadsheets never contain regular expressions.
+However, in Excel 2010 and up, regular expressions are instantly resolved---in the example, to  \texttt{=SUM(Sheet2:Sheet3!A1)}, summing up all A1 cells between Sheet2 and Sheet3, where the sheets are all sheets matching the regular expression, except the one that the formula is on.
+This way, in latest Excel versions, saved spreadsheets never contain regular expressions.
 \begin{figure}
 	\caption{A natural language formula in Excel 2003}
 	\label{fig:labels}
@@ -478,7 +477,7 @@ Labels were the headings that were typed above columns and before rows, and they
 Figure \ref{fig:labels} shows an example in Excel 2003, where formula \texttt{=Product A Store 2} returns the intersection between the cell range with heading \texttt{Product A} and the one with heading \texttt{Store 2}.
 This feature is replaced in newer versions of Excel with the less error-prone named ranges feature.
 When processing spreadsheets with newer versions of Excel, the references that include labels are automatically converted to cell-only references---in the example, the formula is converted to \texttt{=C2}.
-The grammar does not support the use of labels, and it would mistakenly parse them as named ranges.
+The grammar does not support labels, and it would mistakenly parse them as named ranges.
 
 \subsection{Internationalization}
 
@@ -502,7 +501,7 @@ Our grammar does not incorporate any of these limits.
 
 \subsection{Parse tree correctness}
 
-While we have empirically shown a high compatibility in terms of successful parse rate, we do not have as much evidence that the produced parse trees are correct as this is only tested by usage and unit tests in the reference implementation. We have manually sampled numerous parse trees and we have found them to be semantically correct. We believe it is unlikely that a formula parsed with the presented grammar would be interpreted differently by Excel, but we do seek for additional feedback on possible erroneous parse trees from the research community.
+While we have empirically shown a high compatibility in terms of successful parse rate, we do not have as much evidence that the produced parse trees are correct as this is only tested by usage and unit tests in the reference implementation. We have manually sampled numerous parse trees and we have found them to be semantically correct. We believe it is unlikely that a formula parsed with the presented grammar would be interpreted differently by Excel, but we do seek additional feedback on possible erroneous parse trees from the research community.
 
 \section{Related work}
 \label{section:relatedWork}
@@ -510,7 +509,7 @@ Efforts to reverse-engineer language characteristics based on existing artifacts
 
 Most related to our research on the spreadsheet formula language is the work of Badame and Dig~\cite{badame2012refactoring} who, as part of their proposed spreadsheet refactoring approach, presented a grammar for spreadsheet formulas. However, they do not evaluate their grammar, and upon inspection one can see that key ingredients are missing: e.g. external references, intersections, unions, named ranges and operator precedence. An extension of the same grammar was used to refactor formulas by Hermans and Dig \cite{hermans2014bumblebee}.
 
-As explained in the introduction, there is a large body of related work that relies on parsing spreadsheet formulas in order to analyze spreadsheets. This includes our own work in which we have created an algorithm to visualize spreadsheets as dataflow diagrams \cite{DBLP:conf/icse/HermansPD11}, and subsequently on detecting smells in spreadsheets \cite{DBLP:conf/icse/HermansPD12,DBLP:conf/icsm/Hermans212}. Related approaches exist, for example the work of Cunha that have worked on code smells~\cite{iccsa12} and smell-based fault localization~\cite{conf/icsme/CunhaFMPS14}. These papers too analyze spreadsheet formulas but do not detail which grammar or what alternative they use.
+As explained in the introduction, there is a large body of related work that relies on parsing spreadsheet formulas in order to analyze spreadsheets. This includes our own work in which we have created an algorithm to visualize spreadsheets as dataflow diagrams \cite{DBLP:conf/icse/HermansPD11}, and subsequently on detecting smells in spreadsheets \cite{DBLP:conf/icse/HermansPD12,DBLP:conf/icsm/Hermans212}. Related approaches exist, for example the work of Cunha that have worked on code smells~\cite{iccsa12} and smell-based fault localization~\cite{conf/icsme/CunhaFMPS14}. These papers also analyze spreadsheet formulas but do not detail which grammar or what alternative they use.
 
 \section{Conclusion}
 \label{section:conclusion}
