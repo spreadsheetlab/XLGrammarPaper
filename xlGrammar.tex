@@ -170,15 +170,14 @@ An example is given in Figure \ref{figure:parsetrees}(a): the relatively simple 
 For these reasons the authors decided to construct a new grammar with the above requirements as \emph{design goals}.
 
 \begin{figure}
-	\caption{Parse trees for formula \texttt{SUM(B2,5)}}
 	\centering
 	\begin{subfigure}[b]{0.3\textwidth}
 		%\centering
-		\caption{Microsoft Excel parse tree, constructed based on reference \cite{ExcelOfficialGrammar}}
 		\hspace{-2em}
 		\scalebox{.7}{
 			\input{floats/parsetree-ms-sumb25}
 		}
+		\caption{Microsoft Excel parse tree, constructed based on reference \cite{ExcelOfficialGrammar}}
 	\end{subfigure}
 	%\end{figure}
 	%\begin{figure}
@@ -186,11 +185,12 @@ For these reasons the authors decided to construct a new grammar with the above 
 		%\centering
 		\vspace{1em}
 		\hspace{-0.5em}
-		\caption{Parse tree produced using the grammar defined in this paper}
 		\scalebox{.7}{
 			\input{floats/parsetree-ours-sumb25}
 		}
+		\caption{Parse tree produced using the grammar defined in this paper}
 	\end{subfigure}
+	\caption{Parse trees for formula \texttt{SUM(B2,5)}}
 	\label{figure:parsetrees}
 \end{figure}
 
@@ -265,10 +265,10 @@ All operators in Excel are left-associative, including the exponentiation operat
 In order to resolve ambiguities, a LALR parser generator needs the operator precedence to be defined as listed in Table \ref{table:operatorprec}.
 
 \begin{figure}[p]
-\caption{Production rules}
-\label{figure:productions}
 \centering
 \input{floats/grammarrules}
+\caption{Production rules}
+\label{figure:productions}
 \end{figure}
 
 \begin{table}[p]
@@ -279,16 +279,16 @@ In order to resolve ambiguities, a LALR parser generator needs the operator prec
 \end{table}
 
 \begin{figure}[p]
+	\input{floats/railroad-formula}
 	\caption{Syntax diagram of the \synt{Formula} production rule with most production rules expanded}
 	\label{figure:Formula}
-	\input{floats/railroad-formula}
 \end{figure}
 
 \begin{figure}[p]
-	\caption{Syntax diagram of the \synt{Reference} production rule with most production rules expanded}
-	\label{figure:Reference}
 	\centering
 	\input{floats/railroad-reference}
+	\caption{Syntax diagram of the \synt{Reference} production rule with most production rules expanded}
+	\label{figure:Reference}
 \end{figure}
 
 \subsection{Intersection operator}
@@ -421,7 +421,6 @@ Finally, DDE links, discussed in Section \ref{subsection:ExternalRefsDDE}, were 
 There are two constructs in the spreadsheet formula grammar that we consider to be smelly, i.e. counterintuitive or inconsistent to the rest of the grammar and error-prone: complex ranges and the intersect operator.
 \begin{figure}
 	\centering
-	\caption{Examples of references to complex ranges}\label{Figure:ComplexRanges}
 	\begin{subfigure}[b]{0.4\textwidth}
 		\centering
 		\includegraphics[width=0.9\textwidth]{complexRanges}
@@ -438,6 +437,7 @@ There are two constructs in the spreadsheet formula grammar that we consider to 
 		\caption{A range with a named range \texttt{rangeC2D3:B1}, equivalent to the area marked gray \texttt{A1:C3}}
 		\label{fig:complexB}
 	\end{subfigure}
+		\caption{Examples of references to complex ranges}\label{Figure:ComplexRanges}
 \end{figure}
 
 By \textit{complex ranges} we mean \synt{Reference}s that include more than two or different types of \texttt{':'} separated \synt{ReferenceItem}s. An example is range \texttt{B2:D4:C1:C5}, illustrated in Figure \ref{fig:complexA}. The smelly aspect of complex ranges is their evaluation. Simple cell ranges are in the form \texttt{top-left:bottom-right}, including all cells in between the two limits. However, the limits in complex ranges are not the ones specified in the formula: they are calculated as the upper leftmost and lower rightmost cell in the square that includes all defined cells. For example, range \texttt{B2:D4:C1:C5} is equivalent to \texttt{B1:D5}. Understanding the limits of the range becomes even less intuitive when vertical or horizontal ranges or named ranges are used, like in Figure \ref{fig:complexB}. Moreover, this syntax does not add to expressiveness of the grammar: each range is still calculated as the cells within a single square, but without clearly user-defined limits. The analysis showed that complex ranges are rare: 8,581 formula cells	(0.04\%) include complex ranges in the Enron dataset, and they are all defined using three cell locations. 
@@ -466,10 +466,10 @@ Excel allows defining formulas that include regular expressions, for example \te
 However, in Excel 2010 and up, regular expressions are instantly resolved---in the example, to  \texttt{=SUM(Sheet2:Sheet3!A1)}, summing up all A1 cells between Sheet2 and Sheet3, where the sheets are all sheets matching the regular expression, except the one that the formula is on.
 This way, in latest Excel versions, saved spreadsheets never contain regular expressions.
 \begin{figure}
-	\caption{A natural language formula in Excel 2003}
-	\label{fig:labels}
 	\centering
 	\includegraphics[width=0.3\textwidth]{labels}
+	\caption{A natural language formula in Excel 2003}
+	\label{fig:labels}
 \end{figure}
 
 The use of labels in formulas (referred to as natural language formulas) is another feature that was discontinued in Excel 2007.
