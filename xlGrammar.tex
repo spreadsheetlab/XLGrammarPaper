@@ -96,18 +96,14 @@ We used two major datasets that are available in the spreadsheet research commun
 
 The contributions of this paper are (1) a concise grammar for spreadsheet formulas, (2) the evaluation of the compatibility of the grammar using two major datasets, and (3) an analysis of the common formula characteristics and of the rare grammatical cases in the datasets.
 
-The remainder of the paper is organized as follows: In the following section we summarize the basic concepts of the spreadsheet formula language. In Section \ref{section:grammar} we present the formula grammar and its lexical and syntactical analysis rules. Section \ref{sec:evaluation} explains how we evaluated the grammar and analyses the formula characteristics of the datasets. In Section \ref{sec:discussion} we discuss the grammar and its limitations. Section \ref{section:relatedWork} presents related work and Section \ref{section:conclusion} concludes the paper.
-
 \section{Background}
 
 Spreadsheets are cell-oriented dataflow programs which are Turing complete \cite{ExcelTuringComplete}.
-
 A single spreadsheet \emph{file} corresponds to a single (\emph{work})\emph{book}.
 A workbook can contain any number of (\emph{work})\emph{sheets}.
 A sheet consists of a two-dimensional grid of \emph{cells}.
 The grid consists of horizontal \emph{rows} and vertical \emph{columns}.
 Rows are numbered sequentially top-to-bottom starting at 1, while columns are numbered left-to-right alphabetically, i.e. base-26 using A to Z as digits, starting at `A', making column 27 `AA'.
-
 A cell can be empty or contain a \emph{constant value}, a \emph{formula} or an \emph{array formula}.
 Formulas consist of expressions which can contain constant values, arithmetic operators and \emph{function calls} such as \texttt{SUM(\ldots)} and, most importantly, \emph{references} to other cells.
 Functions can be built-in or user-defined (UDFs).
@@ -198,6 +194,7 @@ While the class of this grammar is not strictly LALR(1) due to the ambiguity dis
 The present ambiguity can be solved by defining operator precedence (section \ref{sec:operatorprecedence}) and manually resolving conflicts (Section \ref{sec:ambiguity}).
 These two features are supported by most LALR(1) parser generators.
 \begin{table*}
+\vspace{2mm}
 \caption{Lexical tokens used in the grammar}
 \label{table:tokens}
 \input{floats/table-tokens}
@@ -371,6 +368,7 @@ The 28 formulas that were not parsed using the grammar defined in Section \ref{s
 \end{itemize}
 
 \begin{table*}
+	\vspace{2mm}
 	\caption{Frequency of spreadsheet formulas with specific grammatical structures in the combined EUSES and Enron datasets}
 	\label{table:occurences}
 	\centering
