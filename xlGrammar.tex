@@ -126,7 +126,7 @@ Lastly the intersection operator returns only the cells which are occurring in b
 
 A user can also give a name to any collection of cells, thus creating a \emph{named range} which can be referenced in formulas by name.
 
-\subsection{Sheet and external references and DDE}
+\subsection{Sheet and External References and DDE}
 \label{subsection:ExternalRefsDDE}
 
 By default references point to cells or ranges in the same sheet as the formula, but this can be modified with a prefix. A prefix consists of an identifier, followed by an exclamation mark, followed by the actual reference.
@@ -188,7 +188,7 @@ For these reasons the authors decided to construct a new grammar with the above 
 	\label{figure:parsetrees}
 \end{figure}
 
-\subsection{Grammar class}
+\subsection{Grammar Class}
 
 While the class of this grammar is not strictly LALR(1) due to the ambiguity discussed in Section \ref{sec:ambiguity}, we implemented this grammar using a LALR(1) parser generator.
 The present ambiguity can be solved by defining operator precedence (section \ref{sec:operatorprecedence}) and manually resolving conflicts (Section \ref{sec:ambiguity}).
@@ -200,7 +200,7 @@ These two features are supported by most LALR(1) parser generators.
 \input{floats/table-tokens}
 \end{table*}
 
-\subsection{Lexical analysis}
+\subsection{Lexical Analysis}
 Table \ref{table:tokens} contains the lexical tokens of the grammar, along with their identification patterns in the regular expression language. All tokens are case-insensitive.
 Characters are defined as unicode characters x9,xA,xD and x20 and upwards.
 
@@ -223,7 +223,7 @@ A formula that is presented to the user as \texttt{=[C:\textbackslash Path\textb
 For this reason the presented grammar supports only numeric file names in external references.
 Adding support for full filenames can be achieved by introducing an additional token or altering the \texttt{FILE} token. Note that external filenames can be presented to and entered by the user in a number of different formats, depending on conditions such as whether or not the file is open in the spreadsheet program.
 
-\subsection{Syntactical analysis}
+\subsection{Syntactical Analysis}
 \label{subsection:productionRules}
 
 The complete production rules of our grammar in Extended BNF syntax are listed in Figure \ref{figure:productions}.
@@ -286,7 +286,7 @@ In order to resolve ambiguities, a LALR parser generator needs the operator prec
 	\label{figure:Reference}
 \end{figure}
 
-\subsection{Intersection operator}
+\subsection{Intersection Operator}
 
 The intersection binary operator in Excel formulas is a single space.
 While this is straightforward to define in EBNF, it can be challenging to implement using a parser generator.
@@ -357,7 +357,7 @@ To give a rough indication, processing these two datasets and extracting these r
 
 Out of the 1,035,586 unique formulas from the two datasets that were used as input to the parser, 1,035,558 (99.99\%) were parsed successfully. This satisfies our first design goal of compatibility with the official language. Regarding the second and third design goals, the implementation of the parser proved feasible and the resulting parse trees are suited for analysis and manipulation, having only 19 types of non-terminal nodes.
 
-\subsection{Unparsable formulas}
+\subsection{Unparsable Formulas}
 \label{subsection:unparsableFormulas}
 The 28 formulas that were not parsed using the grammar defined in Section \ref{section:grammar} are:
 
@@ -413,7 +413,7 @@ An example of using those functions like this would be \texttt{=SUM(IF(A1=1,A2,A
 
 Another rare case of references are the dynamic data exchange links, which were found in 3,686 formulas. These take the form of \texttt{=Program|Topic!Arguments}, e.g. \texttt{=Database|TableA!Column1}, and are used in Windows versions of Microsoft Excel to receive  data from other applications.
 
-\subsubsection{Smelly grammar constructs}
+\subsubsection{Smelly Grammar Constructs}
 There are two constructs in the spreadsheet formula grammar that we consider to be smelly, i.e. counterintuitive or inconsistent to the rest of the grammar and error-prone: complex ranges and the intersect operator.
 \begin{figure}
 	\centering
@@ -484,7 +484,7 @@ Grammars for other locales can be derived by replacing delimiters, error values 
 It is worth noting that Excel will always save formulas in either a locale-independent form (Excel 2003 and earlier format) or in its English version (Excel 2007 and later format). When interacting with Excel through its API two versions of the formula can be read or written: the English version and the version in the current locale.
 This makes a grammar for the English version useful, since the parser can process all spreadsheets as long as their formulas are read using the always available English locale.
 
-\subsection{Rejection of invalid formulas}
+\subsection{Rejection of Invalid Formulas}
 
 As stated in the design goals in Section \ref{sec:designgoals}, the goal of this grammar is to facilitate analysis of formulas, which means correctly parsing valid spreadsheet formulas.
 Rejecting invalid formulas is not among the primary goals of this grammar, as the parser will normally not encounter invalid formulas in Excel files.
@@ -495,11 +495,11 @@ Using this grammar to parse possibly-invalid formulas like user-input might thus
 On one point we know the grammar to be too broad: Excel places several limitation on formulas like the number of arguments of a function (255), nested function calls (64), row number ($2^{20}$), column number ($2^{14}$) and total formula length ($2^{13}$), with lower numbers in older file formats.
 Our grammar does not incorporate any of these limits.
 
-\subsection{Parse tree correctness}
+\subsection{Parse Tree Correctness}
 
 While we have empirically shown a high compatibility in terms of successful parse rate, we do not have as much evidence that the produced parse trees are correct as this is only tested by usage and unit tests in the reference implementation. We have manually sampled numerous parse trees and we have found them to be correct. We believe it is unlikely that a formula parsed with the presented grammar would be interpreted differently by Excel, but we do seek additional feedback on possible erroneous parse trees from the research community.
 
-\section{Related work}
+\section{Related Work}
 \label{section:relatedWork}
 Efforts to reverse-engineer language characteristics based on existing artifacts have been successful for other languages, including COBOL \cite{van1997obtaining} and C, C++, C\# and Java \cite{zaytsev2010recovery}.
 
