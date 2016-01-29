@@ -50,6 +50,7 @@
 	\alt "HORIZONTAL-RANGE"
 	\alt "UDF" <Arguments> `)'
 	\alt "ERROR-REF"
+	\alt <StructuredReference>
 	
 <Prefix> ::= "SHEET"
 	\alt "FILE" "SHEET"
@@ -66,7 +67,22 @@
 <NamedRange> ::= "NR" | "NR-PREFIXED"
 
 <Union> ::= `(' <Reference> \{ `,' <Reference> \} `)'
-	
+
+<StructuredReference> ::= <SRElement>
+	\alt `[' <SRExpression> `]'
+	\alt <NamedRange> <SRElement>
+	\alt <NamedRange> `[' `]'
+	\alt <NamedRange> `[' <SRExpression> `]'
+
+
+<SRExpression> ::= <SRElement>
+	\alt <SRElement> (`:' |`,') <SRElement>
+	\alt <SRElement> `,' <SRElement> (`:' | `,')  <SRElement>
+	\alt <SRElement> `,' <SRElement> `,' <SRElement> `:' <SRElement>
+
+<SRElement> ::= `[' <NamedRange> `]'	
+	\alt "FILE"
+
 %<DynamicDataExchange> ::= "FILE" `!' "DDECALL"
 
 <ConstantArray> ::= `\{' <ArrayColumns> `\}'
