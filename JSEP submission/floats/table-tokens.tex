@@ -6,7 +6,7 @@ Token Name & Description & Contents & Priority \\
 \midrule
 %BINOP & Binary Operator & + $\mid$ - $\mid$ / $\mid$ * $\mid$ \textasciicircum $\mid$ \textless $\mid$ \textgreater $\mid$ = $\mid$ \textless= $\mid$ \textgreater= $\mid$ \textless \textgreater & 0 & + \\
 BOOL & Boolean literal & TRUE $\mid$ FALSE & 0 \\
-CELL & Cell reference & \$? [A-Z]+ \$? [0-9]+ & 2 \\
+CELL & Cell reference & \$? [A-Z]+ \$? [1-9][0-9]* & 2 \\
 DDECALL & Dynamic Data Exchange link & ' ([\textasciicircum{} '] $\mid$ '')+ ' & 0 \\
 ERROR & Error literal & \begin{tabular}[c]{@{}l@{}} \#NULL! $\mid$ \#DIV/0! $\mid$ \#VALUE! \\ $\mid$ \#NAME? $\mid$ \#NUM! $\mid$ \#N/A \end{tabular} & 0 \\
 ERROR-REF & Reference error literal & \#REF! & 0 \\
@@ -17,15 +17,15 @@ MULTIPLE-SHEETS & Multiple sheet references &
 %$\Box_2$+ : ($\Box_2$+ $\mid$ '($\Box_3$ $\mid$ '')+')!
 (($\Box_2$+ : $\Box_2$+)|( ' ($\Box_3$ $\mid$ '')+ : ($\Box_3$ $\mid$ '')+ ' )) !
 & 1 \\
-NR & Named range & [A-Z\_\textbackslash\textbackslash][A-Z0-9\textbackslash\textbackslash\_.$\Box_1$]* & -2 \\
-NR-PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+[0-9]+)    {[}A-Z0-9\_.$\Box_1${]}+                                                                             & 3 \\
-NUMBER & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & [0-9]+ ,? [0-9]* (e [0-9]+)? & 0 \\
+NR & Named range & [A-Z\_\textbackslash\textbackslash $\Box_1$][$\Box_4$]* & -2 \\
+NR-PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+ [1-9][0-9]*[A-Z\textbackslash\textbackslash\_.?$\Box_1$]) [$\Box_4$]+                                                                              & 3 \\
+NUMBER & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & [0-9]+ .? [0-9]* (e [0-9]+)? & 0 \\
 QUOTED-FILE-SHEET & A file reference within single quotes & '\textbackslash[ [0-9]+ \textbackslash] ($\Box_3$ $\mid$ '')+ '!
 & 5        \\
 REF-FUNCTION & Excel built-in reference function & (INDEX $\mid$ OFFSET $\mid$ INDIRECT)\textbackslash( & 5 \\
 REF-FUNCTION-COND & Excel built-in conditional reference function & (IF $\mid$ CHOOSE)\textbackslash( & 5 \\
 RESERVED-NAME & An Excel reserved name & \_xlnm\textbackslash.  [A-Z\_]+ & -1 \\
-SHEET & The name of a worksheet & ($\Box_2$+ $\mid$ ' ($\Box_3$ $\mid$ '')+ ') ! 
+SHEET & The name of a worksheet & ($\Box_2$+ $\mid$ ' ($\Box_3$ $\mid$ '')* ') ! 
 & 5        \\
 STRING & String literal & " ([\textasciicircum{} "] $\mid$ "")* " & 0       \\
 %UNOP\_POSTFIX & Unary postfix operator & \% & 0 & \% \\
@@ -37,6 +37,7 @@ Placeholder character & Placeholder for & Specification & \\
 $\Box_1$ & Extended characters & \begin{tabular}[c]{@{}l@{}} Non-control Unicode characters x80 and up \end{tabular} & \\
 $\Box_2$ & Sheet characters & \begin{tabular}[c]{@{}l@{}} Any character except\\ ' * [ ] \textbackslash\ : / ? ( ) ; \{ \} \# " = < > \& + - * / \textasciicircum{} \% , \texttt{\char32} \end{tabular}& \\
 $\Box_3$ & Enclosed sheet characters & \begin{tabular}[c]{@{}l@{}} Any character except ' * [ ] \textbackslash\ : / ? \end{tabular} & \\
+$\Box_4$ & Valid named range characters & \begin{tabular}[c]{@{}l@{}} A-Z0-9\textbackslash\textbackslash\_.?$\Box_1$ \end{tabular} & \\
 \bottomrule
 \multicolumn{4}{l}{\begin{footnotesize}\textsuperscript{\number\value{footnote}} A function list is available as part of the reference implementation. Lists provided by Microsoft are also available in \cite{ExcelFunctionReference} and \cite{ExcelOfficialGrammar}.\end{footnotesize}}\\
 \end{tabular}
