@@ -3,6 +3,7 @@
 		\begin{stack} '$($' \begin{rep} <Reference> \\  '$,$' \end{rep} '$)$' \\
 		<Reference> \begin{stack} '$:$' \\ '\char32' \end{stack} <Reference> \\
 		\begin{stack} "REF-FUNCTION" \\ "REF-FUNCTION-COND" \end{stack} <Arguments> '$)$' \\
+		"FILE" '$!$' "DDECALL" \\
 %%		\begin{stack}
 %%			\\
 %%			\begin{stack} \\ "FILE" \end{stack} \begin{stack} "SHEET" \\ "MULTIPLE-SHEETS" \end{stack} \\
@@ -19,9 +20,9 @@
 			\begin{stack} "NR" \\ "NR-PREFIXED" \end{stack} \\
 			"ERROR-REF" \\
 			%"UDF" \begin{rep} \begin{stack} \\ <Formula> \end{stack} \\  '$,$' \end{rep} '$)$'
-			"UDF" <Arguments> '$)$'
+			"UDF" <Arguments> '$)$' \\
+			<StructuredReference>
 		\end{stack}
-		\\"FILE" '$!$' "DDECALL"
 		\end{stack}
 		\end{syntdiag}
 	\end{grammar}
