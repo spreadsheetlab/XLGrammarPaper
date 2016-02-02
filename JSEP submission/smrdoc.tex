@@ -413,6 +413,43 @@ The \textit{intersect operator} is included in this discussion because it is \te
 An advantage of this approach is that it enables more natural language definition of intersections, e.g. \texttt{=SUM((Total_Cost Jan):(Total_Cost Apr.))}.
 However, we find this representation inconsistent to the grammar, because whitespace does not carry meaning in the rest of the language. Other spreadsheet systems do not use whitespace for this operator, either by using an alternative like LibreOffice which uses \texttt{!} or simply not supporting it. In the four datasets intersection operations are found in 225,621	formulas (0.12\%), the majority of which (80\%) being in the Fuse dataset alone.
 
+\subsection{Parse trees}
+
+Conditional functions are the \texttt{IF},\texttt{COUNTIF"},\texttt{COUNTIFS},\texttt{SUMIF},\texttt{SUMIFS},\texttt{AVERAGEIF},\texttt{AVERAGEIFS} and \texttt{IFERROR}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=1\textwidth]{img/depths1}
+		\caption{Number of unique formulas per parse tree depth}
+		\label{fig:depthTree}
+	\end{subfigure}
+	~
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=1\textwidth]{img/depths2}
+		\caption{Unique formulas per depth of nested \synt{Formula}s}
+		\label{fig:depthFormula}
+	\end{subfigure}
+		~
+
+		\begin{subfigure}[b]{0.49\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{img/depths3}
+			\caption{Number of unique formulas per depth of nested \synt{FunctionCall}, \synt{RefFunctionCall} and \texttt{UDF} nodes}
+			\label{fig:depthOperator}
+		\end{subfigure}
+		~
+		\begin{subfigure}[b]{0.49\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{img/depths4}
+			\caption{Number of unique formulas per depth of nested conditional function nodes}
+			\label{fig:depthConditional}
+		\end{subfigure}
+	\caption{Characteristics of the parse trees of the unique formulas in the four datasets (vertical axes are in logarithmic scale)}\label{Figure:ComplexRanges}
+\end{figure}
+
 \section{Discussion and Limitations}
 \label{sec:discussion}
 The currently defined formula grammar is able to parse 99,99\% of the 8,577,426 unique formulas in the four datasets. In this section, we discuss a variety of issues that affect its applicability and suitability.
