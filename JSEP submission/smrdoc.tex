@@ -402,6 +402,12 @@ A significant amount of formulas (1,963,284	or 1.04\%) invoke user-defined funct
 Operators are common, with binary operators appearing in 48.58\% of the formulas and 18.47\% of the formulas containing prefix operatos. Analyzing the utilization of constants, we find that 42.35\% of the formulas contain at least one; more than one third (35.61\%) of the formulas contain a number and 13.39\% are formulas that contain text. Reserved names are uncommon, with 667 occurrences of the \texttt{_xlnm.Print_Area} and 5 occurrences of \texttt{_xlnm.Database}.
 
 Regarding function arguments, spreadsheet systems allow empty arguments (e.g. \texttt{=SUM(,E35,E37)}) but this is rarely done---in only 0.17\% of the formulas. Unions are found in only 578 formulas, e.g. \texttt{=LARGE((F38,C38),1)}. The majority of the occurrences are arguments of the \texttt{LARGE},  \texttt{SMALL} and \texttt{RANK} functions---these functions require a range of cells to be declared as a single argument, necessitating a union if the cells are not in a single range. In the EUSES and Fuse datasets we also found 743 cases of constant arrays used as arguments, e.g. \texttt{=FVSCHEDULE(1,\{0.09;0.11;0.1\})}.
+\begin{table}[]
+	\centering
+	\caption{Frequency of the most common constants found in the unique formulas of the four datasets}
+	\label{table:constants}
+	\input{floats/table-constants}
+\end{table}
 
 The array formulas rule, covering \synt{Formula}s surrounded by brackets, is the only part of the grammar that is not evaluated. The Gembox library that we use for reading spreadsheets does not support array formulas---it reads them as regular formulas, without the surrounding brackets. For this reason, we cannot we extract information on their frequency in the four datasets.
 
