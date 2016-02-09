@@ -396,8 +396,30 @@ In this section we describe an analysis of the formulas in the datasets and meas
 
 \subsubsection{Formulas and Functions}
 
-Table \ref{table:occurences} shows how frequently each of the production rules occurs in the formulas of the four datasets. Jointly, 86.61\% of the formulas include a function call. Built-in value-returning functions are invoked by 42.70\% of the formulas.
-A significant amount of formulas (1,963,284	or 1.04\%) invoke user-defined functions---e.g., \texttt{=[1]!erUserEmail(User_Id)}. A special case of user defined functions are the ones created using an Excel add-in. These are invoked as \texttt{_xll.functionName} in 0.65\% of the formulas. Operators are common, with binary operators appearing in 48.58\% of the formulas and 18.47\% of the formulas containing prefix operators.
+Table \ref{table:occurences} shows how frequently each of the production rules occurs in the formulas of the four datasets. Jointly, 86.61\% of the formulas include a function call. Built-in value-returning functions are invoked by 42.70\% of the formulas, the majority of which contain exactly one function call. This is derived from the data plotted in Figure \ref{fig:nodesFunctions}, showing the number of \texttt{EXCEL-FUNCTION} nodes in the parse trees of the unique formulas in datasets. We found that 6.13\% of the unique formulas contain two or more of such nodes.The largest number of \texttt{EXCEL-FUNCTION} nodes was found in a 1.231 character-long formula that invoked repetitively 7 distinct functions for a total of 91 times.
+
+A significant amount of formulas (1,963,284	or 1.04\%) invoke user-defined functions---e.g., \texttt{=[1]!erUserEmail(User_Id)}. A special case of user defined functions are the ones created using an Excel add-in. These are invoked as \texttt{_xll.functionName} in 0.65\% of the formulas.
+
+Operators are common, with binary operators appearing in 48.58\% of the formulas and 18.47\% of the formulas containing prefix operators. Figure \ref{fig:nodesFunctions} plots the number of operators of each type. Exactly one binary operator is found in 24.69\% of the unique formulas, 9.77\% have two or three and 3.95\% have more than three and up to 239.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=1\textwidth]{img/nodesFunctions}
+		\caption{\synt{FunctionCall}-related nodes}
+		\label{fig:nodesFunctions}
+	\end{subfigure}
+	~
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=1\textwidth]{img/nodesConstants}
+		\caption{\synt{Constant}-related nodes}
+		\label{fig:nodesConstants}
+	\end{subfigure}
+
+	\caption{Frequency of functions, operations and constants in the parse trees of the unique formulas in the four datasets (vertical axes are in logarithmic scale)}
+\end{figure}
 
 Table \ref{table:functions} lists the most frequently used functions and the operators, along with their total occurrences in the unique formulas of the four datasets combined. The frequency of operators is similar across datasets, with the plus being the most popular one in all four. The frequency of functions varies, with \texttt{IF} and \texttt{SUM} being the ones in the top-ten most frequently appearing in all four datasets. From the top-five functions in each dataset, the ones that are missing from the table are the \texttt{AVERAGE} (fifth most frequent function in the Enron dataset) and the \texttt{INDIRECT} (third most frequent one in the Euses dataset). Examining the most rarely used Excel build-in functions, we find that \texttt{STEYX}, \texttt{VARA}, \texttt{CONVERT}, \texttt{EXPONDIST}, \texttt{WEIBULL}, \texttt{BETADIST} and \texttt{COSH} are used only one time each, the first two in the Euses and the rest in the Fuse dataset.
 
@@ -410,7 +432,9 @@ Table \ref{table:functions} lists the most frequently used functions and the ope
 
 Regarding function arguments, spreadsheet systems allow empty arguments (e.g. \texttt{=SUM(,E35,E37)}) but this is rarely done---in only 0.17\% of the formulas. Unions are found in only 578 formulas, e.g. \texttt{=LARGE((F38,C38),1)}. The majority of the occurrences are arguments of the \texttt{LARGE},  \texttt{SMALL} and \texttt{RANK} functions---these functions require a range of cells to be declared as a single argument, necessitating a union if the cells are not in a single range. In the EUSES and Fuse datasets we also found 743 cases of constant arrays used as arguments, e.g. \texttt{=FVSCHEDULE(1,\{0.09;0.11;0.1\})}. Reserved names are uncommon, with 667 occurrences of the \texttt{_xlnm.Print_Area} and 5 occurrences of \texttt{_xlnm.Database}.
 
-Analyzing the utilization of constants, we find that 42.35\% of the formulas contain at least one; more than one third (35.61\%) of the formulas contain a number and 13.39\% are formulas that contain text. Table \ref{table:constants} lists the most frequently used constants, along with their total occurrences in the unique formulas of the four datasets combined. The frequency of numerical constants is similar across datasets, but significant variations were found in the frequency of the non-numerical ones, with \texttt{FALSE} and \texttt{"-"} being the only ones in the top-twenty of all datasets.
+Analyzing the utilization of constants, we find that 42.35\% of the formulas contain at least one; more than one third (35.61\%) of the formulas contain a number and 13.39\% are formulas that contain text. Figure \ref{fig:nodesConstants} plots the number of constants of different types in the parse trees. One to four numbers is used in 27.18\% of the unique formulas and 0.56\% contain more than 10 numbers and up to 209 (was left out of the plot for readability). For textual constants, an interesting finding is that there are most commonly three of them in formulas ---19.09\% of the unique formulas contain three \texttt{STRING} tokens in their parse trees, while 9.38\% contain one or two.
+
+Table \ref{table:constants} lists the most frequently used constants, along with their total occurrences in the unique formulas of the four datasets combined. The frequency of numerical constants is similar across datasets, but significant variations were found in the frequency of the non-numerical ones, with \texttt{FALSE} and \texttt{"-"} being the only ones in the top-twenty of all datasets.
 
 \begin{table}[]
 	\centering
@@ -423,7 +447,30 @@ The array formulas rule, covering \synt{Formula}s surrounded by brackets, is the
 
 \subsubsection{References}
 
-98.92\% of the formulas in the four datasets contain at least one \synt{Reference}, and 28.53\% of these contain a reference that is not local, since it includes a \synt{Prefix}. External file references exist in 8.32\% of the formulas. 24.32\% of the formulas include a reference to a \texttt{':'} separated cell range. Named ranges exist in 1.79\% of formulas. The Enron dataset differs significantly from the other ones in this aspect, having named ranges in 7.24\% of its formulas. Interestingly, horizontal and vertical ranges are rarely used (in 0.07\% and 4.19\% of the formulas respectively), especially in the Enron and the Euses datasets, where they appear jointly in 0.25\% of the formulas. 0.76\% of formulas include references to errors, e.g. \texttt{=\#REF!E3}. These reference errors are by far the most common type of error ---the \texttt{ERROR} token exists in only 0.02\% of the formulas.
+98.92\% of the formulas in the four datasets contain at least one \synt{Reference}. Figure \ref{fig:nodesReference} plots the number of references in the parse trees of the unique formulas. One or, more commonly, two reference nodes are found in the parse trees of the majority of the formulas (in 64.61\%), while 1.82\% have more than 10 reference nodes and up to 235. 24.32\% of the formulas include a reference to a \texttt{':'} separated cell range. Named ranges exist in 1.79\% of formulas. The Enron dataset differs significantly from the other ones in this aspect, having named ranges in 7.24\% of its formulas. While most formulas with named ranges refer to only one, there exist complex cases: 3.215  unique formulas were found with more than 10 \synt{NamedRange} nodes, and even 6 with more than 100.
+
+28.53\% of the total formulas contain a reference that is not local, since it includes a \synt{Prefix}. External file references exist in 8.32\% of the formulas.  Figure \ref{fig:nodesPrefix} plots the number of \synt{Prefix} nodes in the parse trees of the unique formulas. Most formulas that utilize prefixed references have exactly one \texttt{SHEET} or \texttt{FILE} node in their parse trees. Only 1.07\% of the unique formulas include more than one external file references and up to 34, although all references in this case were to the same external file.
+
+Interestingly, horizontal and vertical ranges are rarely used (in 0.07\% and 4.19\% of the formulas respectively), especially in the Enron and the Euses datasets, where they appear jointly in 0.25\% of the formulas. 0.76\% of formulas include references to errors, e.g. \texttt{=\#REF!E3}. These reference errors are by far the most common type of error ---the \texttt{ERROR} token exists in only 0.02\% of the formulas.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=1\textwidth]{img/nodesReference}
+		\caption{\synt{Reference}-related nodes}
+		\label{fig:nodesReference}
+	\end{subfigure}
+	~
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=1\textwidth]{img/nodesPrefix}
+		\caption{\synt{Prefix}-related nodes}
+		\label{fig:nodesPrefix}
+	\end{subfigure}
+	
+	\caption{Frequency of references and prefixes in the parse trees of the unique formulas in the four datasets (vertical axes are in logarithmic scale)}
+\end{figure}
 
 Moving to the edge cases of the grammar, the structures that are less common in the datasets include:
 \begin{description}
