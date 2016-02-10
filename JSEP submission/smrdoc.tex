@@ -498,7 +498,7 @@ Another rare case of references are the dynamic data exchange links, which were 
 There are two constructs in the spreadsheet formula grammar that we consider to be smelly, i.e. counterintuitive or inconsistent to the rest of the grammar and error-prone: complex ranges and the intersect operator.
 \begin{figure}
 	\centering
-	\begin{subfigure}[b]{0.47\textwidth}
+	\begin{subfigure}[b]{0.49\textwidth}
 		\centering
 		\includegraphics[width=1\textwidth]{img/complexRanges}
 		\caption{A range with four limits \texttt{B2:D4:C1:C5}, equivalent to the area marked gray \texttt{B1:D5}}
@@ -506,7 +506,7 @@ There are two constructs in the spreadsheet formula grammar that we consider to 
 	\end{subfigure}
 	~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
 	%(or a blank line to force the subfigure onto a new line)
-	\begin{subfigure}[b]{0.47\textwidth}
+	\begin{subfigure}[b]{0.49\textwidth}
 		\centering
 		\includegraphics[width=1\textwidth]{img/complexNamedRanges}
 		\caption{A range with a named range \texttt{rangeC2D3:B1}, equivalent to the area marked gray \texttt{A1:C3}}
@@ -517,9 +517,16 @@ There are two constructs in the spreadsheet formula grammar that we consider to 
 
 By \textit{complex ranges} we mean \synt{Reference}s that include more than two or different types of \texttt{':'} separated \synt{ReferenceItem}s. An example is range \texttt{B2:D4:C1:C5}, illustrated in Figure \ref{fig:complexA}. The smelly aspect of complex ranges is their evaluation. Simple cell ranges are in the form \texttt{top-left:bottom-right}, including all cells in between the two limits. However, the limits in complex ranges are not the ones specified in the formula: they are calculated as the upper leftmost and lower rightmost cell in the square that includes all defined cells. For example, range \texttt{B2:D4:C1:C5} is equivalent to \texttt{B1:D5}. Understanding the limits of the range becomes even less intuitive when vertical or horizontal ranges or named ranges are used, like in Figure \ref{fig:complexB}. This syntax does not add to expressiveness of the grammar: each range is still calculated as the cells within a single square, but without clearly user-defined limits. Complex ranges are rare: 9,166 formulas (0.005\%) include complex ranges, the majority of which (95\%) are defined using three cell locations.
 
+\begin{figure}
+	\centering
+	\includegraphics[]{img/intersection}
+	\caption{Example of intersection operation}
+	\label{Figure:intersection}
+\end{figure}
+
 The \textit{intersect operator} is included in this discussion because it is \texttt{\char32}, a single whitespace.
 An advantage of this approach is that it enables more natural language definition of intersections, e.g. \texttt{=SUM((Total_Cost Jan):(Total_Cost Apr.))}.
-However, we find this representation inconsistent to the grammar, because whitespace does not carry meaning in the rest of the language. Other spreadsheet systems do not use whitespace for this operator, either by using an alternative like LibreOffice which uses \texttt{!} or simply not supporting it. In the four datasets intersection operations are found in 225,621	formulas (0.12\%), the majority of which (80\%) being in the Fuse dataset alone.
+However, we find this representation inconsistent to the grammar, because whitespace does not carry meaning in the rest of the language. Other spreadsheet systems do not use whitespace for this operator, either by using an alternative like LibreOffice which uses \texttt{!} or simply not supporting it. Moreover, the visual representation of intersection in Excel can be counter-intuitive. The example formula in Figure \ref{Figure:intersection} does not evaluate to 111, as a user could infer from the marked ranges, but returns a \texttt{\#NULL!} error. In the four datasets intersection operations are found in 225,621	formulas (0.12\%), the majority of which (80\%) being in the Fuse dataset alone.
 
 \section{Discussion and Limitations}
 \label{sec:discussion}
