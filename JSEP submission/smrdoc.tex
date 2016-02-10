@@ -29,17 +29,15 @@
 
 \author{Efthimia Aivaloglou\affil{1}\corrauth, David Hoepelman\affil{1}, Felienne Hermans\affil{1}}
 
-\address{Software Engineering Research Group, Delft University of Technology, Mekelweg 4, 2628 CD Delft, The Netherlands}
+\address{Software Engineering Research Group, Delft University of Technology, Mekelweg 4, 2628 CD, Delft, The Netherlands}
 
-\corraddr{Software Engineering Research Group, Delft University of Technology, Mekelweg 4, 2628 CD Delft, The Netherlands. E-mail: e.aivaloglou@tudelft.nl}
+\corraddr{Software Engineering Research Group, Delft University of Technology, Mekelweg 4, 2628 CD, Delft, The Netherlands. E-mail: e.aivaloglou@tudelft.nl}
 
 \begin{abstract}
 Spreadsheets are ubiquitous in the industrial world and often perform a role similar to other computer programs, which makes them interesting research targets.
 However, there does not exist a reliable grammar that is concise enough to facilitate formula parsing and analysis and to support research on spreadsheet codebases.
-
-This paper presents a grammar for spreadsheet formulas that is compatible with the spreadsheet formula language, is compact enough to feasibly implement with a parser generator, and produces parse trees aimed at further manipulation and analysis. 
-We evaluate the grammar against more than eight million unique formulas extracted from four spreadsheet datasets, successfully parsing 99.99\%.
-Additionally, we utilize the grammar to analyze these datasets and measure the frequency of usage of language features in spreadsheet formulas.
+This paper presents a grammar for spreadsheet formulas that can successfully parse 99.99\% of more than eight million unique formulas extracted from four spreadsheet datasets. The grammar is compatible with the spreadsheet formula language, is compact enough to feasibly implement with a parser generator, and produces parse trees aimed at further manipulation and analysis. 
+Additionally, we utilize the grammar to analyze the four datasets and to measure the frequency of usage of language features in spreadsheet formulas.
 Finally, we identify smelly constructs and uncommon cases in the syntax of formulas.
 \end{abstract}
 
@@ -56,9 +54,9 @@ Because of their widespread use, spreadsheets have been the topic of research si
 
 The above analyses are our main motivation towards a defined grammar. Having such a grammar will enable parsing spreadsheet formulas into processable parse trees which can in turn be used to analyze cell references, extract metrics, find code smells and explore the structure of spreadsheets. Essentially, a reliable and consistent grammar and its parser implementation, available to the spreadsheet research community, can support research on spreadsheet formula codebases and can enhance the understanding and usability of research results.
 
-To make a grammar suitable for this goal, the requirements that we set for it are (1) to be compatible with the official Excel formula language, (2) to produce parse trees suited for further manipulation and analysis, and (3) to be compact enough to feasibly implement with a parser generator. The contributions of this paper are (1) a concise grammar for spreadsheet formulas, (2) the evaluation of the compatibility of the grammar using four major datasets, and (3) an analysis of the common formula characteristics and of the rare grammatical cases in the datasets.
+To make a grammar suitable for this goal, the requirements that we set for it are to be compatible with the official Excel formula language, to produce parse trees suited for further manipulation and analysis, and to be compact enough to feasibly implement with a parser generator. The contributions of this paper are (1) a concise grammar for spreadsheet formulas, (2) the evaluation of the compatibility of the grammar using four major datasets, and (3) an analysis of the common formula characteristics and of the rare grammatical cases in the datasets.
 
-The remainder of the paper is organized as follows: In the following section we summarize the basic concepts of spreadsheets and of the formula language. In Section \ref{section:grammar} we present the spreadsheet formula grammar, its lexical and syntactical analysis rules, and details on precedence and ambiguity. Section \ref{sec:evaluation} explains how we implemented and evaluated the grammar, presents the obtained results, and analyses the formula characteristics of the datasets. In Section \ref{sec:discussion} we discuss the grammar and its limitations. Section \ref{section:relatedWork} presents related work and Section \ref{section:conclusion} concludes the paper.
+The remainder of the paper is organized as follows: In the following section we summarize the basic concepts of spreadsheets and of the formula language. In Section \ref{section:grammar} we discuss our design process and present the spreadsheet formula grammar, its lexical and syntactical analysis rules, and details on precedence and ambiguity. Section \ref{sec:evaluation} explains how we implemented and evaluated the grammar, presents the obtained results, and analyses the formula characteristics of the datasets. In Section \ref{sec:discussion} we discuss the grammar and its limitations. Section \ref{section:relatedWork} presents related work and Section \ref{section:conclusion} concludes the paper.
 
 \section{Background}
 
@@ -350,12 +348,6 @@ The 457 formulas that were not parsed using the grammar defined in Section \ref{
 
 The structure of the parse trees produced using the grammar reflects the syntactical complexity of the formulas in the datasets. We have studied four complexity indicators: the parse tree depth, the formula depth, the operator depth and the conditional depth. The results, in terms of number of unique formulas, are plotted in Figure \ref{Figure:depths}.
 
-The parse tree depth is calculated counting the number of nodes from the root of the tree until the deepest lexical token. In the example in Figure \ref{figure:ourparsetree} it is 8 (lexical token \texttt{CELL} with value \texttt{B2} counts as one node). The majority of the formulas in the datasets are found to be similarly simple: 7,097,179 (82.75\%)
-out of 8,576,969 parsed formulas have parse trees with depth from 4 (minimum depth) to 10. The parse trees of 92.97\% of the formulas have depth up to 15 ---\texttt{SUM((B3+C3)/2)-E3} is an example 15-node deep formula. On opposite end, the analysis found a substantial number of complex formulas: 71,599 parse trees have depth over 30 (formula \texttt{ROUND(IF(D6>1600,D9,(1+(1600-IF(D6>D7,D6,D7))*D8)*D9),0)} (1) produces an example 30-node deep tree) and 18,520 trees over 50.
-
-The formula depth and the operator depth are indicators of the formula complexity in terms of calculation operations. The first is the depth of \synt{Formula} nodes in the tree, while the latter of function-invoking  \synt{FunctionCall}, \synt{RefFunctionCall} and \texttt{UDF} nodes. In the example in Figure \ref{figure:ourparsetree}, those are 2 and 1 respectively. The majority of the formulas in the dataset are as simple as this example or simpler: 68.72\% of the parse trees have formula depth up to 2, and 55,2\% have operator depth 0 or 1. However, as shown in Figures \ref{fig:depthFormula} and \ref{fig:depthOperator}, significantly complex formulas have also been found. 52,539 trees have formula depth greater than 11 and 79,885 trees have operator depth greater than 8, which are the formula and operator depths of formula (1). All formulas with operator depths over 65 involved simple but repetitive operations (additions, string concatenations or multiplications) of a large group of numbers or cells. For example, the formula with the largest operator depth of 208 is \texttt{320+204+...+616}, adding a total of 209 numbers.
-
-Conditional depth is the depth of function-invoking nodes (\texttt{EXCEL-FUNCTION} and \texttt{REF-FUNCTION-COND}) created for conditional functions\footnote{Conditional functions are the \texttt{IF}, \texttt{COUNTIF}, \texttt{COUNTIFS}, \texttt{SUMIF}, \texttt{SUMIFS}, \texttt{AVERAGEIF}, \texttt{AVERAGEIFS} and \texttt{IFERROR}.}. Formula (1), for example, has conditional depth of 2. We found that 7,549,671 (88.02\%) of the formulas in the datasets did not include any conditional function call and 805,359 (9.39\%) included only one. On the opposite end, 7,791 formulas include 5 or more nested conditional function calls and 288 parse trees have conditional depth over 20.
 \begin{figure}
 	\centering
 	\begin{subfigure}[b]{0.49\textwidth}
@@ -388,6 +380,13 @@ Conditional depth is the depth of function-invoking nodes (\texttt{EXCEL-FUNCTIO
 	\end{subfigure}
 	\caption{Characteristics of the parse trees of the unique formulas in the four datasets (vertical axes are in logarithmic scale)}\label{Figure:depths}
 \end{figure}
+
+The parse tree depth is calculated counting the number of nodes from the root of the tree until the deepest lexical token. In the example in Figure \ref{figure:ourparsetree} it is 8 (lexical token \texttt{CELL} with value \texttt{B2} counts as one node). The majority of the formulas in the datasets are found to be similarly simple: 7,097,179 (82.75\%)
+out of 8,576,969 parsed formulas have parse trees with depth from 4 (minimum depth) to 10. The parse trees of 92.97\% of the formulas have depth up to 15 ---\texttt{SUM((B3+C3)/2)-E3} is an example 15-node deep formula. On opposite end, the analysis found a substantial number of complex formulas: 71,599 parse trees have depth over 30 (formula \texttt{ROUND(IF(D6>1600,D9,(1+(1600-IF(D6>D7,D6,D7))*D8)*D9),0)} (1) produces an example 30-node deep tree) and 18,520 trees over 50.
+
+The formula depth and the operator depth are indicators of the formula complexity in terms of calculation operations. The first is the depth of \synt{Formula} nodes in the tree, while the latter of function-invoking  \synt{FunctionCall}, \synt{RefFunctionCall} and \texttt{UDF} nodes. In the example in Figure \ref{figure:ourparsetree}, those are 2 and 1 respectively. The majority of the formulas in the dataset are as simple as this example or simpler: 68.72\% of the parse trees have formula depth up to 2, and 55,2\% have operator depth 0 or 1. However, as shown in Figures \ref{fig:depthFormula} and \ref{fig:depthOperator}, significantly complex formulas have also been found. 52,539 trees have formula depth greater than 11 and 79,885 trees have operator depth greater than 8, which are the formula and operator depths of formula (1). All formulas with operator depths over 65 involved simple but repetitive operations (additions, string concatenations or multiplications) of a large group of numbers or cells. For example, the formula with the largest operator depth of 208 is \texttt{320+204+...+616}, adding a total of 209 numbers.
+
+Conditional depth is the depth of function-invoking nodes (\texttt{EXCEL-FUNCTION} and \texttt{REF-FUNCTION-COND}) created for conditional functions\footnote{Conditional functions are the \texttt{IF}, \texttt{COUNTIF}, \texttt{COUNTIFS}, \texttt{SUMIF}, \texttt{SUMIFS}, \texttt{AVERAGEIF}, \texttt{AVERAGEIFS} and \texttt{IFERROR}.}. Formula (1), for example, has conditional depth of 2. We found that 7,549,671 (88.02\%) of the formulas in the datasets did not include any conditional function call and 805,359 (9.39\%) included only one. On the opposite end, 7,791 formulas include 5 or more nested conditional function calls and 288 parse trees have conditional depth over 20.
 
 \begin{sidewaystable*}
 	\vspace{2mm}
