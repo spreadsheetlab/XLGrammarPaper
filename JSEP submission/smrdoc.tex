@@ -222,7 +222,8 @@ These are also illustrated as syntax diagrams, with most production rules expand
 	\label{figure:Reference}
 \end{figure}
 
-The \synt{Formula} rule covers all types of spreadsheet formula expressions: they can be constants (\texttt{=5}), references (\texttt{=A3}), function calls (\texttt{=SUM(A1:A3)}), array constants (\texttt{=\{1,2;3,4\}}, explained in Section \ref{sec:arrayformulas}), or reserved names (\texttt{=_xlnm.Print_Area}). Function calls invoke actual named (built-in or user defined) functions or operators applied to one or more formulas.
+The \synt{Formula} rule covers all types of spreadsheet formula expressions: they can be constants (\texttt{=5}), references (\texttt{=A3}), function calls (\texttt{=SUM(A1:A3)}), array constants (\texttt{=\{1,2;3,4\}}, explained in Section \ref{sec:arrayformulas}), or reserved names (\texttt{=_xlnm.Print_Area}). Function calls invoke actual named (built-in or user defined) functions or operators applied to one or more formulas. A special case of built-in functions are those that always return references, namely the \texttt{INDEX}, \texttt{OFFSET} and \texttt{INDIRECT} and the conditional functions that sometimes return references, namely \texttt{IF} and \texttt{CHOOSE}.
+For example, \texttt{INDEX} returns the reference of the cell at the intersection of a particular row and, optionally, column, so \texttt{INDEX(B1:B10,3)} returns a reference to cell \texttt{B3} and can be used in a formula as \texttt{=SUM(A1:INDEX(B1:B10,3))} being equivalent to \texttt{=SUM(A1:B3)}.
 
 The \synt{Reference} rule covers all types of referencing expressions, which are diverse. The simple case of a reference to a cell range can be expressed in any of the following ways:
 
@@ -489,9 +490,7 @@ Moving to the edge cases of the grammar, the structures that are least common in
 	3,941 formulas (0.002\%) include a reference with a prefix in the right limit, e.g. \texttt{=SUM('Deals'!F9:'Deals'!F16)}, which is equivalent to \texttt{=SUM('Deals'!F9:F16)}. In all cases this prefix is identical to the first one, as continuous ranges spanning across multiple sheets are not supported by Excel. Still, this syntax is supported.
 \end{description}
 
-A special case in the grammar are the functions that always return references, namely the \texttt{INDEX}, \texttt{OFFSET} and \texttt{INDIRECT} functions and the conditional functions that sometimes return references, namely \texttt{IF} and \texttt{CHOOSE}.
-For example, \texttt{INDEX} returns the reference of the cell at the intersection of a particular row and, optionally, column, so \texttt{INDEX(B1:B10,3)} returns a reference to cell \texttt{B3} and can be used in a formula as \texttt{=SUM(A1:INDEX(B1:B10,3))} being equivalent to \texttt{=SUM(A1:B3)}.
-These reference returning functions are found in 1.04\% of the formulas, with the most common one being the \texttt{INDEX} (in 0.69\% of formulas) and the least common one being the \texttt{OFFSET} (in 0.10\%).
+Examining the special case of Excel functions that return references (the \texttt{INDEX}, \texttt{OFFSET} and \texttt{INDIRECT}), they are found in 1.04\% of the formulas, with the most common one being the \texttt{INDEX} (in 0.69\% of formulas) and the least common one being the \texttt{OFFSET} (in 0.10\%).
 While the \texttt{IF} and \texttt{CHOOSE} functions can be part of reference expressions, there were no formulas in the datasets using them as such.
 An example of using those functions in this way would be \texttt{=SUM(IF(A1=1,A2,A5):A10)}, which is equivalent to \texttt{=SUM(A2:A10)} if \texttt{A1} is \texttt{1} and to \texttt{=SUM(A5:A10)} otherwise.
 

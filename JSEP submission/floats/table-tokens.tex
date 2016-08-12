@@ -16,7 +16,7 @@ HORIZONTAL-RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 \\
 NR & Named range & [A-Z\_\textbackslash\textbackslash $\Box_1$][$\Box_4$]* & -2 \\
 NR-PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+ [1-9][0-9]*[A-Z\textbackslash\textbackslash\_.?$\Box_1$]) [$\Box_4$]+                                                                              & 3 \\
 NUMBER & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & [0-9]+ .? [0-9]* (e [0-9]+)? & 0 \\
-REF-FUNCTION & Excel built-in reference function & (INDEX $\mid$ OFFSET $\mid$ INDIRECT)\textbackslash( & 5 \\
+REF-FUNCTION & Excel built-in reference-returning function & (INDEX $\mid$ OFFSET $\mid$ INDIRECT)\textbackslash( & 5 \\
 REF-FUNCTION-COND & Excel built-in conditional reference function & (IF $\mid$ CHOOSE)\textbackslash( & 5 \\
 RESERVED-NAME & An Excel reserved name & \_xlnm\textbackslash.  [A-Z\_]+ & -1 \\
 SHEET & The name of a worksheet & $\Box_2$+ ! & 5        \\
