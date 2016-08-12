@@ -55,9 +55,12 @@
 <Prefix> ::= "SHEET"
 	\alt "FILE" "SHEET"
 	\alt "FILE" `!'
-	\alt "QUOTED-FILE-SHEET"
 	\alt "MULTIPLE-SHEETS"
 	\alt "FILE" "MULTIPLE-SHEETS"
+	\alt `'' "SHEET-QUOTED"
+	\alt `'' "FILE" "SHEET-QUOTED"
+	\alt `'' "MULTIPLE-SHEETS-QUOTED"
+	\alt `'' "FILE" "MULTIPLE-SHEETS-QUOTED"
 
 <RefFunctionName> ::= "REF-FUNCTION"
 			\alt "REF-FUNCTION-COND"
