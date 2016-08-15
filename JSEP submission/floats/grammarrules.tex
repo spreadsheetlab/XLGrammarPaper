@@ -67,15 +67,15 @@
 	
 %<NamedRange> ::= "NAMED-RANGE"
 %            \alt "NAMED-RANGE-PREFIXED"
-<NamedRange> ::= "NR" | "NR-PREFIXED"
+<NamedRange> ::= "NR" | "NR-COMBINATION"
 
 <Union> ::= `(' <Reference> \{ `,' <Reference> \} `)'
 
 <StructuredReference> ::= <SRElement>
 	\alt `[' <SRExpression> `]'
-	\alt <NamedRange> <SRElement>
-	\alt <NamedRange> `[' `]'
-	\alt <NamedRange> `[' <SRExpression> `]'
+	\alt "NR" <SRElement>
+	\alt "NR" `[' `]'
+	\alt "NR" `[' <SRExpression> `]'
 
 
 <SRExpression> ::= <SRElement>
@@ -83,7 +83,7 @@
 	\alt <SRElement> `,' <SRElement> (`:' | `,')  <SRElement>
 	\alt <SRElement> `,' <SRElement> `,' <SRElement> `:' <SRElement>
 
-<SRElement> ::= `[' <NamedRange> `]'	
+<SRElement> ::= `[' ("NR" | "SR-COLUMN") `]'
 	\alt "FILE"
 
 %<DynamicDataExchange> ::= "FILE" `!' "DDECALL"

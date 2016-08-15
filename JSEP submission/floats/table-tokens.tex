@@ -14,7 +14,8 @@ EXCEL-FUNCTION & Excel built-in function & (Any entry from the function list\beg
 FILE & External file reference & \textbackslash[ [0-9]+ \textbackslash] & 5 \\
 HORIZONTAL-RANGE & Range of rows & \$? [0-9]+ : \$? [0-9]+ & 0 \\
 NR & Named range & [A-Z\_\textbackslash\textbackslash $\Box_1$][$\Box_4$]* & -2 \\
-NR-PREFIXED & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+ [1-9][0-9]*[A-Z\textbackslash\textbackslash\_.?$\Box_1$]) [$\Box_4$]+                                                                              & 3 \\
+NR-COMBINATION & \begin{tabular}[c]{@{}l@{}} Named range which starts with \\ a string  that could be another token \end{tabular} & (TRUE $\mid$ FALSE $\mid$ [A-Z]+ [1-9][0-9]*[A-Z\textbackslash\textbackslash\_.?$\Box_1$]) [$\Box_4$]+                                                                              & 3 \\
+SR-COLUMN & Column definition in structured references & [\textbackslash w\textbackslash.]+ & -3 \\ 
 NUMBER & \begin{tabular}[c]{@{}l@{}}An integer, floating point\\     or scientific notation number literal\end{tabular} & [0-9]+ .? [0-9]* (e [0-9]+)? & 0 \\
 REF-FUNCTION & Excel built-in reference-returning function & (INDEX $\mid$ OFFSET $\mid$ INDIRECT)\textbackslash( & 5 \\
 REF-FUNCTION-COND & Excel built-in conditional reference function & (IF $\mid$ CHOOSE)\textbackslash( & 5 \\
