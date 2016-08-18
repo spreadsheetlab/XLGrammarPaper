@@ -35,7 +35,7 @@
 
 \begin{abstract}
 Spreadsheets are popular end-user programming tools, especially in the industrial world. This makes them interesting research targets. However, there does not exist a reliable grammar that is concise enough to facilitate formula parsing and analysis and to support research on spreadsheet codebases.
-This paper presents a grammar for spreadsheet formulas that can successfully parse 99.99\% of more than eight million unique formulas extracted from four spreadsheet datasets. Our grammar is compatible with the spreadsheet formula language, is compact enough to feasibly implement with a parser generator, and produces parse trees aimed at further manipulation and analysis. 
+This paper presents a grammar for spreadsheet formulas that can successfully parse 99.99\% of more than eight million unique formulas extracted from four spreadsheet datasets. Our grammar is compatible with the spreadsheet formula language, recognizes the spreadsheet formula elements that are required for supporting spreadsheets research, and produces parse trees aimed at further manipulation and analysis. 
 Additionally, we utilize the grammar to analyze the four datasets, to measure the frequency of language features in spreadsheet formulas, and to extract syntactical complexity indicators from the produced parse trees.
 Finally, we identify smelly constructs and uncommon cases in the syntax of formulas.
 \end{abstract}
@@ -54,7 +54,7 @@ Because of their widespread use, spreadsheets have been the topic of research si
 
 The above analyses are our main motivation towards defining a formula grammar. Having such a grammar will enable parsing spreadsheet formulas into processable parse trees which can in turn be used to analyze cell references, extract metrics, find code smells and explore the structure of spreadsheets. Essentially, a reliable and consistent grammar and its parser implementation, available to the spreadsheet research community, can support research on spreadsheet formula codebases and can enhance the understanding and usability of research results.
 
-To make a grammar suitable for this goal, the requirements that we set for it are to be compatible with the official Excel formula language, to produce parse trees suited for further manipulation and analysis, and to be compact enough to feasibly implement with a parser generator. The contributions of this paper are (1) a concise grammar for spreadsheet formulas, (2) the evaluation of the compatibility of the grammar using four major datasets, and (3) an analysis of the common formula characteristics and of the rare grammatical cases in the datasets.
+To make a grammar suitable for this goal, the requirements that we set for it are to be compatible with the official Excel formula language, to produce parse trees suited for further manipulation and analysis, and to recognize the spreadsheet formula elements that are required for supporting spreadsheets research. The contributions of this paper are (1) a concise grammar for spreadsheet formulas, (2) the evaluation of the compatibility of the grammar using four major datasets, and (3) an analysis of the common formula characteristics and of the rare grammatical cases in the datasets.
 
 The remainder of the paper is organized as follows: in the following section we summarize the basic concepts of spreadsheets and of the formula language. In Section \ref{section:grammar} we discuss our design process and present the spreadsheet formula grammar, its lexical and syntactical analysis rules, and details on precedence and ambiguity. Section \ref{sec:evaluation} explains how we implemented and evaluated the grammar, presents the obtained results, and analyses the formula characteristics of the datasets. In Section \ref{sec:discussion} we discuss the grammar and its limitations. Section \ref{section:relatedWork} presents related work and Section \ref{section:conclusion} concludes the paper.
 
@@ -117,12 +117,13 @@ For previous and ongoing research the authors needed a grammar for Microsoft Exc
 \begin{enumerate}
 	\item Compatibility with the official language
 	\item Produce parse trees suited for further manipulation and analysis with minimal post-processing required
-	\item Be compact enough to feasibly implement with a parser generator
+	\item Recognize the spreadsheet formula elements required for supporting spreadsheets research
 \end{enumerate}
 
-While an official grammar for Excel formulas is published \cite{ExcelOfficialGrammar}, it does not meet the above requirements for two reasons: first, it is over 30 pages long and contains hundreds of production rules and thus fails requirement 3. At the same time, there is no standalone implementation of the grammar available for use.
-Second, because of the detail of the grammar and the large number of production rules, the resulting parse trees are very complex and thus fail requirement 2.
-An example is given in Figure \ref{figure:parsetrees}(a): the relatively simple formula \texttt{SUM(B2,5)} results in a 37-node tree with a depth of 18 nodes.
+While an official grammar for Excel formulas is published \cite{ExcelOfficialGrammar}, it was too granular for our purpose ---it is over 30 pages long and contains hundreds of production rules. Because of its detail and the large number of production rules, the resulting parse trees are very complex and thus fail requirement 2.
+An example is given in Figure \ref{figure:parsetrees}(a): the relatively simple formula \texttt{SUM(B2,5)} results in a 37-node tree with a depth of 18 nodes. 
+
+For our purpose of facilitating research on spreadsheet formulas, we need a grammar that provides a different level of detail, just-enough to satisfy requirement 3. Examining previous research works (including \cite{DBLP:conf/icse/HermansPD11,DBLP:conf/icse/HermansPD12, DBLP:conf/icsm/Hermans212, hermans2014bumblebee, badame2012refactoring, Expector}), we find that the spreadsheet formula elements that a grammar for this purpose needs to recognize include functions calls (of build-in and user-defined functions), function arguments, data (of different types), and references (to internal and external cells and ranges of different types).
 
 \begin{figure}
 	\centering
