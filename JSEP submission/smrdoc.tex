@@ -344,50 +344,6 @@ The 457 formulas that were not parsed using the grammar defined in Section \ref{
 	\item 56 formulas originating from 2 spreadsheets that include filenames with brackets and are not returned correctly as numeric. For example, formula \texttt{='C:\textbackslash[FY2014WSSBBasic[1].xls].xls]Basic Grant'!A6} is read as \texttt{='[1].xls].xls]Basic Grant'!A6}, which is not parsed, as the grammar is designed to support numeric-only filenames for the reasons explained in Section \ref{section:externalReferences}. All those 56 cases are parsed successfully when the filename is replaced with a numeric one.
 \end{itemize}
 
-\subsection{Parse trees}
-
-The structure of the parse trees produced using the grammar reflects the syntactical complexity of the formulas in the datasets. We have studied four complexity indicators: the parse tree depth, the formula depth, the operator depth and the conditional depth. The results, in terms of number of unique formulas, are plotted in Figure \ref{Figure:depths}.
-
-\begin{figure}
-	\centering
-	\begin{subfigure}[b]{0.49\textwidth}
-		\centering
-		\includegraphics[width=1\textwidth]{img/depths1}
-		\caption{Number of unique formulas per parse tree depth}
-		\label{fig:depthTree}
-	\end{subfigure}
-	~
-	\begin{subfigure}[b]{0.49\textwidth}
-		\centering
-		\includegraphics[width=1\textwidth]{img/depths2}
-		\caption{Unique formulas per depth of \synt{Formula} nodes}
-		\label{fig:depthFormula}
-	\end{subfigure}
-	~
-	
-	\begin{subfigure}[b]{0.49\textwidth}
-		\centering
-		\includegraphics[width=1\textwidth]{img/depths3}
-		\caption{Unique formulas per depth of \synt{FunctionCall}, \synt{RefFunctionCall} \& \texttt{UDF} nodes}
-		\label{fig:depthOperator}
-	\end{subfigure}
-	~
-	\begin{subfigure}[b]{0.49\textwidth}
-		\centering
-		\includegraphics[width=1\textwidth]{img/depths4}
-		\caption{Unique formulas per depth of conditional function nodes}
-		\label{fig:depthConditional}
-	\end{subfigure}
-	\caption{Characteristics of the parse trees of the unique formulas in the four datasets combined (vertical axes are in logarithmic scale)}\label{Figure:depths}
-\end{figure}
-
-The parse tree depth is calculated counting the number of nodes from the root of the tree until the deepest lexical token. In the example in Figure \ref{figure:ourparsetree} it is 8 (lexical token \texttt{CELL} with value \texttt{B2} counts as one node). The majority of the formulas in the datasets are found to be similarly simple: 7,097,179 (82.75\%)
-out of 8,576,969 parsed formulas have parse trees with depth from 4 (minimum depth) to 10. The parse trees of 92.97\% of the formulas have depth up to 15 ---\texttt{SUM((B3+C3)/2)-E3} is an example 15-node deep formula. On opposite end, the analysis found a substantial number of complex formulas: 71,599 parse trees have depth over 30 (formula \texttt{ROUND(IF(D6>1600,D9,(1+(1600-IF(D6>D7,D6,D7))*D8)*D9),0)} (1) produces an example 30-node deep tree) and 18,520 trees over 50.
-
-The formula depth and the operator depth are indicators of the formula complexity in terms of calculation operations. The first is the depth of \synt{Formula} nodes in the tree, while the latter of function-invoking  \synt{FunctionCall}, \synt{RefFunctionCall} and \texttt{UDF} nodes. In the example in Figure \ref{figure:ourparsetree}, those are 2 and 1 respectively. The majority of the formulas in the dataset are as simple as this example or simpler: 68.72\% of the parse trees have formula depth up to 2, and 55,2\% have operator depth 0 or 1. However, as shown in Figures \ref{fig:depthFormula} and \ref{fig:depthOperator}, significantly complex formulas have also been found. 52,539 trees have formula depth greater than 11 and 79,885 trees have operator depth greater than 8, which are the formula and operator depths of formula (1). All formulas with operator depths over 65 involved simple but repetitive operations (additions, string concatenations or multiplications) of a large group of numbers or cells. For example, the formula with the largest operator depth of 208 is \texttt{320+204+...+616}, adding a total of 209 numbers.
-
-Conditional depth is the depth of function-invoking nodes (\texttt{EXCEL-FUNCTION} and \texttt{REF-FUNCTION-COND}) created for conditional functions\footnote{Conditional functions are the \texttt{IF}, \texttt{COUNTIF}, \texttt{COUNTIFS}, \texttt{SUMIF}, \texttt{SUMIFS}, \texttt{AVERAGEIF}, \texttt{AVERAGEIFS} and \texttt{IFERROR}.}. Formula (1), for example, has conditional depth of 2. We found that 7,549,671 (88.02\%) of the formulas in the datasets did not include any conditional function call and 805,359 (9.39\%) included only one. On the opposite end, 7,791 formulas include 5 or more nested conditional function calls and 288 parse trees have conditional depth over 20.
-
 \begin{sidewaystable*}
 	\vspace{2mm}
 	\caption{Frequency of spreadsheet formulas with specific grammatical structures in the combined EUSES, Enron, Fuse and WikiLeaks datasets}
@@ -497,6 +453,41 @@ While the \texttt{IF} and \texttt{CHOOSE} functions can be part of reference exp
 An example of using those functions in this way would be \texttt{=SUM(IF(A1=1,A2,A5):A10)}, which is equivalent to \texttt{=SUM(A2:A10)} if \texttt{A1} is \texttt{1} and to \texttt{=SUM(A5:A10)} otherwise.
 
 Another rare case of references are the dynamic data exchange links, recognized using token \texttt{DDECALL}, which were found in 3,686 formulas of the Enron and the Euses datasets and in only 3 formulas of the other two. These take the form of \texttt{=Program|Topic!Arguments}, e.g. \texttt{=Database|TableA!Column1}, and are used in Windows versions of Microsoft Excel to receive  data from other applications.
+
+\subsubsection{Complexity of formulas}
+
+The complexity of the formulas in terms of invoked functions and operations is reflected in the structure of the produced parse trees. To demonstrate how the parse trees can be used for analyzing formula characteristics, we calculated three formula complexity indicators:  the conditional depth, the formula depth, and the operator depth. The results, in terms of number of unique formulas, are plotted in Figure \ref{Figure:depths}.
+
+The conditional depth of a formula is the number of nested conditional function calls that it includes. We measured it as the depth of function-invoking parse tree nodes (\texttt{EXCEL-FUNCTION} and \texttt{REF-FUNCTION-COND}) created for conditional functions\footnote{Conditional functions are the \texttt{IF}, \texttt{COUNTIF}, \texttt{COUNTIFS}, \texttt{SUMIF}, \texttt{SUMIFS}, \texttt{AVERAGEIF}, \texttt{AVERAGEIFS} and \texttt{IFERROR}.}. Formula \texttt{ROUND(IF(D6>1600,D9,(1+(1600-IF(D6>D7,D6,D7))*D8)*D9),0)} (1), for example, has conditional depth of 2. We found that 7,549,671 (88.02\%) of the formulas in the datasets do not include any conditional function call and 805,359 (9.39\%) include only one. On the opposite end, 7,791 formulas include 5 or more nested conditional function calls and 288 parse trees have conditional depth over 20.
+
+\begin{figure}
+	\centering
+	
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=1\textwidth]{img/depths4}
+		\caption{Depth of conditional function nodes}
+		\label{fig:depthConditional}
+	\end{subfigure}
+	~
+	
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=1\textwidth]{img/depths2}
+		\caption{Depth of \synt{Formula} nodes}
+		\label{fig:depthFormula}
+	\end{subfigure}
+	~
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=1\textwidth]{img/depths3}
+		\caption{Depth of function-invoking nodes}
+		\label{fig:depthOperator}
+	\end{subfigure}
+	\caption{Complexity indicators for the unique formulas in the four datasets combined (vertical axes are in logarithmic scale)}\label{Figure:depths}
+\end{figure}
+
+The formula depth and the operator depth are indicators of the formula complexity in terms of calculation operations. The first is the depth of \synt{Formula} nodes in the tree, while the latter of function-invoking  \synt{FunctionCall}, \synt{RefFunctionCall} and \texttt{UDF} nodes. In the example in Figure \ref{figure:ourparsetree}, those are 2 and 1 respectively. The majority of the formulas in the dataset are as simple as this example or simpler: 68.72\% of the parse trees have formula depth up to 2, and 55,2\% have operator depth 0 or 1. However, as shown in Figures \ref{fig:depthFormula} and \ref{fig:depthOperator}, significantly complex formulas have also been found. 52,539 trees have formula depth greater than 11 and 79,885 trees have operator depth greater than 8, which are the formula and operator depths of formula (1). All formulas with operator depths over 65 involved simple but repetitive operations (additions, string concatenations or multiplications) of a large group of numbers or cells. For example, the formula with the largest operator depth of 208 is \texttt{320+204+...+616}, adding a total of 209 numbers.
 
 \subsubsection{Smelly Grammar Constructs}
 There are two constructs in the spreadsheet formula grammar that we consider to be smelly, i.e. counterintuitive or inconsistent with the rest of the grammar and error-prone: complex ranges and the intersect operator.
