@@ -165,7 +165,7 @@ Since that version, two factors facilitated further refinement of the grammar: f
 Once the grammar presented in \cite{XLparser}, enriched to support structured references, was tested against the new datasets, we found that 1,387 of those formulas were not parsed. The process that we followed was similar as with the first two datasets: initially, for each formula we did a preliminary search for the reason causing the parse failure and we grouped the failing formulas into 7 categories of parse errors. Then we modified or enriched the grammar with the missing lexical or syntactical constructs, updated the parser implementation, added unit tests, and re-tested against the datasets, repeating the process until all but 457 formulas were successfully parsed ---as explained later in Section \ref{subsection:unparsableFormulas}, all but 2 of those formulas do not cause actual parse errors.
 
 \subsection{Grammar Class}
-
+\label{sec:grammarclass}
 While the class of this grammar is not strictly LALR(1) due to the ambiguity that will be discussed in Section \ref{sec:ambiguity}, we implemented this grammar using a LALR(1) parser generator.
 The present ambiguity can be solved by defining operator precedence (section \ref{sec:operatorprecedence}) and manually resolving conflicts (Section \ref{sec:ambiguity}).
 These two features are supported by most LALR(1) parser generators.
@@ -258,7 +258,7 @@ In order to resolve ambiguities, a LALR parser generator needs the operator prec
 \end{table}
 
 \subsection{Intersection Operator}
-
+\label{sec:intersection}
 The intersection binary operator in Excel formulas is a single space.
 While this is straightforward to define in EBNF, it can be challenging to implement using a parser generator.
 
@@ -318,7 +318,9 @@ We deem this decreased compatibility to be acceptable since unions are very rare
 
 In this section we explain how we implemented and evaluated the grammar using four large datasets and we discuss the obtained results and formula parse failures. In the grammar analysis in Section \ref{subsection:grammarAnalysis} we examine how frequently language features occur in the formulas of the datasets.
 
-The grammar is implemented using the Irony parser generator framework\footnote{\url{https://irony.codeplex.com/}} and the resulting parser, named XLParser, is available for download\footnote{\url{https://github.com/PerfectXL/XLParser}}. An online demo is also available.\footnote{\url{http://xlparser.perfectxl.nl/demo}}
+The grammar is implemented using the Irony parser generator framework\footnote{\url{https://irony.codeplex.com/}}. Irony fulfills the requirements set in Section \ref{sec:grammarclass}: it is a LALR(1) parser generator, is enables defining operator precedence as listed in Table \ref{table:operatorprec}, and it includes a method, \texttt{PreferShiftHere()}, for resolving shift-reduce conflicts as specified in Section \ref{sec:ambiguity}. In addition, Irony enables defining terminals that produce tokens with empty text through a special terminal type, \texttt{ImpliedSymbolTerminal}, which we used for defining the intersection operator explained in Section \ref{sec:intersection}. At the same time, Irony enabled coding the entirety of the grammar directly in C\#, which contributed in streamlining the development of the parser and its evaluation tools in the .NET platform.
+
+The resulting parser, named XLParser, is available for download\footnote{\url{https://github.com/PerfectXL/XLParser}}. An online demo is also available.\footnote{\url{http://xlparser.perfectxl.nl/demo}}
 
 To extract unique formulas from spreadsheets and use them as input to the parser we built a tool that opens spreadsheets using a third-party library called Gembox\footnote{\url{http://www.gemboxsoftware.com/}} and converts the ones in Excel version prior to 2007 (with \texttt{xls} file extension) to Excel 2007 format. This tool reads all cells and identifies the formulas that are unique when adjusted for cell location (R1C1 representation), thus rejecting the formulas with adjusted references due to cell copying (e.g. formulas \texttt{=C1} and \texttt{=C2} are considered the same if contained in cells A1 and A2 respectively). The tool then uses each unique formula string as input to the parser.
 
