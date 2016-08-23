@@ -333,7 +333,7 @@ To evaluate the grammar we attempt to parse a total of 8,577,426 unique formulas
 	\input{floats/table-datasets}
 \end{table}
 
-Out of the 8,577,426 unique formulas that were used as input to the parser, 8,576,969 (99.99\%) were parsed successfully, with 2 of the failing ones being actual parse errors, as will be explained in Section \ref{subsection:unparsableFormulas}. This satisfies our first design goal of compatibility with the official language. Regarding the second and third design goals, the implementation of the parser proved feasible and the resulting parse trees are suited for analysis and manipulation, having only 22 types of non-terminal nodes.
+Out of the 8,577,426 unique formulas that were used as input to the parser, 8,576,969 (99.99\%) were parsed successfully, with 2 of the failing ones being actual parse errors, as will be explained in the following section.
 
 \subsection{Unparsable Formulas}
 \label{subsection:unparsableFormulas}
@@ -341,8 +341,8 @@ The 457 formulas that were not parsed using the grammar defined in Section \ref{
 
 \begin{itemize}
 	\item \texttt{=-NOX, Regi} and \texttt{=-_SO2, Regi}, found in two different workbooks in the Enron dataset. These are cases of an union operations without parentheses that the grammar does not parse as explained in Section \ref{subsec:desing:unions}.
-	\item 28 formulas that Excel does not evaluate either. Those formulas include indecipherable characters, for example \texttt{=+Ë\%} in a file that appears to be corrupt, and they result in \texttt{\#NAME?} errors.
-	\item 371 formulas that are not returned correctly from the Gembox library. For example, our tool reads and attempts to parse the formula \texttt{=1 SUMM BS!A3:K3} and fails, but in reality the formula is \texttt{='1 SUMM BS'!A3:K3} which can be parsed. All these 371 cases are parsed successfully when we manually provide them as input to the parser.
+	\item 28 formulas originating from 13 spreadsheets that Excel does not evaluate either. Those formulas include indecipherable characters, for example \texttt{=+Ë\%} in a file that appears to be corrupt, and they result in \texttt{\#NAME?} errors.
+	\item 371 formulas originating from 67 spreadsheets that are not returned correctly from the Gembox library. For example, our tool reads and attempts to parse the formula \texttt{=1 SUMM BS!A3:K3} and fails, but in reality the formula is \texttt{='1 SUMM BS'!A3:K3} which can be parsed. All these 371 cases are parsed successfully when we exported them into a flat file, manually corrected them to match their original form, and provided them as input to the parser.
 	\item 56 formulas originating from 2 spreadsheets that include filenames with brackets and are not returned correctly as numeric. For example, formula \texttt{='C:\textbackslash[FY2014WSSBBasic[1].xls].xls]Basic Grant'!A6} is read as \texttt{='[1].xls].xls]Basic Grant'!A6}, which is not parsed, as the grammar is designed to support numeric-only filenames for the reasons explained in Section \ref{section:externalReferences}. All those 56 cases are parsed successfully when the filename is replaced with a numeric one.
 \end{itemize}
 
