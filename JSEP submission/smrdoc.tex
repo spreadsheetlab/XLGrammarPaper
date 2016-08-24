@@ -39,8 +39,7 @@
 \begin{abstract}
 Spreadsheets are popular end-user programming tools, especially in the industrial world. This makes them interesting research targets. However, there does not exist a reliable grammar that is concise enough to facilitate formula parsing and analysis and to support research on spreadsheet codebases.
 This paper presents a grammar for spreadsheet formulas that can successfully parse 99.99\% of more than eight million unique formulas extracted from four spreadsheet datasets. Our grammar is compatible with the spreadsheet formula language, recognizes the spreadsheet formula elements that are required for supporting spreadsheets research, and produces parse trees aimed at further manipulation and analysis. 
-Additionally, we utilize the grammar to analyze the four datasets, to measure the frequency of language features in spreadsheet formulas, and to extract syntactical complexity indicators from the produced parse trees.
-Finally, we identify smelly constructs and uncommon cases in the syntax of formulas.
+Additionally, we utilize the grammar to analyze the characteristics of the formulas of the four datasets in three different dimensions: complexity, functionality and input data. Our results show that...???
 \end{abstract}
 
 \keywords{spreadsheets; syntax; formula grammar}
@@ -55,11 +54,20 @@ and the number of spreadsheet programmers is bigger than that of software progra
 
 Because of their widespread use, spreadsheets have been the topic of research since the nineties \cite{DBLP:journals/sigplan/BellP93}. Recent research has often focused on analyzing and visualizing spreadsheets \cite{DBLP:conf/icse/HermansPD11, Shio1999}. More recently, researchers have attempted to define \emph{spreadsheet smells}: applications of Fowler's code smells to spreadsheets \cite{DBLP:conf/icse/HermansPD12, DBLP:conf/icsm/Hermans212}, followed by approaches to refactor spreadsheets \cite{hermans2014bumblebee,badame2012refactoring} and to apply testing practices on spreadsheets \cite{Expector}. These research works analyze the formulas within spreadsheets, and therefore often involve formula parsing. This is done either by using simple grammars which have not been evaluated (\cite{badame2012refactoring}), or through implied, undefined grammars (\cite{DBLP:conf/icse/HermansPD11,DBLP:conf/icse/HermansPD12, DBLP:conf/icsm/Hermans212, hermans2014bumblebee, Expector}). 
 
-The above analyses are our main motivation towards defining a formula grammar. Having such a grammar will enable parsing spreadsheet formulas into processable parse trees which can in turn be used to analyze cell references, extract metrics, find code smells and explore the structure of spreadsheets. Essentially, a reliable and consistent grammar and its parser implementation, available to the spreadsheet research community, can support research on spreadsheet formula codebases and can enhance the understanding and usability of research results.
+The above analyses are our main motivation towards defining a formula grammar. Having such a grammar will enable parsing spreadsheet formulas into processable parse trees which can in turn be used to analyze cell references, extract metrics, find code smells and explore the structure of spreadsheets. Essentially, a reliable and consistent grammar and its parser implementation, available to the spreadsheet research community, can support research on spreadsheet formula codebases and can enhance the understanding and usability of research results. To make a grammar suitable for this goal, the requirements that we set for it are to be compatible with the official Excel formula language, to produce parse trees suited for further manipulation and analysis, and to recognize the spreadsheet formula elements that are required for supporting spreadsheets research.
 
-To make a grammar suitable for this goal, the requirements that we set for it are to be compatible with the official Excel formula language, to produce parse trees suited for further manipulation and analysis, and to recognize the spreadsheet formula elements that are required for supporting spreadsheets research. The contributions of this paper are (1) a concise grammar for spreadsheet formulas, (2) the evaluation of the compatibility of the grammar using four major datasets, and (3) an analysis of the common formula characteristics and of the rare grammatical cases in the datasets.
+We further utilize the grammar to analyze more than eight million unique formulas originating from the three major datasets available in the spreadsheet research community, namely EUSES \cite{euses}, Enron \cite{enron} and FUSE \cite{fuse}, along with a fourth dataset of that we accumulated through crawling the WikiLeaks website.  The goal of the analysis is to obtain an understanding of how people program in the spreadsheets formula language by quantitatively evaluating the characteristics of spreadsheet formulas in terms of complexity, functionality and data. Specifically, we explore the following research questions:
 
-The remainder of the paper is organized as follows: in the following section we summarize the basic concepts of spreadsheets and of the formula language. In Section \ref{section:grammar} we discuss our design process and present the spreadsheet formula grammar, its lexical and syntactical analysis rules, and details on precedence and ambiguity. Section \ref{sec:evaluation} explains how we implemented and evaluated the grammar, presents the obtained results, and analyses the formula characteristics of the datasets. In Section \ref{sec:discussion} we discuss the grammar and its limitations. Section \ref{section:relatedWork} presents related work and Section \ref{section:conclusion} concludes the paper.
+\begin{itemize}
+	\item[RQ1] What are the size and complexity characteristics of Excel formulas?
+	\item[RQ2] Which types of functions and operations are commonly invoked in formulas?
+	\item[RQ3] What type of input data is used in formulas?
+\end{itemize}
+
+
+The contributions of this paper are (1) a concise grammar for spreadsheet formulas, (2) the evaluation of the compatibility of the grammar using four major datasets, and (3) an exploratory study of the formulas in the datasets in terms of complexity, utilized data and functionality.
+
+The remainder of the paper is organized as follows: in the following section we summarize the basic concepts of spreadsheets and of the formula language. In Section \ref{section:grammar} we discuss our design process and present the spreadsheet formula grammar, its lexical and syntactical analysis rules, and details on precedence and ambiguity. Section \ref{sec:evaluation} explains how we implemented and evaluated the grammar. The analysis of the datasets with respect to the research questions is presented in Section \ref{section:results}. In Section \ref{sec:discussion} we discuss the grammar and its limitations. Section \ref{section:relatedWork} presents related work and Section \ref{section:conclusion} concludes the paper.
 
 \section{Background}
 
@@ -314,12 +322,12 @@ With the above production rules a LALR(1) parser could not correctly parse the l
 
 The presented grammar only parses unions in between parentheses, e.g. \texttt{=SMALL((A1,A2),1)}.
 This is a trade-off between a lower compatibility (Design goal 1) and an easier implementation (Design goal 3).
-We deem this decreased compatibility to be acceptable since unions are very rare (discussed in Section \ref{subsection:grammarAnalysis}) and, in the datasets we used, all but two were with parentheses (Section \ref{subsection:unparsableFormulas}).
+We deem this decreased compatibility to be acceptable since unions are very rare (discussed in Section \ref{section:results}) and, in the datasets we used, all but two were with parentheses (Section \ref{subsection:unparsableFormulas}).
 
-\section{Evaluation}
+\section{Evaluation and Dataset}
 \label{sec:evaluation}
 
-In this section we explain how we implemented and evaluated the grammar using four large datasets and we discuss the obtained results and formula parse failures. In the grammar analysis in Section \ref{subsection:grammarAnalysis} we examine how frequently language features occur in the formulas of the datasets.
+In this section we explain how we implemented and evaluated the grammar using four large datasets and we discuss the obtained results and formula parse failures.
 
 The grammar is implemented using the Irony parser generator framework\footnote{\url{https://irony.codeplex.com/}}. Irony fulfills the requirements set in Section \ref{sec:grammarclass}: it is a LALR(1) parser generator, is enables defining operator precedence as listed in Table \ref{table:operatorprec}, and it includes a method, \texttt{PreferShiftHere()}, for resolving shift-reduce conflicts as specified in Section \ref{sec:ambiguity}. In addition, Irony enables defining terminals that produce tokens with empty text through a special terminal type, \texttt{ImpliedSymbolTerminal}, which we used for defining the intersection operator explained in Section \ref{sec:intersection}. At the same time, Irony enabled coding the entirety of the grammar directly in C\#, which contributed in streamlining the development of the parser and its evaluation tools in the .NET platform.
 
@@ -357,9 +365,22 @@ The 457 formulas that were not parsed using the grammar defined in Section \ref{
 	\input{floats/table-occurences}
 \end{sidewaystable*}
 
-\subsection{Grammar Analysis}
-\label{subsection:grammarAnalysis}
-In this section we describe an analysis of the formulas in the datasets and measure the frequency of their characteristics. We also identify potentially smelly grammatical constructs and discuss rare syntactical cases.
+\section{Results}
+\label{section:results}
+In the following sections, for each of the research questions, we describe the results obtained through the analysis of the 8,576,969 unique formulas in the dataset.
+
+\subsection{Formula size and complexity}
+ What are the size and complexity characteristics of Excel formulas?
+ \noindent
+ \fbox{
+ 	\begin{minipage}{1\textwidth}
+ 		RQ1: ...
+ 	\end{minipage}}
+ 	
+\subsection{Functions and operations}
+Which types of functions and operations are commonly invoked in formulas?
+\subsection{Input data}
+What type of input data is used in formulas?
 
 \subsubsection{Formulas and Functions}
 Table \ref{table:occurences} shows the number of parsed formulas in the four datasets that contain each type of node. All parsed formulas contain at least one \synt{Formula} node. 86.61\% of the formulas include a \synt{FunctionCall}. Built-in value-returning functions are invoked by 42.70\% of the formulas, the majority of which contain exactly one function call. This is derived from the data plotted in Figure \ref{fig:nodesFunctions}, showing the number of \texttt{EXCEL-FUNCTION} nodes in the parse trees of the unique formulas in datasets. We found that 6.13\% of the unique formulas contain two or more of such nodes.The largest number of \texttt{EXCEL-FUNCTION} nodes was found in a 1.231 character-long formula that invoked repetitively 7 distinct functions for a total of 91 times.
@@ -592,6 +613,8 @@ Efforts to reverse-engineer language characteristics based on existing artifacts
 Most related to our research on the spreadsheet formula language is the work of Badame and Dig~\cite{badame2012refactoring} who, as part of their proposed spreadsheet refactoring approach, presented a grammar for spreadsheet formulas. However, they do not evaluate their grammar, and upon inspection one can see that key ingredients are missing: e.g. external references, intersections, unions, named ranges and operator precedence. An extension of the same grammar was used to refactor formulas by Hermans and Dig \cite{hermans2014bumblebee}.
 
 Furthermore, there is a large body of related work that relies on parsing spreadsheet formulas to analyze spreadsheets. This includes our own work, in which we have created an algorithm to visualize spreadsheets as dataflow diagrams \cite{DBLP:conf/icse/HermansPD11}, and subsequently on detecting smells in spreadsheets \cite{DBLP:conf/icse/HermansPD12,DBLP:conf/icsm/Hermans212} and on applying testing practices on spreadsheets \cite{Expector}. Related approaches exist, for example the work of Cunha that have worked on code smells~\cite{iccsa12} and smell-based fault localization~\cite{conf/icsme/CunhaFMPS14}. These papers also analyze spreadsheet formulas but do not detail which grammar or analysis method they use.
+
+Add related work on analyzing formulas for complexity, functions, operations, references ???
 
 \section{Conclusion}
 \label{section:conclusion}
