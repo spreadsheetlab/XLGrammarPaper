@@ -382,7 +382,7 @@ The conditional depth of a formula is the number of nested conditional function 
  	\centering
  	
  	 	\begin{subfigure}[b]{0.49\textwidth}
- 	 		\centering
+ 	 		\centering 
  	 		\includegraphics[width=1\textwidth]{img/freqsBasic}
  	 		\caption{Number of functions and constants}
  	 		\label{fig:freqsBasic}
@@ -412,12 +412,12 @@ The conditional depth of a formula is the number of nested conditional function 
  	\caption{Complexity indicators for the unique formulas in the four datasets combined (vertical axes are in logarithmic scale)}\label{Figure:depths}
  \end{figure}
  
-The formula depth and the operator depth are indicators of the formula complexity in terms of calculation operations. The first is the depth of \synt{Formula} nodes in the tree, while the latter of function-invoking  \synt{FunctionCall}, \synt{RefFunctionCall} and \texttt{UDF} nodes. In the example in Figure \ref{figure:ourparsetree}, those are 2 and 1 respectively. The majority of the formulas in the dataset are as simple as this example or simpler: 68.72\% of the parse trees have formula depth up to 2, and 55,2\% have operator depth 0 or 1. However, as shown in Figures \ref{fig:depthFormula} and \ref{fig:depthOperator}, significantly complex formulas have also been found. 52,539 trees have formula depth greater than 11 and 79,885 trees have operator depth greater than 8, which are the formula and operator depths of formula (1). All formulas with operator depths over 65 involved simple but repetitive operations (additions, string concatenations or multiplications) of a large group of numbers or cells. For example, the formula with the largest operator depth of 208 is \texttt{320+204+...+616}, adding a total of 209 numbers.
+The formula depth and the operator depth are indicators of the formula complexity in terms of calculation operations. The first is the depth of \synt{Formula} nodes in the tree, while the latter of function-invoking  \synt{FunctionCall}, \synt{RefFunctionCall} and \texttt{UDF} nodes. In the example in Figure \ref{figure:ourparsetree}, those are 2 and 1 respectively. The majority of the formulas in the dataset are as simple as this example or simpler: 68.72\% of the parse trees have formula depth up to 2, and 55,2\% have operator depth 0 or 1. However, as shown in Figures \ref{fig:depthFormula} and \ref{fig:depthOperator}, significantly complex formulas have also been found. 52,539 trees have formula depth greater than 11 and 79,885 trees have operator depth greater than 8, which are the formula and operator depths of formula (1). All formulas with operator depths over 65 involve simple but repetitive operations (additions, string concatenations or multiplications) of a large group of numbers or cells. For example, the formula with the largest operator depth of 208 is \texttt{320+204+...+616}, adding a total of 209 numbers.
  
  \noindent
  \fbox{
- 	\begin{minipage}{1\textwidth}
- 		RQ1:  What are the size and complexity characteristics of Excel formulas?
+ 	\begin{minipage}{0.98\textwidth}
+ 		RQ1: The majority of Excel formulas are small and simple: 70\% of the unique formulas in the datasets include up to one function or operation and up to two constants. 88\% of the formulas in the datasets do not invoke conditional functions. There exist surprisingly large and complex formulas. These include formulas that invoke simple but repetitive operations, but also formulas with many nested conditional functions.
  	\end{minipage}}
  	
 \subsection{Functions and operations}
@@ -471,7 +471,11 @@ Table \ref{table:constants} lists the most frequently used constants, along with
 
 The array formulas production rule, covering \synt{Formula}s surrounded by brackets, is the only part of the grammar that is not evaluated. The Gembox library that we use for reading spreadsheets does not support array formulas---it reads them as regular formulas, without the surrounding brackets. For this reason, we cannot we extract information on their frequency in the four datasets.
 
-Which types of functions and operations are commonly invoked in formulas?
+ \noindent
+ \fbox{
+ 	\begin{minipage}{0.98\textwidth}
+ 		RQ2: 87\% of the unique formulas in the datasets include at least one function or operation: 43\% of the formulas include Excel value-returning functions, with  \texttt{IF} and \texttt{SUM} being common in all datasets, 49\% include binary operations, with addition being by far the most common one, and 18\% include prefix operators. User-defined functions are found in 1\% of the formulas. 42\% of the formulas contain at least one constant, usually a number, with 0 being the most common one.
+ 	\end{minipage}}
 
 \subsection{Input data}
 Spreadsheet formula calculations are performed on data from other cells, internal or external, local or in different sheets. This data is used in formulas by specifying references to these cells. 98.92\% of the formulas in the four datasets contain at least one \synt{Reference}. Figure \ref{fig:nodesReference} plots the number of references in the parse trees of the unique formulas. One or, more commonly, two reference nodes are found in the parse trees of the majority of the formulas (in 64.61\%), while 1.82\% have more than 10 reference nodes and up to 235.
@@ -543,7 +547,11 @@ An example of using those functions in this way would be \texttt{=SUM(IF(A1=1,A2
 
 Another rare case of references are the dynamic data exchange links, recognized using token \texttt{DDECALL}, which were found in 3,686 formulas of the Enron and the Euses datasets and in only 3 formulas of the other two. These take the form of \texttt{=Program|Topic!Arguments}, e.g. \texttt{=Database|TableA!Column1}, and are used in Windows versions of Microsoft Excel to receive  data from other applications.
 
-What type of input data is used in formulas?
+ \noindent
+ \fbox{
+ 	\begin{minipage}{0.98\textwidth}
+ 		RQ3: Almost all formulas (98\%) use data from other cells, through various types of references. References in the form of cell ranges are used in one fourth of the formulas, but unions and intersections are rare. 29\% of the formulas refer to cells outside their worksheet, and even 8\% of the formulas include references to cells in external files. References to named ranges, to horizontal and vertical ranges and to reference-returning Excel functions are rare. In less than 0.1\% of the formulas we found multiple sheet references, complex ranges, structured references or dynamic data exchange links.
+ 	\end{minipage}}
 
 \section{Discussion and Limitations}
 \label{sec:discussion}
