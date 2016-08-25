@@ -83,6 +83,7 @@ Formulas consist of expressions which can contain constant values, arithmetic op
 Functions can be built-in or user-defined (UDFs), which are created using the Visual Basic for Applications programming language.
 
 \subsection{References}
+\label{subsec:references}
 References are the core component of spreadsheets.
 The value of any cell can be used in a formula by concatenating its column and row number, producing a reference like \texttt{B5}.
 If the value of a cell changes, this new value will be propagated to all formulas that use it.
@@ -367,22 +368,60 @@ The 457 formulas that were not parsed using the grammar defined in Section \ref{
 
 \section{Results}
 \label{section:results}
-In the following sections, for each of the research questions, we describe the results obtained through the analysis of the 8,576,969 unique formulas in the dataset.
+In the following sections, for each of the research questions, we describe the results obtained through the analysis of the 8,576,969 parsed unique formulas in the dataset.
 
-\subsection{Formula size and complexity}
- What are the size and complexity characteristics of Excel formulas?
+\subsection{Formula complexity}
+
+The complexity of the formulas is reflected in the structure of the produced parse trees. To demonstrate how the parse trees can be used for analyzing formula characteristics, we calculated four formula complexity indicators:  the number of functions and constants, the conditional depth, the formula depth, and the operator depth. The results, in terms of number of unique formulas, are plotted in Figure \ref{Figure:depths}.
+
+The majority (51.94\%) of the formulas have exactly one \synt{FunctionCall} node ---they invoke one Excel function or they include one binary or unary operation. 18.18\% of the formulas have no such nodes, while 85.16\% have two or less. A small number of formulas (2.356) have more than 50 \synt{FunctionCall} nodes, and up to 239. Examining the utilization of constants, 41.1\% of the formulas do not include any, while 46.84\% include from one to three constants. More than 10 constants are used in 0.95\% of the formulas, while 278 formulas were found to contain more than 50 and up to 209 constants.
+
+The conditional depth of a formula is the number of nested conditional function calls that it includes. We measured it as the depth of function-invoking parse tree nodes (\texttt{EXCEL-FUNCTION} and \texttt{REF-FUNCTION-COND}) created for conditional functions\footnote{Conditional functions are the \texttt{IF}, \texttt{COUNTIF}, \texttt{COUNTIFS}, \texttt{SUMIF}, \texttt{SUMIFS}, \texttt{AVERAGEIF}, \texttt{AVERAGEIFS} and \texttt{IFERROR}.}. Formula \texttt{ROUND(IF(D6>1600,D9,(1+(1600-IF(D6>D7,D6,D7))*D8)*D9),0)} (1), for example, has conditional depth of 2. We found that 7,549,671 (88.02\%) of the formulas in the datasets do not include any conditional function call and 805,359 (9.39\%) include only one. On the opposite end, 7,791 formulas include 5 or more nested conditional function calls and 288 parse trees have conditional depth over 20.
+ 
+ \begin{figure}
+ 	\centering
+ 	
+ 	 	\begin{subfigure}[b]{0.49\textwidth}
+ 	 		\centering
+ 	 		\includegraphics[width=1\textwidth]{img/freqsBasic}
+ 	 		\caption{Number of functions and constants}
+ 	 		\label{fig:freqsBasic}
+ 	 	\end{subfigure}
+ 	 	~
+ 	\begin{subfigure}[b]{0.49\textwidth}
+ 		\centering
+ 		\includegraphics[width=1\textwidth]{img/depths4}
+ 		\caption{Depth of conditional function nodes}
+ 		\label{fig:depthConditional}
+ 	\end{subfigure}
+ 	~
+ 	
+ 	\begin{subfigure}[b]{0.49\textwidth}
+ 		\centering
+ 		\includegraphics[width=1\textwidth]{img/depths2}
+ 		\caption{Depth of \synt{Formula} nodes}
+ 		\label{fig:depthFormula}
+ 	\end{subfigure}
+ 	~
+ 	\begin{subfigure}[b]{0.49\textwidth}
+ 		\centering
+ 		\includegraphics[width=1\textwidth]{img/depths3}
+ 		\caption{Depth of function-invoking nodes}
+ 		\label{fig:depthOperator}
+ 	\end{subfigure}
+ 	\caption{Complexity indicators for the unique formulas in the four datasets combined (vertical axes are in logarithmic scale)}\label{Figure:depths}
+ \end{figure}
+ 
+The formula depth and the operator depth are indicators of the formula complexity in terms of calculation operations. The first is the depth of \synt{Formula} nodes in the tree, while the latter of function-invoking  \synt{FunctionCall}, \synt{RefFunctionCall} and \texttt{UDF} nodes. In the example in Figure \ref{figure:ourparsetree}, those are 2 and 1 respectively. The majority of the formulas in the dataset are as simple as this example or simpler: 68.72\% of the parse trees have formula depth up to 2, and 55,2\% have operator depth 0 or 1. However, as shown in Figures \ref{fig:depthFormula} and \ref{fig:depthOperator}, significantly complex formulas have also been found. 52,539 trees have formula depth greater than 11 and 79,885 trees have operator depth greater than 8, which are the formula and operator depths of formula (1). All formulas with operator depths over 65 involved simple but repetitive operations (additions, string concatenations or multiplications) of a large group of numbers or cells. For example, the formula with the largest operator depth of 208 is \texttt{320+204+...+616}, adding a total of 209 numbers.
+ 
  \noindent
  \fbox{
  	\begin{minipage}{1\textwidth}
- 		RQ1: ...
+ 		RQ1:  What are the size and complexity characteristics of Excel formulas?
  	\end{minipage}}
  	
 \subsection{Functions and operations}
-Which types of functions and operations are commonly invoked in formulas?
-\subsection{Input data}
-What type of input data is used in formulas?
 
-\subsubsection{Formulas and Functions}
 Table \ref{table:occurences} shows the number of parsed formulas in the four datasets that contain each type of node. All parsed formulas contain at least one \synt{Formula} node. 86.61\% of the formulas include a \synt{FunctionCall}. Built-in value-returning functions are invoked by 42.70\% of the formulas, the majority of which contain exactly one function call. This is derived from the data plotted in Figure \ref{fig:nodesFunctions}, showing the number of \texttt{EXCEL-FUNCTION} nodes in the parse trees of the unique formulas in datasets. We found that 6.13\% of the unique formulas contain two or more of such nodes.The largest number of \texttt{EXCEL-FUNCTION} nodes was found in a 1.231 character-long formula that invoked repetitively 7 distinct functions for a total of 91 times.
 
 A significant amount of formulas (1,963,284	or 1.04\%) invoke user-defined functions---e.g., \texttt{=erUserEmail(User_Id)}. A special case of user defined functions are the ones created using an Excel add-in. These are invoked as \texttt{_xll.functionName} in 0.65\% of the formulas.
@@ -404,8 +443,8 @@ Operators are common, with binary operators appearing in 48.58\% of the formulas
 		\caption{\synt{Constant}-related nodes}
 		\label{fig:nodesConstants}
 	\end{subfigure}
-
-	\caption{Frequency of functions, operations and constants in the parse trees of the unique formulas in the four datasets combined (vertical axes are in logarithmic scale)}
+	
+	\caption{Frequency of different types of functions, operations and constants in the parse trees of the unique formulas in the four datasets combined (vertical axes are in logarithmic scale)}
 \end{figure}
 
 Table \ref{table:functions} lists the most frequently used functions and the operators, along with their total occurrences in the unique formulas of the four datasets combined. The frequency of operators is similar across datasets, with the plus being the most popular one in all four. The frequency of functions varies, with \texttt{IF} and \texttt{SUM} being the ones in the top-ten most frequently appearing in all four datasets. From the top-five functions in each dataset, the ones that are missing from the table are the \texttt{AVERAGE} (fifth most frequent function in the Enron dataset) and the \texttt{INDIRECT} (third most frequent one in the Euses dataset). Examining the most rarely used Excel build-in functions, we find that \texttt{STEYX}, \texttt{VARA}, \texttt{CONVERT}, \texttt{EXPONDIST}, \texttt{WEIBULL}, \texttt{BETADIST} and \texttt{COSH} are used only one time each, the first two in the Euses and the remainder in the Fuse dataset.
@@ -417,9 +456,9 @@ Table \ref{table:functions} lists the most frequently used functions and the ope
 	\input{floats/table-functions}
 \end{table}
 
-Regarding function arguments, spreadsheet systems allow empty arguments (e.g. \texttt{=SUM(,E35,E37)}) but this is rarely done---in only 0.17\% of the formulas. Unions are found in only 578 formulas, e.g. \texttt{=LARGE((F38,C38),1)}. The majority of the occurrences are arguments of the \texttt{LARGE},  \texttt{SMALL} and \texttt{RANK} functions---these functions require a range of cells to be declared as a single argument, necessitating a union if the cells are not in a single range. In the EUSES and Fuse datasets we also found 743 cases of constant arrays used as arguments, e.g. \texttt{=FVSCHEDULE(1,\{0.09;0.11;0.1\})}. Reserved names are uncommon, with 667 occurrences of the \texttt{_xlnm.Print_Area} and 5 occurrences of \texttt{_xlnm.Database}.
+Regarding function arguments, spreadsheet systems allow empty arguments (e.g. \texttt{=SUM(,E35,E37)}) but this is rarely done---in only 0.17\% of the formulas. In the EUSES and Fuse datasets we also found 743 cases of constant arrays used as arguments, e.g. \texttt{=FVSCHEDULE(1,\{0.09;0.11;0.1\})}. Reserved names are uncommon, with 667 occurrences of the \texttt{_xlnm.Print_Area} and 5 occurrences of \texttt{_xlnm.Database}.
 
-Analyzing the utilization of constants, we find that 42.35\% of the formulas contain at least one; more than one third (35.61\%) of the formulas contain a number and 13.39\% are formulas that contain text. Figure \ref{fig:nodesConstants} plots the number of constants of different types in the parse trees. One to four numbers is used in 27.18\% of the unique formulas and 0.56\% contain more than 10 numbers and up to 209 (was left out of the plot for readability). For textual constants, an interesting finding is that there are most commonly three of them in formulas ---19.09\% of the unique formulas contain three \texttt{STRING} tokens in their parse trees, while 9.38\% contain one or two.
+Analyzing the utilization of constants in formulas, we find that 42.35\% of the formulas contain at least one; more than one third (35.61\%) of the formulas contain a number and 13.39\% are formulas that contain text. Figure \ref{fig:nodesConstants} plots the number of constants of different types in the parse trees. One to four numbers is used in 27.18\% of the unique formulas and 0.56\% contain more than 10 numbers and up to 209 (was left out of the plot for readability). For textual constants, an interesting finding is that there are most commonly three of them in formulas ---19.09\% of the unique formulas contain three \texttt{STRING} tokens in their parse trees, while 9.38\% contain one or two.
 
 Table \ref{table:constants} lists the most frequently used constants, along with their total occurrences in the unique formulas of the four datasets combined. The frequency of numerical constants is similar across datasets, but this is not the case with the non-numerical ones, with \texttt{FALSE} and \texttt{"-"} being the only ones in the top-twenty of all datasets.
 
@@ -432,9 +471,14 @@ Table \ref{table:constants} lists the most frequently used constants, along with
 
 The array formulas production rule, covering \synt{Formula}s surrounded by brackets, is the only part of the grammar that is not evaluated. The Gembox library that we use for reading spreadsheets does not support array formulas---it reads them as regular formulas, without the surrounding brackets. For this reason, we cannot we extract information on their frequency in the four datasets.
 
-\subsubsection{References}
+Which types of functions and operations are commonly invoked in formulas?
 
-98.92\% of the formulas in the four datasets contain at least one \synt{Reference}. Figure \ref{fig:nodesReference} plots the number of references in the parse trees of the unique formulas. One or, more commonly, two reference nodes are found in the parse trees of the majority of the formulas (in 64.61\%), while 1.82\% have more than 10 reference nodes and up to 235. 24.32\% of the formulas include a reference to a \texttt{':'} separated cell range. Named ranges exist in 1.79\% of formulas. The Enron dataset differs significantly from the other ones in this aspect, having named ranges in 7.24\% of its formulas. While most formulas with named ranges refer to only one, there exist complex cases: 3.215  unique formulas were found with more than 10 \synt{NamedRange} nodes, and even 6 with more than 100.
+\subsection{Input data}
+Spreadsheet formula calculations are performed on data from other cells, internal or external, local or in different sheets. This data is used in formulas by specifying references to these cells. 98.92\% of the formulas in the four datasets contain at least one \synt{Reference}. Figure \ref{fig:nodesReference} plots the number of references in the parse trees of the unique formulas. One or, more commonly, two reference nodes are found in the parse trees of the majority of the formulas (in 64.61\%), while 1.82\% have more than 10 reference nodes and up to 235.
+
+As explained in Section \ref{subsec:references}, references can include cell ranges, which can be constructed by three operators: the range operator \texttt{:}, the union operator \texttt{,}, and the intersection operator \texttt{\char32}. The range operator is the most common one, with 24.32\% of the formulas including at least one instance of it. In the four datasets, intersection operations are found in 225,621 formulas (0.12\%), the majority of which (80\%) being in the Fuse dataset alone. Unions are found in only 578 formulas, e.g. \texttt{=LARGE((F38,C38),1)}. The majority of the occurrences are arguments of the \texttt{LARGE},  \texttt{SMALL} and \texttt{RANK} functions---these functions require a range of cells to be declared as a single argument, necessitating a union if the cells are not in a single range. 
+
+References to named ranges exist in 1.79\% of formulas. The Enron dataset differs significantly from the other ones in this aspect, having named ranges in 7.24\% of its formulas. While most formulas with named ranges refer to only one, there exist complex cases: 3.215  unique formulas were found with more than 10 \synt{NamedRange} nodes, and even 6 with more than 100.
 
 28.53\% of the total formulas contain a reference that is not local, since it includes a \synt{Prefix}. External file references exist in 8.32\% of the formulas.  Figure \ref{fig:nodesPrefix} plots the number of \synt{Prefix} nodes in the parse trees of the unique formulas. Most formulas that utilize prefixed references have exactly one \texttt{SHEET} or \texttt{FILE} node in their parse trees. Only 1.07\% of the unique formulas include more than one external file references and up to 34, although all references in this case were to the same external file.
 
@@ -469,6 +513,26 @@ Moving to the edge cases of the grammar, the structures that are least common in
 	54,153 formulas (0.03\%) from the Fuse and the WikiLeaks datasets contain this relatively new type of reference, introduced in Excel 2007. An example is \texttt{tblData[[\#This Row],[Year]]}, returning the value of the cell in the current row of the defined table \texttt{tblData} in the table column with header \texttt{Year}.
 	\item[Multiple sheet references] \hfill \\
 	25,218 formulas (0.01\%) contain this complex case of reference, which spans across multiple sheets. An example formula is \texttt{=SUM(Sheet1:Sheet10!A5)}, evaluated by summing all cells in position A5 from Sheet1 to Sheet10. In 1,054 formulas, the reference is to external files.
+	\item[Complex ranges]  \hfill \\
+	9,166 formulas (0.005\%) contain \synt{Reference}s that include more than two or different types of \texttt{':'} separated \synt{ReferenceItem}s. An example is range \texttt{B2:D4:C1:C5}, illustrated in Figure \ref{fig:complexA}, which is equivalent to \texttt{B1:D5}. The range limits in complex ranges are not the ones specified in the formula: they are calculated as the upper leftmost and lower rightmost cell in the square that includes all defined cells. Understanding these limits is even less intuitive when vertical or horizontal ranges or named ranges are used, like in Figure \ref{fig:complexB}. The majority (95\%) of the complex ranges in the dataset are defined using three cell locations.
+	\begin{figure}
+		\centering
+		\begin{subfigure}[b]{0.49\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{img/complexRanges}
+			\caption{A range with four limits \texttt{B2:D4:C1:C5}, equivalent to the area marked gray \texttt{B1:D5}}
+			\label{fig:complexA}
+		\end{subfigure}
+		~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+		%(or a blank line to force the subfigure onto a new line)
+		\begin{subfigure}[b]{0.49\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{img/complexNamedRanges}
+			\caption{A range with a named range \texttt{rangeC2D3:B1}, equivalent to the area marked gray \texttt{A1:C3}}
+			\label{fig:complexB}
+		\end{subfigure}
+		\caption{Examples of references to complex ranges}\label{Figure:ComplexRanges}
+	\end{figure}	
 	\item[Prefixed right limits] \hfill \\
 	3,941 formulas (0.002\%) include a reference with a prefix in the right limit, e.g. \texttt{=SUM('Deals'!F9:'Deals'!F16)}, which is equivalent to \texttt{=SUM('Deals'!F9:F16)}. In all cases this prefix is identical to the first one, as continuous ranges spanning across multiple sheets are not supported by Excel. Still, this syntax is supported.
 \end{description}
@@ -479,74 +543,7 @@ An example of using those functions in this way would be \texttt{=SUM(IF(A1=1,A2
 
 Another rare case of references are the dynamic data exchange links, recognized using token \texttt{DDECALL}, which were found in 3,686 formulas of the Enron and the Euses datasets and in only 3 formulas of the other two. These take the form of \texttt{=Program|Topic!Arguments}, e.g. \texttt{=Database|TableA!Column1}, and are used in Windows versions of Microsoft Excel to receive  data from other applications.
 
-\subsubsection{Complexity of formulas}
-
-The complexity of the formulas in terms of invoked functions and operations is reflected in the structure of the produced parse trees. To demonstrate how the parse trees can be used for analyzing formula characteristics, we calculated three formula complexity indicators:  the conditional depth, the formula depth, and the operator depth. The results, in terms of number of unique formulas, are plotted in Figure \ref{Figure:depths}.
-
-The conditional depth of a formula is the number of nested conditional function calls that it includes. We measured it as the depth of function-invoking parse tree nodes (\texttt{EXCEL-FUNCTION} and \texttt{REF-FUNCTION-COND}) created for conditional functions\footnote{Conditional functions are the \texttt{IF}, \texttt{COUNTIF}, \texttt{COUNTIFS}, \texttt{SUMIF}, \texttt{SUMIFS}, \texttt{AVERAGEIF}, \texttt{AVERAGEIFS} and \texttt{IFERROR}.}. Formula \texttt{ROUND(IF(D6>1600,D9,(1+(1600-IF(D6>D7,D6,D7))*D8)*D9),0)} (1), for example, has conditional depth of 2. We found that 7,549,671 (88.02\%) of the formulas in the datasets do not include any conditional function call and 805,359 (9.39\%) include only one. On the opposite end, 7,791 formulas include 5 or more nested conditional function calls and 288 parse trees have conditional depth over 20.
-
-\begin{figure}
-	\centering
-	
-	\begin{subfigure}[b]{0.49\textwidth}
-		\centering
-		\includegraphics[width=1\textwidth]{img/depths4}
-		\caption{Depth of conditional function nodes}
-		\label{fig:depthConditional}
-	\end{subfigure}
-	~
-	
-	\begin{subfigure}[b]{0.49\textwidth}
-		\centering
-		\includegraphics[width=1\textwidth]{img/depths2}
-		\caption{Depth of \synt{Formula} nodes}
-		\label{fig:depthFormula}
-	\end{subfigure}
-	~
-	\begin{subfigure}[b]{0.49\textwidth}
-		\centering
-		\includegraphics[width=1\textwidth]{img/depths3}
-		\caption{Depth of function-invoking nodes}
-		\label{fig:depthOperator}
-	\end{subfigure}
-	\caption{Complexity indicators for the unique formulas in the four datasets combined (vertical axes are in logarithmic scale)}\label{Figure:depths}
-\end{figure}
-
-The formula depth and the operator depth are indicators of the formula complexity in terms of calculation operations. The first is the depth of \synt{Formula} nodes in the tree, while the latter of function-invoking  \synt{FunctionCall}, \synt{RefFunctionCall} and \texttt{UDF} nodes. In the example in Figure \ref{figure:ourparsetree}, those are 2 and 1 respectively. The majority of the formulas in the dataset are as simple as this example or simpler: 68.72\% of the parse trees have formula depth up to 2, and 55,2\% have operator depth 0 or 1. However, as shown in Figures \ref{fig:depthFormula} and \ref{fig:depthOperator}, significantly complex formulas have also been found. 52,539 trees have formula depth greater than 11 and 79,885 trees have operator depth greater than 8, which are the formula and operator depths of formula (1). All formulas with operator depths over 65 involved simple but repetitive operations (additions, string concatenations or multiplications) of a large group of numbers or cells. For example, the formula with the largest operator depth of 208 is \texttt{320+204+...+616}, adding a total of 209 numbers.
-
-\subsubsection{Smelly Grammar Constructs}
-There are two constructs in the spreadsheet formula grammar that we consider to be smelly, i.e. counterintuitive or inconsistent with the rest of the grammar and error-prone: complex ranges and the intersect operator.
-\begin{figure}
-	\centering
-	\begin{subfigure}[b]{0.49\textwidth}
-		\centering
-		\includegraphics[width=1\textwidth]{img/complexRanges}
-		\caption{A range with four limits \texttt{B2:D4:C1:C5}, equivalent to the area marked gray \texttt{B1:D5}}
-		\label{fig:complexA}
-	\end{subfigure}
-	~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
-	%(or a blank line to force the subfigure onto a new line)
-	\begin{subfigure}[b]{0.49\textwidth}
-		\centering
-		\includegraphics[width=1\textwidth]{img/complexNamedRanges}
-		\caption{A range with a named range \texttt{rangeC2D3:B1}, equivalent to the area marked gray \texttt{A1:C3}}
-		\label{fig:complexB}
-	\end{subfigure}
-	\caption{Examples of references to complex ranges}\label{Figure:ComplexRanges}
-\end{figure}
-
-By \textit{complex ranges} we mean \synt{Reference}s that include more than two or different types of \texttt{':'} separated \synt{ReferenceItem}s. An example is range \texttt{B2:D4:C1:C5}, illustrated in Figure \ref{fig:complexA}. The smelly aspect of complex ranges is their evaluation. Simple cell ranges are in the form \texttt{top-left:bottom-right}, including all cells in between the two limits. However, the limits in complex ranges are not the ones specified in the formula: they are calculated as the upper leftmost and lower rightmost cell in the square that includes all defined cells. For example, range \texttt{B2:D4:C1:C5} is equivalent to \texttt{B1:D5}. Understanding the limits of the range becomes even less intuitive when vertical or horizontal ranges or named ranges are used, like in Figure \ref{fig:complexB}. Moreover, this syntax does not add to expressiveness of the grammar. Complex ranges are rare: 9,166 formulas (0.005\%) include complex ranges, the majority of which (95\%) are defined using three cell locations.
-
-\begin{figure}
-	\centering
-	\includegraphics[]{img/intersection}
-	\caption{Example of intersection operation}
-	\label{Figure:intersection}
-\end{figure}
-
-The second construct is the \textit{intersect operator}, which we consider to be smelly because it is \texttt{\char32}, a single whitespace.
-An advantage of this approach is that it enables more natural language definition of intersections, e.g. \texttt{=SUM((Total_Cost Jan):(Total_Cost Apr.))}.
-However, we find this representation inconsistent to the grammar, because whitespace does not carry meaning in the rest of the language. Other spreadsheet systems do not use whitespace for this operator, either by using an alternative, like LibreOffice which uses \texttt{!}, or simply by not supporting it. Moreover, the visual representation of intersection in Excel can be counter-intuitive. The example formula in Figure \ref{Figure:intersection} does not evaluate to 111, as a user could infer from the marked ranges, but returns a \texttt{\#NULL!} error. In the four datasets intersection operations are found in 225,621	formulas (0.12\%), the majority of which (80\%) being in the Fuse dataset alone.
+What type of input data is used in formulas?
 
 \section{Discussion and Limitations}
 \label{sec:discussion}
