@@ -628,6 +628,12 @@ A point of improvement for the grammar is that its exact compatibility with the 
 A comparison to the official specification could lead to either improving compatibility, or extending the number of known limitations.
 In general, the problem of determining whether two context-free grammars are equivalent is undecidable, but in practice several techniques have been successfully used for this purpose \cite{lammel2009introduction,fischer2012comparison}.
 
+The analysis of the formulas in the dataset revealed that the majority are small and simple, but also that surprisingly large and complex formulas, with more than 50 functions or operations, exist.
+In terms of functionality, the majority of the formulas include at least one function or operation and almost half of them contain at least one constant.
+Almost all formulas were found to use data from other cells, which are often to cells of different worksheets and of external files.
+Various types of references were found: References in the form of cell ranges are used often, in one fourth of the formulas, but unions, intersections, and references to named ranges, to horizontal and vertical ranges and to reference-returning Excel functions are rare.
+In less than 0.1\% of the formulas we found multiple sheet references, complex ranges, structured references or dynamic data exchange links.
+
 \bibliographystyle{wileyj}
 \bibliography{XLGrammarRefs}
 
