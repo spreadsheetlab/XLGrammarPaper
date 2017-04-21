@@ -125,7 +125,7 @@ For example, if \texttt{A1},\texttt{A3},\texttt{A3} contain the values \texttt{1
 \section{Spreadsheet Formula Grammar}
 \label{section:grammar}
 
-For previous and ongoing research the authors needed a grammar for Microsoft Excel spreadsheet formulas with the following requirements:
+To support research on the spreadsheet formula codebases, a grammar for Microsoft Excel spreadsheet formulas should satisfy the following requirements:
 
 \label{sec:designgoals}
 \begin{enumerate}
@@ -133,6 +133,8 @@ For previous and ongoing research the authors needed a grammar for Microsoft Exc
 	\item Produce parse trees suited for further manipulation and analysis with minimal post-processing required
 	\item Recognize the spreadsheet formula elements required for supporting spreadsheets research
 \end{enumerate}
+ 
+Examining previous research works (including \cite{DBLP:conf/icse/HermansPD12, custodes, DouCACheck, hermans2014bumblebee, badame2012refactoring, Expector}), we find that the spreadsheet formula elements that a grammar for this purpose needs to recognize include functions calls (of build-in and user-defined functions), function arguments, data (of different types) and references (to internal and external cells and ranges of different types).
 
 We identified and examined two existing grammars: the official, published grammar for Excel formulas \cite{ExcelOfficialGrammar} and the grammar implemented by the formula parser within the Apache POI Java API for Microsoft Documents, and found that none of them fulfills the above requirements, which is further discussed in Section \ref{sec:comparisonGrammars}. For these reasons the authors decided to construct a new grammar with the above requirements as design goals.
 
@@ -567,7 +569,7 @@ For our purpose of facilitating research on spreadsheet formulas, we need a gram
 		\scalebox{.7}{
 			\input{floats/parsetree-poi-sumb25}
 		}
-		\caption{Parse tree produced by the Apache POI (v3.15) FormulaParser}%\footnotemark[\ref{footnote:poi}]}
+		\caption{Parse tree produced by the Apache POI (v3.15) FormulaParser}\footnotemark[\ref{footnote:poi}]}
 		\label{figure:parseTreePOI}
 	\end{subfigure}
 	\caption{Parse trees for formula \texttt{SUM(B2,5)}}
