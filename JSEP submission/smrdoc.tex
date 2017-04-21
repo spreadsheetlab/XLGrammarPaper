@@ -54,9 +54,11 @@ modeling to financial systems. In a survey held in 2003 by the US Bureau of Labo
 Because of their widespread use, spreadsheets have been the topic of research since the nineties \cite{DBLP:journals/sigplan/BellP93}. Recent research has often focused on analyzing and visualizing spreadsheets \cite{DBLP:conf/icse/HermansPD11, Shio1999}. More recently, researchers have attempted to detect data and table clones in spreadsheets 
 \cite{Hermans:clones, Dou2016} and to define \emph{spreadsheet smells}: applications of Fowler's code smells to spreadsheets \cite{DBLP:conf/icse/HermansPD12, custodes, DouCACheck}, followed by approaches to refactor spreadsheets \cite{hermans2014bumblebee,badame2012refactoring} and to apply testing practices on spreadsheets \cite{Expector}. These research works analyze the formulas within spreadsheets, and therefore often involve formula parsing. This is done by using simple grammars which have not been evaluated (like in \cite{badame2012refactoring} or the formula pattern recovery technique in \cite{DouCACheck}), through implied, undefined grammars (\cite{DBLP:conf/icse/HermansPD11, DBLP:conf/icse/HermansPD12, custodes, hermans2014bumblebee, Expector}), or through entirely bypassing formula parsing and using string comparison operations (\cite{Dou2016}).
 
-The above analyses are our main motivation towards defining a formula grammar. Having such a grammar will enable parsing spreadsheet formulas into processable parse trees which can in turn be used to analyze cell references, extract metrics, find code smells, evaluate formula similarity, and explore the structure of spreadsheets. Essentially, a reliable and consistent grammar and its parser implementation, available to the spreadsheet research community, can support research on spreadsheet formula codebases and can enhance the understanding and usability of research results. To make a grammar suitable for this goal, the requirements that we set for it are to be compatible with the official Excel formula language, to produce parse trees suited for further manipulation and analysis, and to recognize the spreadsheet formula elements that are required for supporting spreadsheets research.
+The above analyses are our main motivation towards defining a formula grammar. Having such a grammar will enable parsing spreadsheet formulas into processable parse trees which can in turn be used to analyze cell references, extract metrics, find code smells, evaluate formula similarity, and explore the structure of spreadsheets. Essentially, a reliable and consistent grammar and its parser implementation, available to the spreadsheet research community, can support research on spreadsheet formula codebases and can enhance the understanding and usability of research results.
 
-We further utilize the grammar to analyze more than eight million unique formulas originating from the three major datasets available in the spreadsheet research community, namely EUSES \cite{euses}, Enron \cite{enron} and FUSE \cite{fuse}, along with a fourth dataset of that we accumulated through crawling the WikiLeaks website.  The goal of the analysis is to obtain an understanding of how people program in the spreadsheets formula language by quantitatively evaluating the characteristics of spreadsheet formulas in terms of complexity, functionality and data utilization. Specifically, we explore the following research questions:
+A grammar suitable for this goal should be compatible with the official Excel formula language, produce parse trees suited for further manipulation and analysis, and recognize the spreadsheet formula elements that are required for supporting spreadsheets research. We identified and examined two existing grammars: the official, published grammar for Excel formulas \cite{ExcelOfficialGrammar} and the grammar implemented by the formula parser of the Apache POI Java API for Microsoft Documents\footnote{\url{https://poi.apache.org/spreadsheet/}}, and found that neither of them fulfills those requirements.
+
+In this paper we present a grammar that can support research on spreadsheet formulas. We further utilize the grammar to analyze more than eight million unique formulas originating from the three major datasets available in the spreadsheet research community, namely EUSES \cite{euses}, Enron \cite{enron} and FUSE \cite{fuse}, along with a fourth dataset of that we accumulated through crawling the WikiLeaks website.  The goal of the analysis is to obtain an understanding of how people program in the spreadsheets formula language by quantitatively evaluating the characteristics of spreadsheet formulas in terms of complexity, functionality and data utilization. Specifically, we explore the following research questions:
 
 \begin{itemize}
 	\item[RQ1] What are the size and complexity characteristics of Excel formulas?
@@ -67,7 +69,7 @@ We further utilize the grammar to analyze more than eight million unique formula
 
 The contributions of this paper are (1) a concise grammar for spreadsheet formulas, (2) the evaluation of the compatibility of the grammar using four major datasets, and (3) an exploratory study of the formulas in the datasets in terms of complexity, utilized data and functionality.
 
-The remainder of the paper is organized as follows: in the following section we summarize the basic concepts of spreadsheets and of the formula language. In Section \ref{section:grammar} we discuss our design process and present the spreadsheet formula grammar, its lexical and syntactical analysis rules, and details on precedence and ambiguity. Section \ref{sec:evaluation} explains how we implemented and evaluated the grammar. The analysis of the datasets with respect to the research questions is presented in Section \ref{section:results}. In Section \ref{sec:discussion} we discuss the grammar and its limitations. Section \ref{section:relatedWork} presents related work and Section \ref{section:conclusion} concludes the paper.
+The remainder of the paper is organized as follows: in the following section we summarize the basic concepts of spreadsheets and of the formula language. In Section \ref{section:grammar} we discuss our design process and present the spreadsheet formula grammar, its lexical and syntactical analysis rules, and details on precedence and ambiguity. Section \ref{sec:evaluation} explains how we implemented and evaluated the grammar. The analysis of the datasets with respect to the research questions is presented in Section \ref{section:results}. In Section \ref{sec:discussion} we compare the grammar to alternative grammars and parsers and we discuss the grammar and its limitations. Section \ref{section:relatedWork} presents related work and Section \ref{section:conclusion} concludes the paper.
 
 \section{Background}
 
@@ -132,42 +134,10 @@ For previous and ongoing research the authors needed a grammar for Microsoft Exc
 	\item Recognize the spreadsheet formula elements required for supporting spreadsheets research
 \end{enumerate}
 
-While an official grammar for Excel formulas is published \cite{ExcelOfficialGrammar}, it is too granular for our purpose ---it is over 30 pages long and contains hundreds of production rules. Because of its detail and the large number of production rules, the resulting parse trees are very complex and thus fail requirement 2.
-An example is given in Figure \ref{figure:parsetrees}(a): the relatively simple formula \texttt{SUM(B2,5)} results in a 37-node tree with a depth of 18 nodes. 
-
-For our purpose of facilitating research on spreadsheet formulas, we need a grammar that provides a different level of detail, just-enough to satisfy requirement 3. Examining previous research works (including \cite{DBLP:conf/icse/HermansPD12, custodes, DouCACheck, hermans2014bumblebee, badame2012refactoring, Expector}), we find that the spreadsheet formula elements that a grammar for this purpose needs to recognize include functions calls (of build-in and user-defined functions), function arguments, data (of different types) and references (to internal and external cells and ranges of different types).
-
-\begin{figure}
-	\centering
-	\begin{subfigure}[b]{0.45\textwidth}
-		\centering
-		\hspace{-2em}
-		\scalebox{.7}{
-			\input{floats/parsetree-ms-sumb25}
-		}
-		\caption{Microsoft Excel parse tree, constructed based on reference \cite{ExcelOfficialGrammar}}
-	\end{subfigure}
-	~
-	%\end{figure}
-	%\begin{figure}
-	\begin{subfigure}[b]{0.45\textwidth}
-		\centering
-		\vspace{1em}
-		\hspace{-0.5em}
-		\scalebox{.7}{
-			\input{floats/parsetree-ours-sumb25}
-		}
-		\caption{Parse tree produced using the grammar defined in this paper}
-		\label{figure:ourparsetree}
-	\end{subfigure}
-	\caption{Parse trees for formula \texttt{SUM(B2,5)}}
-	\label{figure:parsetrees}
-\end{figure}
-
-For these reasons the authors decided to construct a new grammar with the above requirements as design goals.
+We identified and examined two existing grammars: the official, published grammar for Excel formulas \cite{ExcelOfficialGrammar} and the grammar implemented by the formula parser within the Apache POI Java API for Microsoft Documents, and found that none of them fulfills the above requirements, which is further discussed in Section \ref{sec:comparisonGrammars}. For these reasons the authors decided to construct a new grammar with the above requirements as design goals.
 
 \subsection{Design Process}
-
+\label{sec:designProcess}
 The approach that we followed towards developing the grammar was gradual enrichment through trial-and-error: we started from a simple grammar containing only the most common and well known formula structures and implemented it using a parser generator. Subsequently, we repeatedly tested it against formulas extracted from spreadsheet datasets, leading to further enrichments and refinements, until all common and rare cases found in the datasets were supported. 
 
 For the first version of the grammar \cite{XLparser} we used the two major datasets that were available in the spreadsheet research community at the time, namely the EUSES dataset \cite{euses} and the Enron \cite{enron} corpus, from which we extracted 1,035,586 unique formulas. From the simple grammar that we started from until the published version that parses 99.99\% of those formulas, we fixed a total of 85 parse issues. We used GitHub for tracking the parse errors that were produced and pull requests for integrating fixes and refinements to the parser.
@@ -554,7 +524,61 @@ Another rare case of references are the dynamic data exchange links, recognized 
 
 \section{Discussion and Limitations}
 \label{sec:discussion}
-The currently defined formula grammar is able to parse 99,99\% of the 8,577,426 unique formulas in the four datasets. In this section, we discuss a variety of issues that affect its applicability and suitability.
+The currently defined formula grammar is able to parse 99,99\% of the 8,577,426 unique formulas in the four datasets. In this section, we compare it to other grammars and parsers and we discuss a variety of issues that affect its applicability and suitability.
+
+\subsection{Alternative grammars and parsers}
+\label{sec:comparisonGrammars}
+
+We have identified two alternatives to the proposed grammar and its parser implementation: The official, published grammar for Excel formulas \cite{ExcelOfficialGrammar} and the  formula parser implementation within the Apache POI Java API for Microsoft Documents\footnote{\label{footnote:poi}\url{https://poi.apache.org/apidocs/org/apache/poi/ss/formula/FormulaParser.html}}. From the related works discussed in this paper, \cite{DouCACheck} and \cite{badame2012refactoring} utilize Apache POI for processing spreadsheets, but we are not aware of any related works utilizing either the official Excel formula grammar of Apache POI for formula parsing.
+
+Of the requirements set in Section \ref{section:grammar}, the official Excel formula grammar naturally fulfills the first one, on compatibility.
+However, it is too granular for our purpose ---it is over 30 pages long and contains hundreds of production rules. Because of its detail and the large number of production rules, the resulting parse trees are very complex and thus fail requirement 2.
+An example is given in Figure \ref{figure:parsetrees}(b): the relatively simple formula \texttt{SUM(B2,5)} results in a 37-node tree with a depth of 18 nodes.
+For our purpose of facilitating research on spreadsheet formulas, we need a grammar that provides a different level of detail, just-enough to satisfy requirement 3.
+
+\begin{figure}
+	\centering
+	%\end{figure}
+	%\begin{figure}
+	\begin{subfigure}[b]{0.4\textwidth}
+		\centering
+		\vspace{1em}
+		\hspace{-0.5em}
+		\scalebox{.7}{
+			\input{floats/parsetree-ours-sumb25}
+		}
+		\caption{Parse tree produced using the grammar defined in this paper}
+		\label{figure:ourparsetree}
+	\end{subfigure}
+	~
+	\begin{subfigure}[b]{0.4\textwidth}
+		\centering
+		\hspace{-2em}
+		\scalebox{.7}{
+			\input{floats/parsetree-ms-sumb25}
+		}
+		\caption{Microsoft Excel parse tree, constructed based on reference \cite{ExcelOfficialGrammar}}
+	\end{subfigure}
+	~
+	\begin{subfigure}[b]{1\textwidth}
+		\centering
+		\vspace{1em}
+		\hspace{-0.5em}
+		\scalebox{.7}{
+			\input{floats/parsetree-poi-sumb25}
+		}
+		\caption{Parse tree produced by the Apache POI (v3.15) FormulaParser}%\footnotemark[\ref{footnote:poi}]}
+		\label{figure:parseTreePOI}
+	\end{subfigure}
+	\caption{Parse trees for formula \texttt{SUM(B2,5)}}
+	\label{figure:parsetrees}
+\end{figure}
+
+Examining the Apache POI formula parser, the current version of which is v3.15, the first issue that we encountered is the grammar specification: We found no published or defined grammar, apart from a high-level grammar composed of 4 BNF syntax rules in the comments of the FormulaParser class. The grammar specification can therefore only be retrieved or reverse-engineered through the implementation. Moreover, the FormulaParser is marked to be `for POI internal use only', both in the source code and in its documentation. The parse tree is not offered through an interface, while its root node is declared as a private property, not exposed outside the FormulaParser class.
+
+The Apache POI formula parser fails our second requirement because of the structure of the produced parse trees. As demonstrated in the example in Figure \ref{figure:parsetrees}(c), the parse trees it produces are condensed. However, this is at the expense of defining many different types of edge nodes to represent different syntactical cases, each type with its own properties and methods (in the current version, there exist 66 types of edge nodes, counted as the members of the org.apache.poi.ss.formula.ptg package). For example, reference \texttt{A1} is represented as an edge node of type \texttt{RefPtg}, reference \texttt{A1:A3} as an \texttt{AreaPtg} and reference \texttt{Sheet3!B6} is an \texttt{Ref3DPxg}. For a simple task like finding the cell references of a formula, a researcher would therefore need to manually explore and handle all different types of edge nodes that might relate to references through various properties. Similar to the official Excel formula grammar specification, it is built for a different purpose than the proposed grammar, i.e., to facilitate the evaluation of formulas, and this makes it less suitable for the intended use.
+
+Finally, comparing it to the proposed grammar, Apache POI has not been tested against and improved based on the datasets discussed in this paper. To reach this conclusion, we compiled a list of the latest rare grammar cases that were found in the datasets and XLParser had to be enriched to support according to the process described in Section \ref{sec:designProcess}. We tested the Apache POI formula parser against those cases and we found 6 cases that caused it to generate parse errors and incorrect parse trees\footnote{More information on those cases can be found in the issues 60979 to 60984 that we opened in the Apache POI project, accessible through  \url{https://bz.apache.org/bugzilla/show_bug.cgi?id=<issue-number>}}. Example grammatical cases that we found that Apache POI in its current version does not support are intersections between named ranges (e.g.  \texttt{SUM(January Sales)}), ranges with error references (e.g. \texttt{SUM(#REF!:#REF!)}), quoted multiple sheet references (e.g. \texttt{SUM('sales 1:sales 10'!F9)}), which it incorrectly recognizes as single-sheet references (to non-existent worksheet \texttt{'sales 1:sales 10'}), and references to quoted sheets in external files (e.g. \texttt{‘[file.xlsx]final sales’!A20}), which it incorrectly recognizes as references to local worksheets.
 
 \subsection{Dialects}
 
